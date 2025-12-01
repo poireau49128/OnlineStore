@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "kSkqXkc3sdNzQHmt7RKA0t68qckNFk8TEf60H4VyS5lEy8QNRYfzyxImbJGQig93KgDq4e/nePPdMmeEFQaK6Q==",
+  "success": true,
+  "projectFilePath": "/home/poireau/Desktop/OnlineStore/Store.Application/Store.Application.csproj",
+  "expectedPackageFiles": [
+    "/home/poireau/.nuget/packages/microsoft.aspnetcore.app.ref/8.0.20/microsoft.aspnetcore.app.ref.8.0.20.nupkg.sha512"
+  ],
+  "logs": []
+}

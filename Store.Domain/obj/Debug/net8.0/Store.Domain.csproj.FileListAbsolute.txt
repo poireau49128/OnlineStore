@@ -1,0 +1,11 @@
+/home/poireau/Desktop/OnlineStore/Store.Domain/bin/Debug/net8.0/Store.Domain.deps.json
+/home/poireau/Desktop/OnlineStore/Store.Domain/bin/Debug/net8.0/Store.Domain.dll
+/home/poireau/Desktop/OnlineStore/Store.Domain/bin/Debug/net8.0/Store.Domain.pdb
+/home/poireau/Desktop/OnlineStore/Store.Domain/obj/Debug/net8.0/Store.Domain.GeneratedMSBuildEditorConfig.editorconfig
+/home/poireau/Desktop/OnlineStore/Store.Domain/obj/Debug/net8.0/Store.Domain.AssemblyInfoInputs.cache
+/home/poireau/Desktop/OnlineStore/Store.Domain/obj/Debug/net8.0/Store.Domain.AssemblyInfo.cs
+/home/poireau/Desktop/OnlineStore/Store.Domain/obj/Debug/net8.0/Store.Domain.csproj.CoreCompileInputs.cache
+/home/poireau/Desktop/OnlineStore/Store.Domain/obj/Debug/net8.0/Store.Domain.dll
+/home/poireau/Desktop/OnlineStore/Store.Domain/obj/Debug/net8.0/refint/Store.Domain.dll
+/home/poireau/Desktop/OnlineStore/Store.Domain/obj/Debug/net8.0/Store.Domain.pdb
+/home/poireau/Desktop/OnlineStore/Store.Domain/obj/Debug/net8.0/ref/Store.Domain.dll
