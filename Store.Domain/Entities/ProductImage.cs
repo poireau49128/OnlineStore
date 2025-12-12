@@ -6,12 +6,6 @@ public class ProductImage
 
     public string RelativePath { get; private set; } = null!;
     public int SortOrder { get; private set; }
-
-    // Картинка может принадлежать продукту
-    public int? ProductId { get; private set; }
-    public Product? Product { get; private set; }
-
-    // … или варианту продукта (цвет/размер)
     public int? ProductVariantId { get; private set; }
     public ProductVariant? ProductVariant { get; private set; }
 
@@ -26,17 +20,9 @@ public class ProductImage
         SortOrder = sortOrder;
     }
 
-    public ProductImage AttachToProduct(int productId)
-    {
-        ProductId = productId;
-        ProductVariantId = null;
-        return this;
-    }
-
     public ProductImage AttachToVariant(int variantId)
     {
         ProductVariantId = variantId;
-        ProductId = null;
         return this;
     }
 }

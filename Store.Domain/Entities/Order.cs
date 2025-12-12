@@ -16,7 +16,6 @@ public class Order
 {
     public int Id { get; private set; }
     public string UserId { get; private set; } = null!;
-    public ApplicationUser User { get; private set; } = null!;
     public string? Comment { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public OrderStatus Status { get; private set; }
@@ -37,12 +36,12 @@ public class Order
     public void AddItem(int productId, int warehouseId, int quantity, Money unitPrice, string? comment)
     {
         if (quantity <= 0) throw new ArgumentException("Quantity must be positive");
-        _items.Add(new OrderItem(productId, warehouseId, quantity, unitPrice, comment));
+        _items.Add(new OrderItem(Id, productId, warehouseId, quantity, unitPrice, comment));
     }
 
     public Money GetTotal()
     {
-        var currency = Items.FirstOrDefault()?.UnitPrice.Currency ?? "RUB";
+        var currency = Items.FirstOrDefault()?.UnitPrice.Currency ?? "BYN";
         var total = Money.Zero(currency);
         foreach (var item in _items)
         {
@@ -69,12 +68,14 @@ public class OrderItem
     public Warehouse Warehouse { get; private set; } = null!;
     public int Quantity { get; private set; }
     public Money UnitPrice { get; private set; }
+    public decimal DiscountPercent { get; private set; } = 0;
     public string? Comment { get; private set; }
 
     private OrderItem() { }
 
-    public OrderItem(int productId, int warehouseId, int quantity, Money unitPrice, string? comment)
+    public OrderItem(int orderId, int productId, int warehouseId, int quantity, Money unitPrice, string? comment)
     {
+        OrderId = orderId;
         ProductId = productId;
         WarehouseId = warehouseId;
         if (quantity <= 0) throw new ArgumentException("Quantity must be positive");

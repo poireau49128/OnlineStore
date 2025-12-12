@@ -7,7 +7,6 @@ using Store.Domain.Entities;
 using Store.Domain.ValueObjects;
 using Store.DataMigration;   // тут лежат OldProduct и OldStoreDbContext
 
-
 class Program
 {
     static void Main(string[] args)
@@ -15,24 +14,18 @@ class Program
         Console.WriteLine("=== Data migration started ===");
 
         // ----- 1. Настраиваем контексты -----
-
         var oldOptionsBuilder = new DbContextOptionsBuilder<OldStoreDbContext>();
         oldOptionsBuilder.UseSqlServer(
             "Server=bekmanwood.by;Database=bekmanwo_Dosermana;User Id=bekmanwo_bekmanwo;Password=Ugh4Au9A;TrustServerCertificate=True;");
 
         var newOptionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
         newOptionsBuilder.UseSqlServer(
-            "Server=localhost,1433;Database=StoreDbDev;User Id=sa;Password=StrongPassword123!;TrustServerCertificate=True");
+            "Server=localhost,1433;Database=StoreDb;User Id=sa;Password=StrongPassword123!;TrustServerCertificate=True");
 
         using var oldDb = new OldStoreDbContext(oldOptionsBuilder.Options);
         using var newDb = new AppDbContext(newOptionsBuilder.Options);
 
-        // Чтобы не нарваться на двойные данные при повторном запуске — по ситуации:
-        // newDb.Database.EnsureDeleted();
-        // newDb.Database.Migrate();
-
         // ----- 2. Склады (Warehouses) -----
-
         Console.WriteLine("== Migrating warehouses ==");
 
         Warehouse grodnoWarehouse;
@@ -53,17 +46,11 @@ class Program
         }
 
         // ----- 3. Типы товаров и категории (ProductType, Category) -----
-
         Console.WriteLine("== Migrating product types & categories ==");
 
-        // Старые товары (примерная структура: Category, SubCategory, и т.п.)
-        var oldProducts = oldDb.Products
-            .AsNoTracking()
-            .ToList();
+        var oldProducts = oldDb.Products.AsNoTracking().ToList();
 
-        // словарь типов по имени
         var productTypesByName = new Dictionary<string, ProductType>(StringComparer.OrdinalIgnoreCase);
-        // словарь категорий по (тип, категория)
         var categoriesByTypeAndName = new Dictionary<(string typeName, string categoryName), Category>();
 
         foreach (var p in oldProducts)
@@ -78,6 +65,18 @@ class Program
                     description: null,
                     sortOrder: 0
                 );
+
+                var baseSlug = ProductType.Transliterate(typeName);
+                var slug = baseSlug;
+                int suffix = 1;
+
+                while (newDb.ProductTypes.Any(pt => pt.Slug == slug))
+                {
+                    slug = $"{baseSlug}-{suffix}";
+                    suffix++;
+                }
+
+                productType.SetSlug(slug);
 
                 newDb.ProductTypes.Add(productType);
                 newDb.SaveChanges();
@@ -94,8 +93,18 @@ class Program
                     description: null
                 );
 
-                // Если в Category есть метод/сеттер для ImagePath, можно задать здесь
-                // category.SetImagePath(...);
+                // Генерируем уникальный slug для категории в рамках типа
+                var baseSlug = Category.Transliterate(categoryName);
+                var slug = baseSlug;
+                int suffix = 1;
+
+                while (newDb.Categories.Any(c => c.ProductTypeId == productType.Id && c.Slug == slug))
+                {
+                    slug = $"{baseSlug}-{suffix}";
+                    suffix++;
+                }
+
+                category.SetSlug(slug);
 
                 newDb.Categories.Add(category);
                 newDb.SaveChanges();
@@ -105,27 +114,21 @@ class Program
         }
 
         // ----- 4. Продукты и варианты (Product, ProductVariant) -----
-
         Console.WriteLine("== Migrating products & variants ==");
 
-        // Предположим, что в старой БД каждый ряд — вариант (цвет/размер/цена),
-        // сгруппируем по имени + категории.
-        var productsGrouped = oldProducts
-            .GroupBy(p => new { p.Name, p.Category, p.SubCategory });
+        var productsGrouped = oldProducts.GroupBy(p => new { p.Name, p.Category, p.SubCategory });
 
         foreach (var group in productsGrouped)
         {
             var any = group.First();
-
             var typeName = any.Category?.Trim() ?? "Без типа";
             var categoryName = any.SubCategory?.Trim() ?? "Без категории";
 
             var productType = productTypesByName[typeName];
             var category = categoriesByTypeAndName[(typeName, categoryName)];
 
-            // базовая цена: возьмём первую
-            var basePriceValue = any.Price;
-            var basePrice = new Money(basePriceValue, "RUB");
+            // базовая цена
+            var basePrice = Money.From(any.Price, "BYN");
 
             var product = new Product(
                 name: group.Key.Name,
@@ -135,17 +138,19 @@ class Program
                 baseSize: null,
                 categoryId: category.Id
             );
-
+            
             newDb.Products.Add(product);
+            newDb.SaveChanges();
+
+            product.SetSku();
+            newDb.Products.Update(product);
             newDb.SaveChanges();
 
             foreach (var item in group)
             {
                 Money? overridePrice = null;
-                if (item.Price != basePriceValue)
-                {
-                    overridePrice = new Money(item.Price, "RUB");
-                }
+                if (item.Price != basePrice.Amount)
+                    overridePrice = Money.From(item.Price, "BYN");
 
                 var variant = new ProductVariant(
                     productId: product.Id,
@@ -157,43 +162,27 @@ class Program
                 newDb.ProductVariants.Add(variant);
                 newDb.SaveChanges();
 
-                // ----- 5. Остатки (StockEntry) -----
-
+                // ----- 5. Остатки (ProductStock) -----
                 if (item.Quantity_Grodno > 0)
-                {
-                    var stockGrodno = new StockEntry(
-                        productId: product.Id,
-                        warehouseId: grodnoWarehouse.Id,
-                        quantity: item.Quantity_Grodno
-                    );
-                    newDb.StockEntries.Add(stockGrodno);
-                }
+                    newDb.ProductStocks.Add(new ProductStock(product.Id, grodnoWarehouse.Id, item.Quantity_Grodno));
 
                 if (item.Quantity_Moscow > 0)
-                {
-                    var stockMoscow = new StockEntry(
-                        productId: product.Id,
-                        warehouseId: moscowWarehouse.Id,
-                        quantity: item.Quantity_Moscow
-                    );
-                    newDb.StockEntries.Add(stockMoscow);
-                }
+                    newDb.ProductStocks.Add(new ProductStock(product.Id, moscowWarehouse.Id, item.Quantity_Moscow));
 
                 newDb.SaveChanges();
 
                 // ----- 6. Картинки товаров (ProductImage) -----
-
                 if (!string.IsNullOrEmpty(item.FileName))
                 {
-                    // создаём картинку
                     var image = new ProductImage(item.FileName, sortOrder: 0)
-                        .AttachToVariant(variant.Id);   // привязываем к варианту
+                        .AttachToVariant(variant.Id);
 
                     newDb.ProductImages.Add(image);
                     newDb.SaveChanges();
                 }
-
             }
         }
+
+        Console.WriteLine("=== Data migration finished ===");
     }
 }

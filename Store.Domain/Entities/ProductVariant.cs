@@ -19,6 +19,9 @@ public class ProductVariant
     private readonly List<ProductImage> _images = new();
     public IReadOnlyCollection<ProductImage> Images => _images.AsReadOnly();
 
+    private readonly List<ProductStock> _stocks = new();
+    public IReadOnlyCollection<ProductStock> Stocks => _stocks.AsReadOnly();
+
     private ProductVariant() { }
 
     public ProductVariant(int productId, string color, string? size = null, Money? overridePrice = null)
@@ -32,13 +35,28 @@ public class ProductVariant
         OverridePrice = overridePrice;
     }
 
+    public ProductStock AddStock(int warehouseId, int quantity)
+    {
+        var stock = new ProductStock(Id, warehouseId, quantity);
+        _stocks.Add(stock);
+        return stock;
+    }
+
     public Money GetPrice(Money basePrice) => OverridePrice ?? basePrice;
+
+    public void SetOverridePrice(Money? price)
+    {
+        OverridePrice = price;
+    }
+
 
     public ProductImage AddImage(string relativePath, int sortOrder = 0)
     {
         var image = new ProductImage(relativePath, sortOrder)
             .AttachToVariant(Id);
+
         _images.Add(image);
         return image;
     }
+
 }

@@ -1,24 +1,28 @@
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Store.Domain.Entities;
 
 namespace Store.Persistence;
 
-public class AppDbContext : DbContext
+public class AppDbContext : IdentityDbContext<ApplicationUser>
+
 {
+    public AppDbContext(DbContextOptions<AppDbContext> options)
+        : base(options)
+    {
+    }
+    
     public DbSet<ProductType> ProductTypes => Set<ProductType>();
     public DbSet<Category> Categories => Set<Category>();
     public DbSet<Product> Products => Set<Product>();
     public DbSet<ProductVariant> ProductVariants => Set<ProductVariant>();
     public DbSet<ProductImage> ProductImages => Set<ProductImage>();
     public DbSet<Warehouse> Warehouses => Set<Warehouse>();
-    public DbSet<StockEntry> StockEntries => Set<StockEntry>();
+    public DbSet<ProductStock> ProductStocks => Set<ProductStock>();
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
 
-    public AppDbContext(DbContextOptions<AppDbContext> options)
-        : base(options)
-    {
-    }
+    
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -33,6 +37,11 @@ public class AppDbContext : DbContext
 
         ConfigureOrder(modelBuilder);
         ConfigureOrderItem(modelBuilder);
+
+        ConfigureCustomerCategoryDiscount(modelBuilder);
+
+        ConfigureProductStock(modelBuilder);
+
     }
 
     // ---------------- PRODUCT ----------------
@@ -42,6 +51,9 @@ public class AppDbContext : DbContext
         var entity = modelBuilder.Entity<Product>();
 
         entity.HasKey(p => p.Id);
+
+        entity.HasIndex(p => p.Sku).IsUnique();
+        entity.Property(p => p.RowVersion).IsRowVersion();
 
         entity.Property(p => p.Name)
             .IsRequired()
@@ -76,11 +88,6 @@ public class AppDbContext : DbContext
             .WithOne(v => v.Product)
             .HasForeignKey(v => v.ProductId)
             .OnDelete(DeleteBehavior.Cascade);
-
-        entity.HasMany<ProductImage>()
-            .WithOne(i => i.Product)
-            .HasForeignKey(i => i.ProductId)
-            .OnDelete(DeleteBehavior.Cascade);
     }
 
     // ---------------- PRODUCT VARIANT ----------------
@@ -90,6 +97,10 @@ public class AppDbContext : DbContext
         var entity = modelBuilder.Entity<ProductVariant>();
 
         entity.HasKey(v => v.Id);
+
+        entity.HasOne(v => v.Product)
+            .WithMany(p => p.Variants)
+            .HasForeignKey(v => v.ProductId);
 
         entity.Property(v => v.Color)
             .IsRequired()
@@ -131,11 +142,6 @@ public class AppDbContext : DbContext
         entity.Property(i => i.SortOrder)
             .IsRequired();
 
-        entity.HasOne(i => i.Product)
-            .WithMany(p => p.Images)
-            .HasForeignKey(i => i.ProductId)
-            .OnDelete(DeleteBehavior.NoAction);
-
         entity.HasOne(i => i.ProductVariant)
             .WithMany(v => v.Images)
             .HasForeignKey(i => i.ProductVariantId)
@@ -149,6 +155,13 @@ public class AppDbContext : DbContext
         var entity = modelBuilder.Entity<Category>();
 
         entity.HasKey(c => c.Id);
+
+        entity.HasIndex(c => new { c.ProductTypeId, c.Slug })
+            .IsUnique();
+
+        entity.Property(c => c.Slug)
+            .IsRequired()
+            .HasMaxLength(150);
 
         entity.Property(c => c.Name)
             .IsRequired()
@@ -170,6 +183,12 @@ public class AppDbContext : DbContext
         var entity = modelBuilder.Entity<ProductType>();
 
         entity.HasKey(pt => pt.Id);
+
+        entity.Property(pt => pt.Slug)
+            .IsRequired()
+            .HasMaxLength(150);
+
+        entity.HasIndex(pt => pt.Slug).IsUnique();
 
         entity.Property(pt => pt.Name)
             .IsRequired()
@@ -194,6 +213,11 @@ public class AppDbContext : DbContext
 
         entity.Property(o => o.Comment)
             .HasMaxLength(1000);
+
+        entity.HasOne<ApplicationUser>() 
+            .WithMany() 
+            .HasForeignKey(o => o.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 
     // ---------------- ORDER ITEM ----------------
@@ -206,6 +230,9 @@ public class AppDbContext : DbContext
 
         entity.Property(oi => oi.Comment)
             .HasMaxLength(1000);
+        
+        entity.Property(oi => oi.DiscountPercent)
+            .HasPrecision(5, 2);
 
         entity.OwnsOne(oi => oi.UnitPrice, money =>
         {
@@ -217,5 +244,44 @@ public class AppDbContext : DbContext
                 .HasColumnName("UnitPriceCurrency")
                 .HasMaxLength(3);
         });
+    }
+
+    // ---------------- DISCOUNT ----------------
+
+    private static void ConfigureCustomerCategoryDiscount(ModelBuilder modelBuilder)
+    {
+        var entity = modelBuilder.Entity<CustomerCategoryDiscount>();
+
+        entity.HasKey(oi => oi.Id);
+
+        entity.HasOne<ApplicationUser>() 
+            .WithMany() 
+            .HasForeignKey(o => o.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        entity.Property(d => d.DiscountPercent)
+            .HasPrecision(5, 2);
+    }
+
+    // ---------------- PRODUCTSTOCK ----------------
+
+    private static void ConfigureProductStock(ModelBuilder modelBuilder)
+    {
+        var entity = modelBuilder.Entity<ProductStock>();
+
+        entity.HasKey(ps => ps.Id);
+
+        entity.HasOne(ps => ps.ProductVariant)
+            .WithMany(v => v.Stocks)
+            .HasForeignKey(ps => ps.ProductVariantId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        entity.HasOne(ps => ps.Warehouse)
+            .WithMany()
+            .HasForeignKey(ps => ps.WarehouseId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        entity.Property(ps => ps.Quantity)
+            .IsRequired();
     }
 }

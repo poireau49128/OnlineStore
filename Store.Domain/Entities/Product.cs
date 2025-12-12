@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Store.Domain.ValueObjects;
 
 namespace Store.Domain.Entities;
@@ -8,7 +9,9 @@ public class Product
 
     public string Name { get; private set; } = null!;
     public string? Description { get; private set; }
-    public string Sku { get; private set; } = null!;
+    public string Sku { get; set; } = null!;
+    
+    [Timestamp]
     public byte[]? RowVersion { get; private set; }
 
     public Money BasePrice { get; private set; }
@@ -22,12 +25,6 @@ public class Product
 
     private readonly List<ProductVariant> _variants = new();
     public IReadOnlyCollection<ProductVariant> Variants => _variants.AsReadOnly();
-
-    private readonly List<ProductImage> _images = new();
-    public IReadOnlyCollection<ProductImage> Images => _images.AsReadOnly();
-
-    private readonly List<ProductStock> _stocks = new();
-    public IReadOnlyCollection<ProductStock> Stocks => _stocks.AsReadOnly();
 
     private Product() { }
 
@@ -48,6 +45,12 @@ public class Product
         Description = description;
         BaseColor = baseColor;
         BaseSize = baseSize;
+
+        Sku = GenerateSku();
+    }
+    private string GenerateSku()
+    {
+        return $"{Transliterate(Name)}-{Guid.NewGuid().ToString("N")[..8]}";
     }
 
     public ProductVariant AddVariant(string color, string? size = null, Money? overridePrice = null)
@@ -57,11 +60,44 @@ public class Product
         return variant;
     }
 
-    public ProductImage AddImage(string relativePath, int sortOrder = 0)
+    public static string Transliterate(string text)
     {
-        var image = new ProductImage(relativePath, sortOrder)
-            .AttachToProduct(Id);
-        _images.Add(image);
-        return image;
+        var translit = new Dictionary<char, string>
+        {
+            {'а', "a"}, {'б', "b"}, {'в', "v"}, {'г', "g"}, {'д', "d"},
+            {'е', "e"}, {'ё', "e"}, {'ж', "zh"}, {'з', "z"}, {'и', "i"},
+            {'й', "y"}, {'к', "k"}, {'л', "l"}, {'м', "m"}, {'н', "n"},
+            {'о', "o"}, {'п', "p"}, {'р', "r"}, {'с', "s"}, {'т', "t"},
+            {'у', "u"}, {'ф', "f"}, {'х', "h"}, {'ц', "c"}, {'ч', "ch"},
+            {'ш', "sh"}, {'щ', "shch"}, {'ъ', ""}, {'ы', "y"}, {'ь', ""},
+            {'э', "e"}, {'ю', "yu"}, {'я', "ya"}
+        };
+
+        var result = new System.Text.StringBuilder();
+        foreach (var c in text.ToLowerInvariant())
+        {
+            if (translit.ContainsKey(c)) result.Append(translit[c]);
+            else if (char.IsLetterOrDigit(c)) result.Append(c);
+            else if (char.IsWhiteSpace(c)) result.Append('-');
+        }
+        return result.ToString();
+    }
+
+    public void SetSku()
+    {
+        Sku = $"{Transliterate(Name)}-{Id}";
+    }
+
+    public string GetMainImagePath()
+    {
+        var variantImage = Variants
+            .SelectMany(v => v.Images)
+            .OrderBy(i => i.SortOrder)
+            .FirstOrDefault();
+
+        if (variantImage != null) return variantImage.RelativePath;
+
+        // Если нет ничего — дефолтная картинка
+        return "/img/no-image.png";
     }
 }

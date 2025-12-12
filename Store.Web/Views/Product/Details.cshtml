@@ -1,0 +1,195 @@
+@model Store.Domain.Entities.Product
+@using System.Text.Json
+
+<style>
+    /* Убираем стрелочки в Chrome / Safari / Edge */
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    /* Убираем стрелочки в Firefox */
+    input[type=number] {
+        -moz-appearance: textfield;
+    }
+</style>
+
+@{
+    ViewData["Title"] = Model.Name;
+}
+
+<div class="container mt-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Product")">Каталог</a></li>
+            <li class="breadcrumb-item">
+                <a href="@Url.Action("Index", "Product", new { categoryId = Model.CategoryId })">@Model.Category?.Name</a>
+            </li>
+            <li class="breadcrumb-item active">@Model.Name</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-md-6">
+            <img id="mainProductImage" src="@Url.Content(Model.GetMainImagePath())" class="img-fluid rounded shadow" alt="@Model.Name" style="max-height:600px;object-fit:cover;">
+        </div>
+
+        <div class="col-md-6">
+            <h1>@Model.Name</h1>
+            <p class="text-muted">
+                <span class="badge bg-secondary">@Model.Category?.ProductType?.Name</span>
+                <span class="badge bg-info">@Model.Category?.Name</span>
+            </p>
+
+            @if (!string.IsNullOrEmpty(Model.Sku))
+            {
+                <p class="small text-secondary"><strong>Артикул:</strong> @Model.Sku</p>
+            }
+
+            <h2 id="productPrice" class="text-primary mb-3">
+                @($"{Model.BasePrice.Amount:0.00} {Model.BasePrice.Currency}")
+            </h2>
+
+            @if (!string.IsNullOrEmpty(Model.Description))
+            {
+                <div class="mb-4">
+                    <h5>Описание</h5>
+                    <p>@Html.Raw(Model.Description)</p>
+                </div>
+            }
+
+            <!-- Варианты цветов -->
+            @if (Model.Variants.Any())
+            {
+                <div class="mb-4">
+                    <h5>Доступные цвета</h5>
+                    <div id="colors" class="d-flex gap-2 flex-wrap">
+                        @foreach (var v in Model.Variants
+                            .OrderBy(v => v.Images.Any() ? v.Images.Min(i => i.SortOrder) : int.MaxValue))
+                        {
+                            <button class="btn btn-outline-secondary" onclick="selectVariant(@v.Id)">
+                                @v.Color @(v.Size != null ? $"({v.Size})" : "")
+                            </button>
+                        }
+                    </div>
+                </div>
+            }
+
+            <!-- Наличие на складах -->
+            <div class="mb-4">
+                <h5>Наличие на складах</h5>
+                <div id="stocks"><p class="text-muted">Загрузка...</p></div>
+            </div>
+
+            <div class="mb-4">
+                <div class="input-group mb-3" style="max-width: 200px;">
+                    <button class="btn btn-outline-secondary" type="button">-</button>
+                    <input type="number" class="form-control" value="1" min="1" id="quantity">
+                    <button class="btn btn-outline-secondary" type="button">+</button>
+                </div>
+                <button class="btn btn-primary btn-lg" onclick="addToCart(@Model.Id)">🛒 Добавить в корзину</button>
+            </div>
+
+            <hr>
+        </div>
+    </div>
+</div>
+
+@{
+    var variantsForJs = Model.Variants
+        .OrderBy(v => v.Images.Any() ? v.Images.Min(i => i.SortOrder) : int.MaxValue)
+        .Select(v => new {
+            id = v.Id,
+            imagePath = Url.Content(v.Images.OrderBy(i => i.SortOrder).FirstOrDefault()?.RelativePath ?? "/img/no-image.png"),
+            priceFormatted = string.Format("{0:0.00} {1}", v.GetPrice(Model.BasePrice).Amount, v.GetPrice(Model.BasePrice).Currency)
+        })
+        .ToList();
+
+    var variantsJson = JsonSerializer.Serialize(variantsForJs, new JsonSerializerOptions { PropertyNamingPolicy = null });
+}
+
+@section Scripts {
+<script>
+    const variantsData = @Html.Raw(variantsJson);
+
+    console.log("variantsData:", variantsData);
+
+    async function loadStocksForVariant(variantId) {
+        try {
+            const response = await fetch(`/Product/GetStock/${variantId}`);
+            if (!response.ok) throw new Error("Network response was not ok: " + response.status);
+            const stocks = await response.json();
+            const div = document.getElementById('stocks');
+
+            if (!stocks || !stocks.length) {
+                div.innerHTML = '<p class="text-danger">Нет в наличии</p>';
+                return;
+            }
+
+            let html = '<ul class="list-group">';
+            stocks.forEach(s => {
+                html += `<li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>${s.warehouse.name}</span>
+                            <span class="${s.quantity > 0 ? 'text-success' : 'text-danger'}">
+                                <strong>${s.quantity} шт</strong>
+                            </span>
+                         </li>`;
+            });
+            html += '</ul>';
+            div.innerHTML = html;
+
+        } catch (e) {
+            console.error("Stock load error:", e);
+            document.getElementById('stocks').innerHTML = '<p class="text-danger">Ошибка загрузки данных</p>';
+        }
+    }
+
+    function selectVariant(variantId) {
+        const variant = variantsData.find(v => v.id === variantId);
+        if (!variant) {
+            console.warn("variant not found:", variantId);
+            return;
+        }
+
+        // картинка
+        const img = document.getElementById('mainProductImage');
+        if (img && variant.imagePath) img.src = variant.imagePath;
+
+        // цена
+        const priceElem = document.getElementById('productPrice');
+        if (priceElem) priceElem.textContent = variant.priceFormatted;
+
+        // обновить остатки
+        loadStocksForVariant(variantId);
+    }
+
+    // Начальная загрузка: первый вариант в variantsData (он же первый по SortOrder)
+    document.addEventListener('DOMContentLoaded', () => {
+        if (Array.isArray(variantsData) && variantsData.length > 0) {
+            loadStocksForVariant(variantsData[0].id);
+        } else {
+            // если вариантов нет — показываем сообщение или оставляем заглушку
+            document.getElementById('stocks').innerHTML = '<p class="text-muted">Товар без вариантов</p>';
+        }
+    });
+
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const minusBtn = document.querySelector("#quantity").previousElementSibling;
+        const plusBtn = document.querySelector("#quantity").nextElementSibling;
+        const qtyInput = document.getElementById("quantity");
+
+        minusBtn.addEventListener("click", () => {
+            let value = parseInt(qtyInput.value) || 1;
+            value = Math.max(1, value - 1);
+            qtyInput.value = value;
+        });
+
+        plusBtn.addEventListener("click", () => {
+            let value = parseInt(qtyInput.value) || 1;
+            qtyInput.value = value + 1;
+        });
+    });
+</script>
+}

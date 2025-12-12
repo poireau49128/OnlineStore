@@ -1,10 +1,11 @@
+using Store.Domain.Entities;
+
 public class CustomerCategoryDiscount
 {
     public int Id { get; private set; }
-    public string CustomerId { get; private set; } = null!;
-    public ApplicationUser Customer { get; private set; } = null!;
-    public string? Code { get; private set; };
-    public decimal Percentage { get; private set; }
+    public string UserId { get; private set; } = null!;
+    public string? Code { get; private set; }
+    public decimal DiscountPercent { get; private set; }
     public DateTime? Expiration { get; private set; }
 
     public int CategoryId { get; private set; }
@@ -12,11 +13,11 @@ public class CustomerCategoryDiscount
 
     private CustomerCategoryDiscount() { }
 
-    public CustomerCategoryDiscount(string? code, string customerId, decimal percentage, int categoryId, DateTime? expiration = null)
+    public CustomerCategoryDiscount(string? code, string userId, decimal discountPercent, int categoryId, DateTime? expiration = null)
     {
         Code = code;
-        CustomerId = customerId;
-        Percentage = percentage;
+        UserId = userId;
+        DiscountPercent = discountPercent;
         CategoryId = categoryId;
         Expiration = expiration;
     }

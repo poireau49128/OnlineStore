@@ -1,0 +1,98 @@
+@model X.PagedList.IPagedList<Store.Domain.Entities.Product>
+
+@{
+    ViewData["Title"] = "Каталог товаров";
+}
+
+<div class="container mt-5">
+    <div class="row">
+        <!-- Фильтры -->
+        <div class="col-md-3">
+            <h4>Фильтры</h4>
+            <form method="get" class="mb-4">
+                <div class="input-group">
+                    <input type="text" name="searchTerm" class="form-control" placeholder="Поиск товара..." value="@ViewBag.SearchTerm">
+                    <button class="btn btn-primary" type="submit">🔍</button>
+                </div>
+            </form>
+
+            <h5>Категории</h5>
+            <a href="@Url.Action("Index", "Product")" class="btn btn-outline-primary btn-sm d-block mb-2 @(ViewBag.SelectedCategoryId == null ? "active" : "")">Все товары</a>
+            @foreach (var category in ViewBag.Categories as List<Store.Domain.Entities.Category>)
+            {
+                <a href="@Url.Action("Index", "Product", new { categoryId = category.Id, page = 1 })"
+                   class="btn btn-outline-primary btn-sm d-block mb-2 @(ViewBag.SelectedCategoryId == category.Id ? "active" : "")">
+                    @category.Name
+                </a>
+            }
+        </div>
+
+        <!-- Основной контент -->
+        <div class="col-md-9">
+            <h2>@ViewData["Title"]</h2>
+
+            @if (!Model.Any())
+            {
+                <div class="alert alert-info">😕 Товары не найдены. Попробуйте изменить фильтры.</div>
+            }
+            else
+            {
+                <div class="row">
+                    @foreach (var product in Model)
+                    {
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="card h-100 shadow-sm product-card">
+                                <img src="@Url.Content(product.GetMainImagePath())" class="card-img-top" alt="@product.Name" style="height:250px;object-fit:cover;">
+
+                                <div class="card-body">
+                                    <h5 class="card-title">@product.Name</h5>
+                                    <p class="card-text text-muted small">@product.Category?.Name</p>
+                                    <h4 class="text-primary">@($"{product.BasePrice.Amount:0.00} {product.BasePrice.Currency}")</h4>
+                                </div>
+
+                                <div class="card-footer bg-white">
+                                    <a href="@Url.Action("Details", "Product", new { id = product.Id })" class="btn btn-primary btn-sm w-100">Подробнее</a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Пагинация -->
+                <nav aria-label="Page navigation" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        @if (Model.HasPreviousPage)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" href="@Url.Action("Index", "Product", new { page = Model.PageNumber - 1, categoryId = ViewBag.SelectedCategoryId, searchTerm = ViewBag.SearchTerm })">← Назад</a>
+                            </li>
+                        }
+                        @for (int i = 1; i <= Model.PageCount; i++)
+                        {
+                            <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                                <a class="page-link" href="@Url.Action("Index", "Product", new { page = i, categoryId = ViewBag.SelectedCategoryId, searchTerm = ViewBag.SearchTerm })">@i</a>
+                            </li>
+                        }
+                        @if (Model.HasNextPage)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" href="@Url.Action("Index", "Product", new { page = Model.PageNumber + 1, categoryId = ViewBag.SelectedCategoryId, searchTerm = ViewBag.SearchTerm })">Вперёд →</a>
+                            </li>
+                        }
+                    </ul>
+                    <div class="text-center text-muted">
+                        <small>Страница @Model.PageNumber из @Model.PageCount | Всего: @Model.TotalItemCount товаров</small>
+                    </div>
+                </nav>
+            }
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .product-card { transition: transform 0.2s, box-shadow 0.2s; }
+        .product-card:hover { transform: translateY(-5px); box-shadow: 0 8px 16px rgba(0,0,0,0.2) !important; }
+        .btn-outline-primary.active { background-color: #0d6efd; color: white; }
+    </style>
+}

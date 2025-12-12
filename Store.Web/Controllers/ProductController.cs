@@ -2,50 +2,100 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Store.Domain.Entities;
 using Store.Persistence;
+using X.PagedList;
 
-public class ProductsController : Controller
+namespace Store.Web.Controllers
 {
-    private readonly AppDbContext _db;
-    private const int PageSize = 9;
-
-    public ProductsController(AppDbContext db)
+    public class ProductController : Controller
     {
-        _db = db;
-    }
+        private readonly AppDbContext _db;
+        private const int PageSize = 9;
 
-    public async Task<IActionResult> Index(int page = 1)
-    {
-        var totalProducts = await _db.Products.CountAsync();
-        var totalPages = (int)Math.Ceiling(totalProducts / (double)PageSize);
+        public ProductController(AppDbContext db)
+        {
+            _db = db;
+        }
 
-        var products = await _db.Products
-            .Include(p => p.Images)
-            .Include(p => p.Category)
-                .ThenInclude(c => c.ProductType)
-            .Skip((page - 1) * PageSize)
-            .Take(PageSize)
-            .ToListAsync();
+        public async Task<IActionResult> Index(int page = 1, int? categoryId = null, string? searchTerm = null)
+        {
+            var query = _db.Products
+                .Include(p => p.Variants)
+                    .ThenInclude(v => v.Images) // картинки вариаций
+                .Include(p => p.Category)
+                    .ThenInclude(c => c.ProductType)
+                
+                .AsQueryable();
 
-        ViewBag.CurrentPage = page;
-        ViewBag.TotalPages = totalPages;
 
-        return View(products);
-    }
+            // Фильтр по категории
+            if (categoryId.HasValue)
+            {
+                query = query.Where(p => p.CategoryId == categoryId.Value);
+            }
 
-    public async Task<IActionResult> Details(int id)
-    {
-        var product = await _db.Products
-            .Include(p => p.Images)
-            .Include(p => p.Variants)
-            .Include(p => p.Category)
-                .ThenInclude(c => c.ProductType)
-            .Include(p => p.Category)
-                .ThenInclude(c => c.ProductType)
-            // .Include(p => p.StockEntries)
-            //     .ThenInclude(s => s.Warehouse)
-            .FirstOrDefaultAsync(p => p.Id == id);
+            // Поиск по имени
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                query = query.Where(p => p.Name.Contains(searchTerm));
+            }
 
-        if (product == null) return NotFound();
-        return View(product);
+            // Подсчет общего количества
+            var totalCount = await query.CountAsync();
+
+            // Получение текущей страницы
+            var items = await query
+                .OrderBy(p => p.CategoryId)
+                .ThenBy(p => p.Name)
+                .Skip((page - 1) * PageSize)
+                .Take(PageSize)
+                .ToListAsync();
+
+            // Создаем PagedList для Razor
+            var pagedList = new StaticPagedList<Product>(items, page, PageSize, totalCount);
+
+            // Передаем фильтры и категории в View
+            ViewBag.Categories = await _db.Categories
+                .Include(c => c.ProductType)
+                .ToListAsync();
+            ViewBag.SelectedCategoryId = categoryId;
+            ViewBag.SearchTerm = searchTerm;
+
+            return View(pagedList);
+        }
+
+        public async Task<IActionResult> Details(int id)
+        {
+            var product = await _db.Products
+                .Include(p => p.Variants)
+                    .ThenInclude(v => v.Images)
+                .Include(p => p.Variants)
+                    .ThenInclude(v => v.Stocks)
+                        .ThenInclude(s => s.Warehouse)
+                .Include(p => p.Category)
+                    .ThenInclude(c => c.ProductType)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+
+            if (product == null) return NotFound();
+
+            return View(product);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetStock(int id)
+        {
+            var stocks = await _db.ProductStocks
+                .Where(s => s.ProductVariantId == id)
+                .Include(s => s.Warehouse)
+                .Select(s => new 
+                { 
+                    warehouse = new { s.Warehouse.Id, s.Warehouse.Name }, 
+                    s.Quantity 
+                })
+                .ToListAsync();
+
+            return Json(stocks);
+        }
+
     }
 }
