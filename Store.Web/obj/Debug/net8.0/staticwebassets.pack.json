@@ -13,10 +13,6 @@
       "PackagePath": "staticwebassets/favicon.ico"
     },
     {
-      "Id": "/home/poireau/Desktop/OnlineStore/Store.Web/wwwroot/img/img.zip",
-      "PackagePath": "staticwebassets/img/img.zip"
-    },
-    {
       "Id": "/home/poireau/Desktop/OnlineStore/Store.Web/wwwroot/img/no-image.png",
       "PackagePath": "staticwebassets/img/no-image.png"
     },

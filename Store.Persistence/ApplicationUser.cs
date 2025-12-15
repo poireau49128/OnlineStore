@@ -16,9 +16,18 @@ public class ApplicationUser : IdentityUser
 
     private ApplicationUser() { }
 
-    public ApplicationUser(string fullName, string address)
+    public ApplicationUser(string fullName, string address, string phoneNumber)
     {
         FullName = fullName;
         Address = address;
+        PhoneNumber = phoneNumber;
     }
+
+    public void UpdateProfile(string? fullName, string? address, string? phoneNumber)
+    {
+        FullName = fullName;
+        Address = address;
+        PhoneNumber = phoneNumber;
+    }
+
 }

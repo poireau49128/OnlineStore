@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "8ElOj96WcdUaV4GKFDtWOtE0LelupmIytU00sBGHRVk=",
+  "Hash": "EB3/rUH9NheRMFpca7eK4hSowOhUoWpvaT0bXUMBpdA=",
   "Source": "Store.Web",
   "BasePath": "_content/Store.Web",
   "Mode": "Default",
@@ -1231,25 +1231,6 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot/favicon.ico"
-    },
-    {
-      "Identity": "/home/poireau/Desktop/OnlineStore/Store.Web/wwwroot/img/img.zip",
-      "SourceId": "Store.Web",
-      "SourceType": "Discovered",
-      "ContentRoot": "/home/poireau/Desktop/OnlineStore/Store.Web/wwwroot/",
-      "BasePath": "_content/Store.Web",
-      "RelativePath": "img/img.zip",
-      "AssetKind": "All",
-      "AssetMode": "All",
-      "AssetRole": "Primary",
-      "AssetMergeBehavior": "PreferTarget",
-      "AssetMergeSource": "",
-      "RelatedAsset": "",
-      "AssetTraitName": "",
-      "AssetTraitValue": "",
-      "CopyToOutputDirectory": "Never",
-      "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "wwwroot/img/img.zip"
     },
     {
       "Identity": "/home/poireau/Desktop/OnlineStore/Store.Web/wwwroot/img/no-image.png",
