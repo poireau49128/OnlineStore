@@ -2,16 +2,19 @@
 @using System.Text.Json
 
 <style>
-    /* Убираем стрелочки в Chrome / Safari / Edge */
     input[type=number]::-webkit-inner-spin-button,
     input[type=number]::-webkit-outer-spin-button {
         -webkit-appearance: none;
         margin: 0;
     }
 
-    /* Убираем стрелочки в Firefox */
     input[type=number] {
         -moz-appearance: textfield;
+    }
+
+    .warehouse-btn.selected {
+        background-color: #0d6efd;
+        color: white;
     }
 </style>
 
@@ -84,11 +87,11 @@
 
             <div class="mb-4">
                 <div class="input-group mb-3" style="max-width: 200px;">
-                    <button class="btn btn-outline-secondary" type="button">-</button>
+                    <button class="btn btn-outline-secondary" type="button" id="qtyMinus">-</button>
                     <input type="number" class="form-control" value="1" min="1" id="quantity">
-                    <button class="btn btn-outline-secondary" type="button">+</button>
+                    <button class="btn btn-outline-secondary" type="button" id="qtyPlus">+</button>
                 </div>
-                <button class="btn btn-primary btn-lg" onclick="addToCart(@Model.Id)">🛒 Добавить в корзину</button>
+                <button class="btn btn-primary btn-lg" onclick="addToCart()">🛒 Добавить в корзину</button>
             </div>
 
             <hr>
@@ -102,7 +105,8 @@
         .Select(v => new {
             id = v.Id,
             imagePath = Url.Content(v.Images.OrderBy(i => i.SortOrder).FirstOrDefault()?.RelativePath ?? "/img/no-image.png"),
-            priceFormatted = string.Format("{0:0.00} {1}", v.GetPrice(Model.BasePrice).Amount, v.GetPrice(Model.BasePrice).Currency)
+            priceAmount = v.GetPrice(Model.BasePrice).Amount,
+            priceCurrency = v.GetPrice(Model.BasePrice).Currency
         })
         .ToList();
 
@@ -112,8 +116,10 @@
 @section Scripts {
 <script>
     const variantsData = @Html.Raw(variantsJson);
+    let selectedVariantId = variantsData[0]?.id || null;
 
-    console.log("variantsData:", variantsData);
+    let selectedWarehouseId = null;
+    let availableQuantity = 0;
 
     async function loadStocksForVariant(variantId) {
         try {
@@ -124,33 +130,35 @@
 
             if (!stocks || !stocks.length) {
                 div.innerHTML = '<p class="text-danger">Нет в наличии</p>';
+                selectedWarehouseId = null;
                 return;
             }
 
-            let html = '<ul class="list-group">';
-            stocks.forEach(s => {
-                html += `<li class="list-group-item d-flex justify-content-between align-items-center">
-                            <span>${s.warehouse.name}</span>
-                            <span class="${s.quantity > 0 ? 'text-success' : 'text-danger'}">
-                                <strong>${s.quantity} шт</strong>
-                            </span>
-                         </li>`;
+            let html = '';
+            stocks.forEach((s, index) => {
+                html += `<button type="button" class="btn btn-outline-secondary warehouse-btn ${index === 0 ? 'selected' : ''}" 
+                            data-warehouse-id="${s.warehouse.id}" onclick="selectWarehouse(this)">
+                            ${s.warehouse.name} - <strong>${s.quantity}</strong> шт
+                         </button> `;
             });
-            html += '</ul>';
             div.innerHTML = html;
+
+
+            // Выбираем первый склад по умолчанию
+            selectedWarehouseId = stocks[0].warehouse.id;
 
         } catch (e) {
             console.error("Stock load error:", e);
             document.getElementById('stocks').innerHTML = '<p class="text-danger">Ошибка загрузки данных</p>';
+            selectedWarehouseId = null;
         }
     }
 
     function selectVariant(variantId) {
+        selectedVariantId = variantId;
+
         const variant = variantsData.find(v => v.id === variantId);
-        if (!variant) {
-            console.warn("variant not found:", variantId);
-            return;
-        }
+        if (!variant) return;
 
         // картинка
         const img = document.getElementById('mainProductImage');
@@ -158,38 +166,62 @@
 
         // цена
         const priceElem = document.getElementById('productPrice');
-        if (priceElem) priceElem.textContent = variant.priceFormatted;
+        if (priceElem) priceElem.textContent = `${variant.priceAmount.toFixed(2)} ${variant.priceCurrency}`;
 
         // обновить остатки
         loadStocksForVariant(variantId);
     }
 
-    // Начальная загрузка: первый вариант в variantsData (он же первый по SortOrder)
+    function selectWarehouse(button) {
+        document.querySelectorAll('.warehouse-btn').forEach(b => b.classList.remove('selected'));
+        button.classList.add('selected');
+        selectedWarehouseId = button.dataset.warehouseId;
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
-        if (Array.isArray(variantsData) && variantsData.length > 0) {
-            loadStocksForVariant(variantsData[0].id);
-        } else {
-            // если вариантов нет — показываем сообщение или оставляем заглушку
-            document.getElementById('stocks').innerHTML = '<p class="text-muted">Товар без вариантов</p>';
+        if (selectedVariantId) {
+            loadStocksForVariant(selectedVariantId);
         }
-    });
 
-
-    document.addEventListener("DOMContentLoaded", () => {
-        const minusBtn = document.querySelector("#quantity").previousElementSibling;
-        const plusBtn = document.querySelector("#quantity").nextElementSibling;
         const qtyInput = document.getElementById("quantity");
-
-        minusBtn.addEventListener("click", () => {
-            let value = parseInt(qtyInput.value) || 1;
-            value = Math.max(1, value - 1);
-            qtyInput.value = value;
+        document.getElementById("qtyMinus").addEventListener("click", () => {
+            let val = parseInt(qtyInput.value) || 1;
+            qtyInput.value = Math.max(1, val - 1);
         });
-
-        plusBtn.addEventListener("click", () => {
-            let value = parseInt(qtyInput.value) || 1;
-            qtyInput.value = value + 1;
+        document.getElementById("qtyPlus").addEventListener("click", () => {
+            let val = parseInt(qtyInput.value) || 1;
+            qtyInput.value = val + 1;
         });
     });
+
+    function addToCart() {
+        if (!selectedVariantId || !selectedWarehouseId) {
+            alert("Выберите вариант и склад с наличием товара");
+            return;
+        }
+
+        const quantity = parseInt(document.getElementById("quantity").value) || 1;
+
+        const form = document.createElement("form");
+        form.method = "POST";
+        form.action = "/Product/AddToCart";
+
+        const inputs = [
+            { name: "variantId", value: selectedVariantId },
+            { name: "warehouseId", value: selectedWarehouseId },
+            { name: "qty", value: quantity }
+        ];
+
+        inputs.forEach(inp => {
+            const i = document.createElement("input");
+            i.type = "hidden";
+            i.name = inp.name;
+            i.value = inp.value;
+            form.appendChild(i);
+        });
+
+        document.body.appendChild(form);
+        form.submit();
+    }
 </script>
 }

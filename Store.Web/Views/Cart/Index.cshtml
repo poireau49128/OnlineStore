@@ -1,0 +1,64 @@
+@model Store.Web.ViewModels.Cart.CartViewModel
+
+<h2>Корзина</h2>
+
+@if (!Model.Items.Any())
+{
+    <p>Корзина пуста</p>
+    <a asp-controller="Product" asp-action="Index" class="btn btn-primary">В каталог</a>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Товар</th>
+                <th>Вариант</th>
+                <th>Склад</th>
+                <th>Кол-во</th>
+                <th>Цена</th>
+                <th>Сумма</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var item in Model.Items)
+        {
+            <tr>
+                <td>@item.ProductName</td>
+                <td>@item.Color @item.Size</td>
+                <td>@item.WarehouseName</td>
+                <td>
+                    <form asp-action="Update" method="post" class="d-inline">
+                        <input type="hidden" name="id" value="@item.Id" />
+                        <input type="hidden" name="maxQuantity" value="@item.AvailableQuantity" />
+                        <input type="hidden" name="quantity" value="@(item.Quantity - 1)" />
+                        <button class="btn btn-sm btn-secondary" type="submit" @(item.Quantity <= 1 ? "disabled" : "")>−</button>
+                    </form>
+
+                    <span class="mx-2">@item.Quantity</span>
+
+                    <form asp-action="Update" method="post" class="d-inline">
+                        <input type="hidden" name="id" value="@item.Id" />
+                        <input type="hidden" name="maxQuantity" value="@item.AvailableQuantity" />
+                        <input type="hidden" name="quantity" value="@(item.Quantity + 1)" />
+                        <button class="btn btn-sm btn-secondary" type="submit" @(item.Quantity >= item.AvailableQuantity ? "disabled" : "")>+</button>
+                    </form>
+                </td>
+                <td>@item.UnitPrice @item.Currency</td>
+                <td>@item.TotalPrice @item.Currency</td>
+                <td>
+                    <form asp-action="Remove" method="post">
+                        <input type="hidden" name="id" value="@item.Id" />
+                        <button class="btn btn-sm btn-danger">Удалить</button>
+                    </form>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+
+    <h4>Итого: @Model.TotalAmount @Model.Currency</h4>
+
+    <a asp-controller="Order" asp-action="Checkout" class="btn btn-success">Оформить заказ</a>
+}

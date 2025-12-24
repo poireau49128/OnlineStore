@@ -18,7 +18,8 @@ public class AdminController : Controller
     {
         var orders = _db.Orders
             .Include(o => o.Items)
-                .ThenInclude(i => i.Product)
+                .ThenInclude(i => i.ProductVariant)
+                .ThenInclude(p => p.Product)
             .OrderByDescending(o => o.CreatedAt)
             .ToList();
 

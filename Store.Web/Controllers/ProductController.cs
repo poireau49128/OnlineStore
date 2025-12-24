@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Store.Domain.Entities;
@@ -9,11 +10,13 @@ namespace Store.Web.Controllers
     public class ProductController : Controller
     {
         private readonly AppDbContext _db;
+        private readonly CartService _cart;
         private const int PageSize = 9;
 
-        public ProductController(AppDbContext db)
+        public ProductController(AppDbContext db, CartService cart)
         {
             _db = db;
+            _cart = cart;
         }
 
         public async Task<IActionResult> Index(int page = 1, int? categoryId = null, string? searchTerm = null)
@@ -96,6 +99,18 @@ namespace Store.Web.Controllers
 
             return Json(stocks);
         }
+
+        [Authorize]
+        [HttpPost]
+        public async Task<IActionResult> AddToCart(int variantId, int warehouseId, int qty = 1)
+        {
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value;
+
+            await _cart.AddAsync(userId, variantId, warehouseId, qty);
+
+            return RedirectToAction("Index", "Cart");
+        }
+
 
     }
 }

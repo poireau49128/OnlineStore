@@ -4,19 +4,20 @@ public class CartItem
 {
     public int Id { get; private set; }
     public string UserId { get; private set; } = null!;
-    public int ProductId { get; private set; }
-    public Product Product {get; private set;}
+    public int ProductVariantId { get; private set; }
+    public ProductVariant ProductVariant {get; private set;} = null!;
     public int WarehouseId { get; private set; }
+    public Warehouse Warehouse { get; private set; } = null!;
     public int Quantity { get; private set; }
 
     private CartItem() { }
 
-    public CartItem(string userId, int productId, int warehouseId, int quantity)
+    public CartItem(string userId, int productVariantId, int warehouseId, int quantity)
     {
         if (quantity <= 0) throw new ArgumentException("Quantity must be positive");
 
         UserId = userId;
-        ProductId = productId;
+        ProductVariantId = productVariantId;
         WarehouseId = warehouseId;
         Quantity = quantity;
     }

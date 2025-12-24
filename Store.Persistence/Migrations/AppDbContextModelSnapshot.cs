@@ -268,6 +268,38 @@ namespace Store.Persistence.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Store.Domain.Entities.CartItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ProductVariantId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("WarehouseId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductVariantId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("WarehouseId");
+
+                    b.ToTable("CartItems");
+                });
+
             modelBuilder.Entity("Store.Domain.Entities.Category", b =>
                 {
                     b.Property<int>("Id")
@@ -357,7 +389,7 @@ namespace Store.Persistence.Migrations
                     b.Property<int>("OrderId")
                         .HasColumnType("int");
 
-                    b.Property<int>("ProductId")
+                    b.Property<int>("ProductVariantId")
                         .HasColumnType("int");
 
                     b.Property<int>("Quantity")
@@ -370,7 +402,7 @@ namespace Store.Persistence.Migrations
 
                     b.HasIndex("OrderId");
 
-                    b.HasIndex("ProductId");
+                    b.HasIndex("ProductVariantId");
 
                     b.HasIndex("WarehouseId");
 
@@ -432,9 +464,6 @@ namespace Store.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("ProductId")
-                        .HasColumnType("int");
-
                     b.Property<int?>("ProductVariantId")
                         .HasColumnType("int");
 
@@ -447,8 +476,6 @@ namespace Store.Persistence.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ProductId");
 
                     b.HasIndex("ProductVariantId");
 
@@ -463,7 +490,7 @@ namespace Store.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("ProductId")
+                    b.Property<int>("ProductVariantId")
                         .HasColumnType("int");
 
                     b.Property<int>("Quantity")
@@ -474,7 +501,7 @@ namespace Store.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ProductId");
+                    b.HasIndex("ProductVariantId");
 
                     b.HasIndex("WarehouseId");
 
@@ -636,6 +663,31 @@ namespace Store.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Store.Domain.Entities.CartItem", b =>
+                {
+                    b.HasOne("Store.Domain.Entities.ProductVariant", "ProductVariant")
+                        .WithMany()
+                        .HasForeignKey("ProductVariantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Store.Domain.Entities.Warehouse", "Warehouse")
+                        .WithMany()
+                        .HasForeignKey("WarehouseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ProductVariant");
+
+                    b.Navigation("Warehouse");
+                });
+
             modelBuilder.Entity("Store.Domain.Entities.Category", b =>
                 {
                     b.HasOne("Store.Domain.Entities.ProductType", "ProductType")
@@ -668,9 +720,9 @@ namespace Store.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Store.Domain.Entities.Product", "Product")
+                    b.HasOne("Store.Domain.Entities.ProductVariant", "ProductVariant")
                         .WithMany()
-                        .HasForeignKey("ProductId")
+                        .HasForeignKey("ProductVariantId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -705,7 +757,7 @@ namespace Store.Persistence.Migrations
 
                     b.Navigation("Order");
 
-                    b.Navigation("Product");
+                    b.Navigation("ProductVariant");
 
                     b.Navigation("UnitPrice")
                         .IsRequired();
@@ -752,36 +804,29 @@ namespace Store.Persistence.Migrations
 
             modelBuilder.Entity("Store.Domain.Entities.ProductImage", b =>
                 {
-                    b.HasOne("Store.Domain.Entities.Product", "Product")
-                        .WithMany("Images")
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
                     b.HasOne("Store.Domain.Entities.ProductVariant", "ProductVariant")
                         .WithMany("Images")
                         .HasForeignKey("ProductVariantId")
                         .OnDelete(DeleteBehavior.Cascade);
-
-                    b.Navigation("Product");
 
                     b.Navigation("ProductVariant");
                 });
 
             modelBuilder.Entity("Store.Domain.Entities.ProductStock", b =>
                 {
-                    b.HasOne("Store.Domain.Entities.Product", "Product")
+                    b.HasOne("Store.Domain.Entities.ProductVariant", "ProductVariant")
                         .WithMany("Stocks")
-                        .HasForeignKey("ProductId")
+                        .HasForeignKey("ProductVariantId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Store.Domain.Entities.Warehouse", "Warehouse")
                         .WithMany()
                         .HasForeignKey("WarehouseId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Product");
+                    b.Navigation("ProductVariant");
 
                     b.Navigation("Warehouse");
                 });
@@ -841,10 +886,6 @@ namespace Store.Persistence.Migrations
 
             modelBuilder.Entity("Store.Domain.Entities.Product", b =>
                 {
-                    b.Navigation("Images");
-
-                    b.Navigation("Stocks");
-
                     b.Navigation("Variants");
                 });
 
@@ -856,6 +897,8 @@ namespace Store.Persistence.Migrations
             modelBuilder.Entity("Store.Domain.Entities.ProductVariant", b =>
                 {
                     b.Navigation("Images");
+
+                    b.Navigation("Stocks");
                 });
 #pragma warning restore 612, 618
         }

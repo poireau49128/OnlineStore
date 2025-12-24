@@ -33,6 +33,45 @@ public class OrderController : Controller
         return View(cart);
     }
 
+    //[HttpPost]
+    // public async Task<IActionResult> Create(string? comment)
+    // {
+    //     var user = await _userManager.GetUserAsync(User);
+    //     var cartItems = await _cart.GetAsync(user!.Id);
+
+    //     if (!cartItems.Any())
+    //         return RedirectToAction("Index", "Product");
+
+    //     var order = new Order(user.Id, comment);
+
+    //     foreach (var item in cartItems)
+    //     {
+    //         var product = await _db.Products.FindAsync(item.ProductVariantId);
+    //         var stock = await _db.ProductStocks.FirstAsync(s =>
+    //             s.ProductVariantId == item.ProductVariantId &&
+    //             s.WarehouseId == item.WarehouseId);
+
+    //         if (!stock.CanFulfill(item.Quantity))
+    //             throw new InvalidOperationException("Not enough stock");
+
+    //         stock.Decrease(item.Quantity);
+
+    //         order.AddItem(
+    //             item.ProductVariantId,
+    //             item.WarehouseId,
+    //             item.Quantity,
+    //             product!.BasePrice,
+    //             null
+    //         );
+    //     }
+
+    //     _db.Orders.Add(order);
+    //     await _db.SaveChangesAsync();
+    //     await _cart.ClearAsync(user.Id);
+
+    //     return RedirectToAction("Success");
+    // }
+
     [HttpPost]
     public async Task<IActionResult> Create(string? comment)
     {
@@ -46,21 +85,31 @@ public class OrderController : Controller
 
         foreach (var item in cartItems)
         {
-            var product = await _db.Products.FindAsync(item.ProductId);
+            var variant = item.ProductVariant;
+            var product = variant.Product;
+
             var stock = await _db.ProductStocks.FirstAsync(s =>
-                s.ProductVariantId == item.ProductId &&
+                s.ProductVariantId == item.ProductVariantId &&
                 s.WarehouseId == item.WarehouseId);
 
             if (!stock.CanFulfill(item.Quantity))
-                throw new InvalidOperationException("Not enough stock");
+                throw new InvalidOperationException($"Недостаточно товара на складе: {product.Name}");
 
             stock.Decrease(item.Quantity);
 
+            var unitPrice = variant.GetPrice(product.BasePrice);
+
+            var discountPercent = await GetCategoryDiscountAsync(
+                user.Id,
+                product.CategoryId
+            );
+
             order.AddItem(
-                item.ProductId,
+                product.Id,
                 item.WarehouseId,
                 item.Quantity,
-                product!.BasePrice,
+                unitPrice,
+                discountPercent,
                 null
             );
         }
@@ -71,6 +120,22 @@ public class OrderController : Controller
 
         return RedirectToAction("Success");
     }
+
+    private async Task<decimal> GetCategoryDiscountAsync(string userId, int categoryId)
+    {
+        var now = DateTime.UtcNow;
+
+        var discount = await _db.CustomerCategoryDiscount
+            .Where(d => d.UserId == userId)
+            .Where(d => d.CategoryId == categoryId)
+            .Where(d => d.Expiration == null || d.Expiration > now)
+            .OrderByDescending(d => d.DiscountPercent)
+            .FirstOrDefaultAsync();
+
+        return discount?.DiscountPercent ?? 0m;
+    }
+
+
 
     public IActionResult Success() => View();
 }

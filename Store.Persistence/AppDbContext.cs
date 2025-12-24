@@ -22,6 +22,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
     public DbSet<CartItem> CartItems => Set<CartItem>();
+    public DbSet<CustomerCategoryDiscount> CustomerCategoryDiscount => Set<CustomerCategoryDiscount>();
 
     
 
@@ -42,6 +43,8 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         ConfigureCustomerCategoryDiscount(modelBuilder);
 
         ConfigureProductStock(modelBuilder);
+
+        ConfigureCartItem(modelBuilder);
 
     }
 
@@ -284,5 +287,26 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
 
         entity.Property(ps => ps.Quantity)
             .IsRequired();
+    }
+
+    // ---------------- CARTITEM ----------------
+
+    private static void ConfigureCartItem(ModelBuilder modelBuilder)
+    {
+        var entity = modelBuilder.Entity<CartItem>();
+
+        entity.HasKey(c => c.Id);
+
+        entity.HasOne(c => c.ProductVariant)
+            .WithMany()
+            .HasForeignKey(c => c.ProductVariantId);
+
+        entity.HasOne(c => c.Warehouse)
+            .WithMany()
+            .HasForeignKey(c => c.WarehouseId);
+
+        entity.HasOne<ApplicationUser>()
+            .WithMany()
+            .HasForeignKey(c => c.UserId);
     }
 }

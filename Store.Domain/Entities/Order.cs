@@ -33,10 +33,11 @@ public class Order
         Status = OrderStatus.Pending;
     }
 
-    public void AddItem(int productId, int warehouseId, int quantity, Money unitPrice, string? comment)
+    public void AddItem(int productId, int warehouseId, int quantity, Money unitPrice,
+                            decimal discountPercent, string? comment)
     {
         if (quantity <= 0) throw new ArgumentException("Quantity must be positive");
-        _items.Add(new OrderItem(Id, productId, warehouseId, quantity, unitPrice, comment));
+        _items.Add(new OrderItem(Id, productId, warehouseId, quantity, unitPrice, discountPercent, comment));
     }
 
     public Money GetTotal()
@@ -60,27 +61,41 @@ public class Order
 public class OrderItem
 {
     public int Id { get; private set; }
+
     public int OrderId { get; private set; }
     public Order Order { get; private set; } = null!;
-    public int ProductId { get; private set; }
-    public Product Product { get; private set; } = null!;
+    
+    public int ProductVariantId { get; private set; }
+    public ProductVariant ProductVariant { get; private set; } = null!;
+
     public int WarehouseId { get; private set; }
     public Warehouse Warehouse { get; private set; } = null!;
+
     public int Quantity { get; private set; }
     public Money UnitPrice { get; private set; }
+
     public decimal DiscountPercent { get; private set; } = 0;
     public string? Comment { get; private set; }
 
     private OrderItem() { }
 
-    public OrderItem(int orderId, int productId, int warehouseId, int quantity, Money unitPrice, string? comment)
+    public OrderItem(int orderId, int productVariantId, int warehouseId, int quantity,
+                        Money unitPrice, decimal discountPercent = 0, string? comment = null)
     {
         OrderId = orderId;
-        ProductId = productId;
+        ProductVariantId = productVariantId;
         WarehouseId = warehouseId;
         if (quantity <= 0) throw new ArgumentException("Quantity must be positive");
         Quantity = quantity;
         UnitPrice = unitPrice;
+        DiscountPercent = discountPercent;
         Comment = comment;
+    }
+
+    public Money GetTotal()
+    {
+        var total = UnitPrice.Amount * Quantity;
+        var discounted = total * (1 - DiscountPercent / 100m);
+        return Money.From(discounted, UnitPrice.Currency);
     }
 }

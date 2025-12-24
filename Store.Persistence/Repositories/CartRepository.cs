@@ -13,15 +13,34 @@ public class CartRepository : ICartRepository
 
     public async Task<List<CartItem>> GetAsync(string userId)
         => await _db.CartItems
-            .Include(c => c.Product)
-            .Where(c => c.UserId == userId)
+            .Where(x => x.UserId == userId)
+                .Include(x => x.Warehouse)
+                .Include(x => x.ProductVariant)
+                    .ThenInclude(v => v.Product)
+                .Include(x => x.ProductVariant)
+                    .ThenInclude(v => v.Stocks)
+                        .ThenInclude(s => s.Warehouse)
             .ToListAsync();
 
     public async Task AddAsync(CartItem item)
     {
-        _db.CartItems.Add(item);
+        var existing = await _db.CartItems.FirstOrDefaultAsync(c =>
+            c.UserId == item.UserId &&
+            c.ProductVariantId == item.ProductVariantId &&
+            c.WarehouseId == item.WarehouseId);
+
+        if (existing != null)
+        {
+            existing.Increase(item.Quantity);
+        }
+        else
+        {
+            _db.CartItems.Add(item);
+        }
+
         await _db.SaveChangesAsync();
     }
+
 
     public async Task ClearAsync(string userId)
     {
@@ -40,4 +59,34 @@ public class CartRepository : ICartRepository
             await _db.SaveChangesAsync();
         }
     }
+
+    // public async Task UpdateQuantityAsync(int id, int quantity)
+    // {
+    //     var item = await _db.CartItems.FindAsync(id);
+    //     if (item == null) return;
+
+    //     if (quantity <= 0)
+    //         _db.CartItems.Remove(item);
+    //     else
+    //         item.SetQuantity(quantity);
+
+    //     await _db.SaveChangesAsync();
+    // }
+    
+
+    public async Task<CartItem?> GetByIdAsync(int id)
+    {
+        return await _db.CartItems
+            .Include(x => x.Warehouse)
+            .Include(x => x.ProductVariant)
+                .ThenInclude(v => v.Stocks)
+            .FirstOrDefaultAsync(x => x.Id == id);
+    }
+
+    public async Task SaveChangesAsync()
+    {
+        await _db.SaveChangesAsync();
+    }
+
+
 }

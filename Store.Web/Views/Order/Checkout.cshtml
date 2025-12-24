@@ -1,0 +1,44 @@
+@model IEnumerable<Store.Web.ViewModels.Cart.CartItemViewModel>
+
+@{
+    ViewData["Title"] = "Оформление заказа";
+}
+
+<h1>Оформление заказа</h1>
+
+@if (!Model.Any())
+{
+    <p>Корзина пуста</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Товар</th>
+                <th>Цвет</th>
+                <th>Размер</th>
+                <th>Склад</th>
+                <th>Количество</th>
+                <th>Цена</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.ProductName</td>
+                <td>@item.Color</td>
+                <td>@item.Size</td>
+                <td>@item.WarehouseName</td>
+                <td>@item.Quantity</td>
+                <td>@item.TotalPrice @item.Currency</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+
+    <button class="btn btn-success">
+        Подтвердить заказ
+    </button>
+}
