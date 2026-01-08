@@ -1,44 +1,62 @@
-@model IEnumerable<Store.Web.ViewModels.Cart.CartItemViewModel>
-
-@{
-    ViewData["Title"] = "Оформление заказа";
-}
+@model Store.Web.ViewModels.Order.CheckoutViewModel
 
 <h1>Оформление заказа</h1>
 
-@if (!Model.Any())
+@if (!Model.Items.Any())
 {
     <p>Корзина пуста</p>
+    <a asp-controller="Product" asp-action="Index" class="btn btn-primary">В каталог</a>
 }
 else
 {
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Товар</th>
-                <th>Цвет</th>
-                <th>Размер</th>
-                <th>Склад</th>
-                <th>Количество</th>
-                <th>Цена</th>
-            </tr>
-        </thead>
-        <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>@item.ProductName</td>
-                <td>@item.Color</td>
-                <td>@item.Size</td>
-                <td>@item.WarehouseName</td>
-                <td>@item.Quantity</td>
-                <td>@item.TotalPrice @item.Currency</td>
-            </tr>
-        }
-        </tbody>
-    </table>
+    <form asp-action="Checkout" method="post">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Товар</th>
+                    <th>Цвет</th>
+                    <th>Размер</th>
+                    <th>Склад</th>
+                    <th>Кол-во</th>
+                    <th>Цена</th>
+                    <th>Скидка %</th>
+                    <th>Итог</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var item in Model.Items)
+            {
+                <tr>
+                    <td>@item.ProductName</td>
+                    <td>@item.Color</td>
+                    <td>@item.Size</td>
+                    <td>@item.WarehouseId</td>
+                    <td>@item.Quantity</td>
+                    <td>@item.UnitPrice.ToString("0.00") BYN</td>
+                    <td>@item.DiscountPercent.ToString("0.##") %</td>
+                    <td>@item.TotalWithDiscount.ToString("0.00") BYN</td>
+                </tr>
+            }
+            </tbody>
+        </table>
 
-    <button class="btn btn-success">
-        Подтвердить заказ
-    </button>
+        <div class="mb-3">
+            <label for="comment" class="form-label">Комментарий к заказу</label>
+            <input type="text" name="Comment" id="comment" value="@Model.Comment" class="form-control"/>
+        </div>
+
+        <div class="mb-3">
+            <strong>Итого без скидки: @Model.TotalAmount.ToString("0.00") BYN</strong><br/>
+            <strong>Итого со скидкой: @Model.TotalWithDiscount.ToString("0.00") BYN</strong>
+        </div>
+
+        <button type="submit" class="btn btn-success">Подтвердить заказ</button>
+    </form>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger mt-3">
+            @TempData["Error"]
+        </div>
+    }
 }

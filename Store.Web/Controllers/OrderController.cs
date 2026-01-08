@@ -1,141 +1,97 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Store.Domain.Entities;
-using Store.Persistence;
+using Store.Web.ViewModels.Order;
 
 [Authorize]
 public class OrderController : Controller
 {
     private readonly CartService _cart;
-    private readonly AppDbContext _db;
-    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IOrderService _orderService;
+    private readonly IDiscountService _discountService;
 
     public OrderController(
         CartService cart,
-        AppDbContext db,
-        UserManager<ApplicationUser> userManager)
+        IOrderService orderService,
+        IDiscountService discountService)
     {
         _cart = cart;
-        _db = db;
-        _userManager = userManager;
+        _orderService = orderService;
+        _discountService = discountService;
     }
 
+    [HttpGet]
     public async Task<IActionResult> Checkout()
     {
-        var user = await _userManager.GetUserAsync(User);
-        var cart = await _cart.GetAsync(user!.Id);
-
-        if (!cart.Any())
-            return RedirectToAction("Index", "Product");
-
-        return View(cart);
-    }
-
-    //[HttpPost]
-    // public async Task<IActionResult> Create(string? comment)
-    // {
-    //     var user = await _userManager.GetUserAsync(User);
-    //     var cartItems = await _cart.GetAsync(user!.Id);
-
-    //     if (!cartItems.Any())
-    //         return RedirectToAction("Index", "Product");
-
-    //     var order = new Order(user.Id, comment);
-
-    //     foreach (var item in cartItems)
-    //     {
-    //         var product = await _db.Products.FindAsync(item.ProductVariantId);
-    //         var stock = await _db.ProductStocks.FirstAsync(s =>
-    //             s.ProductVariantId == item.ProductVariantId &&
-    //             s.WarehouseId == item.WarehouseId);
-
-    //         if (!stock.CanFulfill(item.Quantity))
-    //             throw new InvalidOperationException("Not enough stock");
-
-    //         stock.Decrease(item.Quantity);
-
-    //         order.AddItem(
-    //             item.ProductVariantId,
-    //             item.WarehouseId,
-    //             item.Quantity,
-    //             product!.BasePrice,
-    //             null
-    //         );
-    //     }
-
-    //     _db.Orders.Add(order);
-    //     await _db.SaveChangesAsync();
-    //     await _cart.ClearAsync(user.Id);
-
-    //     return RedirectToAction("Success");
-    // }
-
-    [HttpPost]
-    public async Task<IActionResult> Create(string? comment)
-    {
-        var user = await _userManager.GetUserAsync(User);
-        var cartItems = await _cart.GetAsync(user!.Id);
+        var userId = User.GetUserId();
+        var cartItems = await _cart.GetAsync(userId);
 
         if (!cartItems.Any())
             return RedirectToAction("Index", "Product");
 
-        var order = new Order(user.Id, comment);
-
-        foreach (var item in cartItems)
+        var vm = new CheckoutViewModel
         {
-            var variant = item.ProductVariant;
+            Items = new List<CheckoutItemViewModel>()
+        };
+
+        foreach (var i in cartItems)
+        {
+            var variant = i.ProductVariant;
             var product = variant.Product;
-
-            var stock = await _db.ProductStocks.FirstAsync(s =>
-                s.ProductVariantId == item.ProductVariantId &&
-                s.WarehouseId == item.WarehouseId);
-
-            if (!stock.CanFulfill(item.Quantity))
-                throw new InvalidOperationException($"Недостаточно товара на складе: {product.Name}");
-
-            stock.Decrease(item.Quantity);
-
             var unitPrice = variant.GetPrice(product.BasePrice);
 
-            var discountPercent = await GetCategoryDiscountAsync(
-                user.Id,
-                product.CategoryId
+            var discountPercent = await _discountService.GetCategoryDiscountAsync(
+                userId,
+                product.CategoryId,
+                DateTime.UtcNow
             );
 
-            order.AddItem(
-                product.Id,
-                item.WarehouseId,
-                item.Quantity,
-                unitPrice,
-                discountPercent,
-                null
-            );
+            vm.Items.Add(new CheckoutItemViewModel
+            {
+                CartItemId = i.Id,
+                ProductVariantId = variant.Id,
+                WarehouseId = i.WarehouseId,
+                ProductName = product.Name,
+                Color = variant.Color,
+                Size = variant.Size,
+                Quantity = i.Quantity,
+                UnitPrice = unitPrice.Amount,
+                DiscountPercent = discountPercent
+            });
         }
 
-        _db.Orders.Add(order);
-        await _db.SaveChangesAsync();
-        await _cart.ClearAsync(user.Id);
-
-        return RedirectToAction("Success");
+        return View(vm);
     }
 
-    private async Task<decimal> GetCategoryDiscountAsync(string userId, int categoryId)
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Checkout(CheckoutViewModel vm)
     {
-        var now = DateTime.UtcNow;
+        var command = new CheckoutCommand
+        {
+            UserId = User.GetUserId(),
+            Comment = vm.Comment,
+            Items = vm.Items.Select(i => new CheckoutItemDto
+            {
+                ProductVariantId = i.ProductVariantId,
+                WarehouseId = i.WarehouseId,
+                Quantity = i.Quantity
+            }).ToList()
+        };
 
-        var discount = await _db.CustomerCategoryDiscount
-            .Where(d => d.UserId == userId)
-            .Where(d => d.CategoryId == categoryId)
-            .Where(d => d.Expiration == null || d.Expiration > now)
-            .OrderByDescending(d => d.DiscountPercent)
-            .FirstOrDefaultAsync();
-
-        return discount?.DiscountPercent ?? 0m;
+        try
+        {
+            var orderId = await _orderService.CheckoutAsync(command);
+            return RedirectToAction("Success", new { id = orderId });
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            TempData["Error"] =
+                "Один из товаров закончился. Корзина обновлена.";
+            return RedirectToAction(nameof(Checkout));
+        }
     }
 
-
-
-    public IActionResult Success() => View();
+    public IActionResult Success(int id) => View(id);
 }

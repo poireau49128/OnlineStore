@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace Store.Domain.Entities;
 
 public class ProductStock
@@ -8,6 +10,8 @@ public class ProductStock
     public int WarehouseId { get; private set; }
     public Warehouse Warehouse { get; private set; } = null!;
     public int Quantity { get; private set; }
+    [Timestamp]
+    public byte[] RowVersion { get; private set; } = null!;
 
     private ProductStock() { }
 

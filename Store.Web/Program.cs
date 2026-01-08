@@ -30,6 +30,17 @@ builder.Services.ConfigureApplicationCookie(options =>
 });
 
 builder.Services.AddScoped<ICartRepository, CartRepository>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<IProductStockRepository, ProductStockRepository>();
+builder.Services.AddScoped<IUnitOfWork, EfUnitOfWork>();
+
+builder.Services.AddScoped<
+    ICustomerCategoryDiscountRepository,
+    CustomerCategoryDiscountRepository>();
+
+builder.Services.AddScoped<IDiscountService, DiscountService>();
+
 builder.Services.AddScoped<CartService>();
 
 

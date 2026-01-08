@@ -222,10 +222,54 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             .WithMany() 
             .HasForeignKey(o => o.UserId)
             .OnDelete(DeleteBehavior.Restrict);
+        
+        entity.HasMany(o => o.Items)
+            .WithOne(oi => oi.Order)
+            .HasForeignKey(oi => oi.OrderId)
+            .IsRequired()
+            .OnDelete(DeleteBehavior.Cascade);
+
+        entity.Navigation(o => o.Items)
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 
     // ---------------- ORDER ITEM ----------------
 
+    // private static void ConfigureOrderItem(ModelBuilder modelBuilder)
+    // {
+    //     var entity = modelBuilder.Entity<OrderItem>();
+
+    //     entity.HasKey(oi => oi.Id);
+
+    //     entity.Property(oi => oi.Comment)
+    //         .HasMaxLength(1000);
+        
+    //     entity.Property(oi => oi.DiscountPercent)
+    //         .HasPrecision(5, 2);
+
+    //     entity.HasOne(oi => oi.Order)
+    //         .WithMany(o => o.Items)
+    //         .HasForeignKey("OrderId")
+    //         .IsRequired()
+    //         .OnDelete(DeleteBehavior.Cascade);
+
+    //     entity.OwnsOne(oi => oi.UnitPrice, money =>
+    //     {
+    //         money.Property(m => m.Amount)
+    //             .HasColumnName("UnitPriceAmount")
+    //             .HasColumnType("decimal(18,2)")
+    //             .IsRequired();
+
+    //         money.Property(m => m.Currency)
+    //             .HasColumnName("UnitPriceCurrency")
+    //             .HasMaxLength(3)
+    //             .IsRequired();
+    //     });
+
+    //     entity.Navigation(oi => oi.UnitPrice)
+    //         .HasField("_unitPrice")
+    //         .UsePropertyAccessMode(PropertyAccessMode.Field);
+    // }
     private static void ConfigureOrderItem(ModelBuilder modelBuilder)
     {
         var entity = modelBuilder.Entity<OrderItem>();
@@ -238,15 +282,23 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         entity.Property(oi => oi.DiscountPercent)
             .HasPrecision(5, 2);
 
-        entity.OwnsOne(oi => oi.UnitPrice, money =>
+        entity.HasOne(oi => oi. Order)
+            .WithMany(o => o.Items)
+            .HasForeignKey("OrderId")
+            .IsRequired()
+            .OnDelete(DeleteBehavior.Cascade);
+
+        entity. OwnsOne(oi => oi.UnitPrice, money =>
         {
             money.Property(m => m.Amount)
                 .HasColumnName("UnitPriceAmount")
-                .HasColumnType("decimal(18,2)");
+                .HasColumnType("decimal(18,2)")
+                .IsRequired();
 
             money.Property(m => m.Currency)
                 .HasColumnName("UnitPriceCurrency")
-                .HasMaxLength(3);
+                .HasMaxLength(3)
+                .IsRequired();
         });
     }
 
@@ -256,12 +308,18 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     {
         var entity = modelBuilder.Entity<CustomerCategoryDiscount>();
 
-        entity.HasKey(oi => oi.Id);
+        entity.HasKey(d => d.Id);
 
-        entity.HasOne<ApplicationUser>() 
-            .WithMany() 
-            .HasForeignKey(o => o.UserId)
+        entity.HasOne<Store.Persistence.ApplicationUser>() 
+            .WithMany(u => u.CategoryDiscounts)
+            .HasForeignKey(d => d.UserId)
+            .IsRequired()
             .OnDelete(DeleteBehavior.Restrict);
+
+        entity.HasOne(d => d.Category)
+          .WithMany()
+          .HasForeignKey(d => d.CategoryId)
+          .OnDelete(DeleteBehavior.Cascade);
 
         entity.Property(d => d.DiscountPercent)
             .HasPrecision(5, 2);

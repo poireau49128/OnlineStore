@@ -23,6 +23,9 @@ public sealed class Money : IEquatable<Money>
     public static Money Zero(string currency = "BYN")
         => new Money(0, currency);
 
+    public Money Clone()
+        => new Money(Amount, Currency);
+
     public Money Add(Money other)
     {
         if (Currency != other.Currency)

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Store.Domain.Entities;
 
+namespace Store.Persistence;
 public class ApplicationUser : IdentityUser
 {
     public string? FullName { get; private set; }
