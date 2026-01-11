@@ -1,9 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using Microsoft. EntityFrameworkCore;
 using Store.Domain.Entities;
-using Store.Persistence;
+using Store. Persistence;
 using X.PagedList;
+using Microsoft.AspNetCore.Http.Extensions;
 
 namespace Store.Web.Controllers
 {
@@ -19,33 +20,27 @@ namespace Store.Web.Controllers
             _cart = cart;
         }
 
-        public async Task<IActionResult> Index(int page = 1, int? categoryId = null, string? searchTerm = null)
+        public async Task<IActionResult> Index(int page = 1, int?  categoryId = null, string?  searchTerm = null)
         {
             var query = _db.Products
-                .Include(p => p.Variants)
-                    .ThenInclude(v => v.Images) // картинки вариаций
+                . Include(p => p. Variants)
+                    .ThenInclude(v => v. Images)
                 .Include(p => p.Category)
                     .ThenInclude(c => c.ProductType)
-                
                 .AsQueryable();
 
-
-            // Фильтр по категории
             if (categoryId.HasValue)
             {
                 query = query.Where(p => p.CategoryId == categoryId.Value);
             }
 
-            // Поиск по имени
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                query = query.Where(p => p.Name.Contains(searchTerm));
+                query = query. Where(p => p.Name. Contains(searchTerm));
             }
 
-            // Подсчет общего количества
             var totalCount = await query.CountAsync();
 
-            // Получение текущей страницы
             var items = await query
                 .OrderBy(p => p.CategoryId)
                 .ThenBy(p => p.Name)
@@ -53,14 +48,12 @@ namespace Store.Web.Controllers
                 .Take(PageSize)
                 .ToListAsync();
 
-            // Создаем PagedList для Razor
             var pagedList = new StaticPagedList<Product>(items, page, PageSize, totalCount);
 
-            // Передаем фильтры и категории в View
             ViewBag.Categories = await _db.Categories
                 .Include(c => c.ProductType)
                 .ToListAsync();
-            ViewBag.SelectedCategoryId = categoryId;
+            ViewBag. SelectedCategoryId = categoryId;
             ViewBag.SearchTerm = searchTerm;
 
             return View(pagedList);
@@ -68,16 +61,15 @@ namespace Store.Web.Controllers
 
         public async Task<IActionResult> Details(int id)
         {
-            var product = await _db.Products
-                .Include(p => p.Variants)
-                    .ThenInclude(v => v.Images)
-                .Include(p => p.Variants)
-                    .ThenInclude(v => v.Stocks)
-                        .ThenInclude(s => s.Warehouse)
+            var product = await _db. Products
+                .Include(p => p. Variants)
+                    .ThenInclude(v => v. Images)
+                .Include(p => p. Variants)
+                    .ThenInclude(v => v. Stocks)
+                        .ThenInclude(s => s. Warehouse)
                 .Include(p => p.Category)
                     .ThenInclude(c => c.ProductType)
                 .FirstOrDefaultAsync(p => p.Id == id);
-
 
             if (product == null) return NotFound();
 
@@ -101,16 +93,55 @@ namespace Store.Web.Controllers
         }
 
         [Authorize]
+        [ValidateAntiForgeryToken]
         [HttpPost]
-        public async Task<IActionResult> AddToCart(int variantId, int warehouseId, int qty = 1)
+        public async Task<IActionResult> AddToCart([FromBody] AddToCartRequest model)
         {
-            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value;
+            try
+            {
+                if (model == null || model.variantId <= 0 || model.warehouseId <= 0 || model.qty < 1)
+                {
+                    return BadRequest(new { success = false, message = "Некорректные данные товара" });
+                }
 
-            await _cart.AddAsync(userId, variantId, warehouseId, qty);
+                var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value;
 
-            return RedirectToAction("Index", "Cart");
+                var stock = await _db.ProductStocks
+                    .FirstOrDefaultAsync(s => s.ProductVariantId == model.variantId && s. WarehouseId == model.warehouseId);
+
+                if (stock == null)
+                {
+                    return BadRequest(new { success = false, message = "Товар отсутствует на этом складе" });
+                }
+
+                if (stock.Quantity < model. qty)
+                {
+                    return BadRequest(new { success = false, message = $"На складе только {stock.Quantity} шт.  товара" });
+                }
+
+                await _cart.AddAsync(userId, model.variantId, model.warehouseId, model. qty);
+
+                var cartItems = await _cart.GetAsync(userId);
+                int cartCount = cartItems. Sum(x => x. Quantity);
+
+                return Json(new 
+                { 
+                    success = true, 
+                    message = "✓ Товар добавлен в корзину", 
+                    cartCount 
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "��шибка сервера:  " + ex.Message });
+            }
         }
+    }
 
-
+    public class AddToCartRequest
+    {
+        public int variantId { get; set; }
+        public int warehouseId { get; set; }
+        public int qty { get; set; }
     }
 }

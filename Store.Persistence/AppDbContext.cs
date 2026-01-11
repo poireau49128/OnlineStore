@@ -234,42 +234,6 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     }
 
     // ---------------- ORDER ITEM ----------------
-
-    // private static void ConfigureOrderItem(ModelBuilder modelBuilder)
-    // {
-    //     var entity = modelBuilder.Entity<OrderItem>();
-
-    //     entity.HasKey(oi => oi.Id);
-
-    //     entity.Property(oi => oi.Comment)
-    //         .HasMaxLength(1000);
-        
-    //     entity.Property(oi => oi.DiscountPercent)
-    //         .HasPrecision(5, 2);
-
-    //     entity.HasOne(oi => oi.Order)
-    //         .WithMany(o => o.Items)
-    //         .HasForeignKey("OrderId")
-    //         .IsRequired()
-    //         .OnDelete(DeleteBehavior.Cascade);
-
-    //     entity.OwnsOne(oi => oi.UnitPrice, money =>
-    //     {
-    //         money.Property(m => m.Amount)
-    //             .HasColumnName("UnitPriceAmount")
-    //             .HasColumnType("decimal(18,2)")
-    //             .IsRequired();
-
-    //         money.Property(m => m.Currency)
-    //             .HasColumnName("UnitPriceCurrency")
-    //             .HasMaxLength(3)
-    //             .IsRequired();
-    //     });
-
-    //     entity.Navigation(oi => oi.UnitPrice)
-    //         .HasField("_unitPrice")
-    //         .UsePropertyAccessMode(PropertyAccessMode.Field);
-    // }
     private static void ConfigureOrderItem(ModelBuilder modelBuilder)
     {
         var entity = modelBuilder.Entity<OrderItem>();
@@ -282,13 +246,13 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         entity.Property(oi => oi.DiscountPercent)
             .HasPrecision(5, 2);
 
-        entity.HasOne(oi => oi. Order)
+        entity.HasOne(oi => oi.Order)
             .WithMany(o => o.Items)
             .HasForeignKey("OrderId")
             .IsRequired()
             .OnDelete(DeleteBehavior.Cascade);
 
-        entity. OwnsOne(oi => oi.UnitPrice, money =>
+        entity.OwnsOne(oi => oi.UnitPrice, money =>
         {
             money.Property(m => m.Amount)
                 .HasColumnName("UnitPriceAmount")

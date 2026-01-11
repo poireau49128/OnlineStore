@@ -1,64 +1,252 @@
 @model Store.Web.ViewModels.Cart.CartViewModel
 
-<h2>Корзина</h2>
+<h2>🛒 Корзина</h2>
 
 @if (!Model.Items.Any())
 {
-    <p>Корзина пуста</p>
-    <a asp-controller="Product" asp-action="Index" class="btn btn-primary">В каталог</a>
+    <div class="alert alert-info">
+        <p>Ваша корзина пуста</p>
+    </div>
+    <a asp-controller="Product" asp-action="Index" class="btn btn-primary">← В каталог</a>
 }
 else
 {
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Товар</th>
-                <th>Вариант</th>
-                <th>Склад</th>
-                <th>Кол-во</th>
-                <th>Цена</th>
-                <th>Сумма</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-        @foreach (var item in Model.Items)
-        {
-            <tr>
-                <td>@item.ProductName</td>
-                <td>@item.Color @item.Size</td>
-                <td>@item.WarehouseName</td>
-                <td>
-                    <form asp-action="Update" method="post" class="d-inline">
-                        <input type="hidden" name="id" value="@item.Id" />
-                        <input type="hidden" name="maxQuantity" value="@item.AvailableQuantity" />
-                        <input type="hidden" name="quantity" value="@(item.Quantity - 1)" />
-                        <button class="btn btn-sm btn-secondary" type="submit" @(item.Quantity <= 1 ? "disabled" : "")>−</button>
-                    </form>
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>Товар</th>
+                    <th>Вариант</th>
+                    <th>Склад</th>
+                    <th>Кол-во</th>
+                    <th>Цена</th>
+                    <th>Сумма</th>
+                    <th>Действие</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Items)
+                {
+                    <tr class="cart-item" data-item-id="@item.Id">
+                        <td>@item.ProductName</td>
+                        <td>@item.Color @(! string.IsNullOrEmpty(item.Size) ? $"({item.Size})" : "")</td>
+                        <td>@item.WarehouseName</td>
+                        <td>
+                            <div class="input-group" style="width: 120px;">
+                                <button class="btn btn-sm btn-outline-secondary qty-minus" type="button" data-item-id="@item.Id" @(item.Quantity <= 1 ? "disabled" : "")>
+                                    −
+                                </button>
+                                <input type="text" class="form-control text-center qty-input" value="@item.Quantity" readonly style="padding: 0.25rem; font-weight: 600;">
+                                <button class="btn btn-sm btn-outline-secondary qty-plus" type="button" data-item-id="@item.Id" data-max="@item.AvailableQuantity" @(item.Quantity >= item.AvailableQuantity ?  "disabled" : "")>
+                                    +
+                                </button>
+                            </div>
+                        </td>
+                        <td>@item.UnitPrice.ToString("0.00") @item.Currency</td>
+                        <td class="total-price" data-total="@(item.Quantity * item.UnitPrice)">
+                            @(item.Quantity * item.UnitPrice) @item.Currency
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-danger btn-remove" type="button" data-item-id="@item.Id">
+                                🗑️ Удалить
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 
-                    <span class="mx-2">@item.Quantity</span>
+    <div class="row mt-4">
+        <div class="col-md-8">
+            <a asp-controller="Product" asp-action="Index" class="btn btn-outline-secondary">← Продолжить покупки</a>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Сумма заказа</h5>
+                    <h4 id="total-amount">@Model.TotalAmount.ToString("0.00") @Model.Currency</h4>
+                    <a asp-controller="Order" asp-action="Checkout" class="btn btn-success w-100 mt-3">
+                        ✓ Оформить заказ
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+}
 
-                    <form asp-action="Update" method="post" class="d-inline">
-                        <input type="hidden" name="id" value="@item.Id" />
-                        <input type="hidden" name="maxQuantity" value="@item.AvailableQuantity" />
-                        <input type="hidden" name="quantity" value="@(item.Quantity + 1)" />
-                        <button class="btn btn-sm btn-secondary" type="submit" @(item.Quantity >= item.AvailableQuantity ? "disabled" : "")>+</button>
-                    </form>
-                </td>
-                <td>@item.UnitPrice @item.Currency</td>
-                <td>@item.TotalPrice @item.Currency</td>
-                <td>
-                    <form asp-action="Remove" method="post">
-                        <input type="hidden" name="id" value="@item.Id" />
-                        <button class="btn btn-sm btn-danger">Удалить</button>
-                    </form>
-                </td>
-            </tr>
+@Html.AntiForgeryToken()
+
+@section Scripts {
+<script>
+    function getCsrfToken() {
+        return document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+    }
+
+    function showNotification(message, type = "info") {
+        const alertDiv = document.createElement("div");
+        alertDiv.className = `alert alert-${type} alert-notification alert-dismissible fade show`;
+        alertDiv.role = "alert";
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.body.appendChild(alertDiv);
+        setTimeout(() => alertDiv.parentNode && alertDiv.remove(), 4000);
+    }
+
+    async function updateCartQuantity(itemId, newQuantity) {
+        const formData = new FormData();
+        formData.append('id', itemId);
+        formData.append('quantity', newQuantity);
+        formData.append('__RequestVerificationToken', getCsrfToken());
+
+        try {
+            const response = await fetch('/Cart/Update', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                const row = document.querySelector(`tr.cart-item[data-item-id="${itemId}"]`);
+                if (row) {
+                    const qtyInput = row.querySelector('.qty-input');
+                    const totalPrice = row.querySelector('.total-price');
+                    const qtyMinus = row.querySelector('.qty-minus');
+                    const qtyPlus = row.querySelector('.qty-plus');
+
+                    qtyInput.value = data.item.quantity;
+                    totalPrice.textContent = `${data.item.totalPrice.toFixed(2)} ${data.currency}`;
+
+                    qtyMinus.disabled = data.item.quantity <= 1;
+                    qtyPlus.disabled = data.item.quantity >= data.item.availableQuantity;
+                }
+
+                document.getElementById('total-amount').textContent = `${data.totalAmount.toFixed(2)} ${data.currency}`;
+                updateCartBadge();
+                showNotification(data.message, "success");
+            } else {
+                showNotification(data.message || "Ошибка при обновлении", "danger");
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification("❌ Ошибка при обновлении:  " + error.message, "danger");
         }
-        </tbody>
-    </table>
+    }
 
-    <h4>Итого: @Model.TotalAmount @Model.Currency</h4>
+    async function removeCartItem(itemId) {
+        if (! confirm('Вы уверены, что хотите удалить товар? ')) return;
 
-    <a asp-controller="Order" asp-action="Checkout" class="btn btn-success">Оформить заказ</a>
+        const formData = new FormData();
+        formData.append('id', itemId);
+        formData.append('__RequestVerificationToken', getCsrfToken());
+
+        try {
+            const response = await fetch('/Cart/Remove', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                const row = document.querySelector(`tr.cart-item[data-item-id="${itemId}"]`);
+                if (row) {
+                    row.style.animation = 'fadeOut 0.3s ease-out';
+                    setTimeout(() => row.remove(), 300);
+                }
+
+                const tableBody = document.querySelector('table tbody');
+                if (!tableBody || tableBody.children.length === 0) {
+                    setTimeout(() => location.reload(), 500);
+                }
+
+                document.getElementById('total-amount').textContent = `${data.totalAmount.toFixed(2)} ${data.currency}`;
+                updateCartBadge();
+                showNotification(data.message, "success");
+            } else {
+                showNotification(data.message || "Ошибка при удалении", "danger");
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification("❌ Ошибка при удалении: " + error.message, "danger");
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.qty-minus').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const itemId = parseInt(e.target.dataset.itemId);
+                const row = document.querySelector(`tr.cart-item[data-item-id="${itemId}"]`);
+                const currentQty = parseInt(row.querySelector('.qty-input').value);
+                if (currentQty > 1) {
+                    updateCartQuantity(itemId, currentQty - 1);
+                }
+            });
+        });
+
+        document.querySelectorAll('.qty-plus').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const itemId = parseInt(e.target.dataset.itemId);
+                const maxQty = parseInt(e.target.dataset.max);
+                const row = document.querySelector(`tr.cart-item[data-item-id="${itemId}"]`);
+                const currentQty = parseInt(row.querySelector('.qty-input').value);
+                if (currentQty < maxQty) {
+                    updateCartQuantity(itemId, currentQty + 1);
+                }
+            });
+        });
+
+        document.querySelectorAll('.btn-remove').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const itemId = parseInt(e.target.dataset.itemId);
+                removeCartItem(itemId);
+            });
+        });
+    });
+</script>
+
+<style>
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: rgba(0, 123, 255, 0.05);
+    }
+
+    .input-group {
+        max-width: 120px;
+    }
+
+    @@keyframes fadeOut {
+        to {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+    }
+
+    .alert-notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        min-width: 300px;
+        animation: slideIn 0.3s ease-out;
+        box-shadow: 0 4px 12px rgba(0,0,0,.15);
+    }
+
+    @@keyframes slideIn {
+        from {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+</style>
 }

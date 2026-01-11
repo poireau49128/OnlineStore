@@ -1,10 +1,14 @@
 @model Store.Domain.Entities.Product
 @using System.Text.Json
 
+@{
+    ViewData["Title"] = Model.Name;
+}
+
 <style>
-    input[type=number]::-webkit-inner-spin-button,
-    input[type=number]::-webkit-outer-spin-button {
-        -webkit-appearance: none;
+    input[type=number]: :-webkit-inner-spin-button,
+    input[type=number]: :-webkit-outer-spin-button {
+        -webkit-appearance:  none;
         margin: 0;
     }
 
@@ -14,13 +18,59 @@
 
     .warehouse-btn.selected {
         background-color: #0d6efd;
-        color: white;
+        color:  white;
+    }
+
+    .warehouse-btn {
+        transition: all 0.2s ease;
+    }
+
+    #addToCartBtn {
+        transition: all 0.2s ease;
+        min-width: 200px;
+    }
+
+    #addToCartBtn:disabled {
+        opacity: 0.7;
+    }
+
+    #mainProductImage {
+        transition: transform 0.3s ease;
+        cursor: pointer;
+    }
+
+    #mainProductImage:hover {
+        transform: scale(1.02);
+    }
+
+    .color-variant {
+        transition: all 0.2s ease;
+        border:  2px solid transparent;
+        cursor: pointer;
+    }
+
+    .color-variant.selected {
+        background-color: #0d6efd ! important;
+        color: white ! important;
+        border:  2px solid #0a58ca !important;
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
+        font-weight: 600;
+    }
+
+    .warehouse-btn {
+        transition: all 0.2s ease;
+        border: 2px solid transparent;
+        cursor: pointer;
+    }
+
+    .warehouse-btn.selected {
+        background-color: #0d6efd !important;
+        color: white !important;
+        border: 2px solid #0a58ca !important;
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
+        font-weight: 600;
     }
 </style>
-
-@{
-    ViewData["Title"] = Model.Name;
-}
 
 <div class="container mt-5">
     <nav aria-label="breadcrumb">
@@ -35,7 +85,8 @@
 
     <div class="row">
         <div class="col-md-6">
-            <img id="mainProductImage" src="@Url.Content(Model.GetMainImagePath())" class="img-fluid rounded shadow" alt="@Model.Name" style="max-height:600px;object-fit:cover;">
+            <img id="mainProductImage" src="@Url.Content(Model.GetMainImagePath())" 
+                 class="img-fluid rounded shadow" alt="@Model.Name" style="max-height: 600px;object-fit:cover;">
         </div>
 
         <div class="col-md-6">
@@ -54,7 +105,7 @@
                 @($"{Model.BasePrice.Amount:0.00} {Model.BasePrice.Currency}")
             </h2>
 
-            @if (!string.IsNullOrEmpty(Model.Description))
+            @if (! string.IsNullOrEmpty(Model.Description))
             {
                 <div class="mb-4">
                     <h5>Описание</h5>
@@ -71,7 +122,9 @@
                         @foreach (var v in Model.Variants
                             .OrderBy(v => v.Images.Any() ? v.Images.Min(i => i.SortOrder) : int.MaxValue))
                         {
-                            <button class="btn btn-outline-secondary" onclick="selectVariant(@v.Id)">
+                            <button class="btn btn-outline-secondary color-variant" type="button" 
+                                    data-variant-id="@v.Id" 
+                                    onclick="selectVariant(@v.Id)">
                                 @v.Color @(v.Size != null ? $"({v.Size})" : "")
                             </button>
                         }
@@ -85,14 +138,24 @@
                 <div id="stocks"><p class="text-muted">Загрузка...</p></div>
             </div>
 
+            <!-- Выбор количества -->
             <div class="mb-4">
+                <label for="quantity" class="form-label">Количество: </label>
                 <div class="input-group mb-3" style="max-width: 200px;">
-                    <button class="btn btn-outline-secondary" type="button" id="qtyMinus">-</button>
-                    <input type="number" class="form-control" value="1" min="1" id="quantity">
+                    <button class="btn btn-outline-secondary" type="button" id="qtyMinus">−</button>
+                    <input type="number" class="form-control text-center" value="1" min="1" id="quantity">
                     <button class="btn btn-outline-secondary" type="button" id="qtyPlus">+</button>
                 </div>
-                <button class="btn btn-primary btn-lg" onclick="addToCart()">🛒 Добавить в корзину</button>
             </div>
+
+            <!-- Кнопка добавления в корзину -->
+            <button class="btn btn-primary btn-lg w-100" id="addToCartBtn" onclick="addToCart()">
+                <span id="btnText">🛒 Добавить в корзину</span>
+                <span id="btnSpinner" style="display:  none;">
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    Добавляем...
+                </span>
+            </button>
 
             <hr>
         </div>
@@ -115,41 +178,82 @@
 
 @section Scripts {
 <script>
+    function getCsrfToken() {
+        return document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+    }
+
     const variantsData = @Html.Raw(variantsJson);
     let selectedVariantId = variantsData[0]?.id || null;
-
     let selectedWarehouseId = null;
-    let availableQuantity = 0;
+
+    function flyToCartAnimation(startElem, endElem) {
+        if (!startElem || !endElem) return;
+
+        try {
+            const startRect = startElem.getBoundingClientRect();
+            const endRect = endElem.getBoundingClientRect();
+
+            const clone = document.createElement('div');
+            clone.style.cssText = `
+                position: fixed;
+                left: ${startRect.left}px;
+                top: ${startRect.top}px;
+                width: ${startRect.width}px;
+                height: ${startRect.height}px;
+                background: url('${startElem.src}') center/cover;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                z-index: 9999;
+                pointer-events: none;
+            `;
+
+            document.body.appendChild(clone);
+
+            setTimeout(() => {
+                clone.style.transition = 'all 0.7s ease-in-out';
+                clone.style.left = endRect.left + 'px';
+                clone.style.top = endRect.top + 'px';
+                clone.style.width = '30px';
+                clone.style.height = '30px';
+                clone.style.opacity = '0';
+            }, 50);
+
+            setTimeout(() => clone.remove(), 770);
+        } catch (e) {
+            console.error('Animation error:', e);
+        }
+    }
 
     async function loadStocksForVariant(variantId) {
         try {
             const response = await fetch(`/Product/GetStock/${variantId}`);
-            if (!response.ok) throw new Error("Network response was not ok: " + response.status);
+            if (!response.ok) throw new Error("Ошибка загрузки");
+            
             const stocks = await response.json();
             const div = document.getElementById('stocks');
 
-            if (!stocks || !stocks.length) {
-                div.innerHTML = '<p class="text-danger">Нет в наличии</p>';
+            if (! stocks || ! stocks.length) {
+                div.innerHTML = '<p class="text-danger">❌ Нет в наличии</p>';
                 selectedWarehouseId = null;
                 return;
             }
 
             let html = '';
             stocks.forEach((s, index) => {
-                html += `<button type="button" class="btn btn-outline-secondary warehouse-btn ${index === 0 ? 'selected' : ''}" 
+                html += `
+                    <button type="button" class="btn btn-outline-secondary warehouse-btn ${index === 0 ? 'selected' : ''}" 
                             data-warehouse-id="${s.warehouse.id}" onclick="selectWarehouse(this)">
-                            ${s.warehouse.name} - <strong>${s.quantity}</strong> шт
-                         </button> `;
+                        📦 ${s.warehouse.name} — <strong>${s.quantity}</strong> шт
+                    </button>
+                `;
             });
             div.innerHTML = html;
 
-
-            // Выбираем первый склад по умолчанию
             selectedWarehouseId = stocks[0].warehouse.id;
 
         } catch (e) {
-            console.error("Stock load error:", e);
-            document.getElementById('stocks').innerHTML = '<p class="text-danger">Ошибка загрузки данных</p>';
+            console.error("Error loading stocks:", e);
+            document.getElementById('stocks').innerHTML = '<p class="text-danger">❌ Ошибка загрузки данных</p>';
             selectedWarehouseId = null;
         }
     }
@@ -157,18 +261,26 @@
     function selectVariant(variantId) {
         selectedVariantId = variantId;
 
-        const variant = variantsData.find(v => v.id === variantId);
-        if (!variant) return;
+        document.querySelectorAll('#colors .color-variant').forEach(btn => {
+            btn.classList.remove('selected');
+        });
 
-        // картинка
+        const buttons = document.querySelectorAll('#colors .color-variant');
+        buttons.forEach(btn => {
+            if (parseInt(btn.getAttribute('data-variant-id')) === variantId) {
+                btn.classList.add('selected');
+            }
+        });
+
+        const variant = variantsData.find(v => v.id === variantId);
+        if (! variant) return;
+
         const img = document.getElementById('mainProductImage');
         if (img && variant.imagePath) img.src = variant.imagePath;
 
-        // цена
         const priceElem = document.getElementById('productPrice');
         if (priceElem) priceElem.textContent = `${variant.priceAmount.toFixed(2)} ${variant.priceCurrency}`;
 
-        // обновить остатки
         loadStocksForVariant(variantId);
     }
 
@@ -177,6 +289,99 @@
         button.classList.add('selected');
         selectedWarehouseId = button.dataset.warehouseId;
     }
+
+    function showNotification(message, type = "info") {
+        const alertDiv = document.createElement("div");
+        alertDiv.className = `alert alert-${type} alert-notification alert-dismissible fade show`;
+        alertDiv.role = "alert";
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+
+        document.body.appendChild(alertDiv);
+
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.remove();
+            }
+        }, 4000);
+    }
+
+    async function addToCart() {
+        if (!selectedVariantId || !selectedWarehouseId) {
+            showNotification("⚠️ Выберите вариант и склад", "warning");
+            return;
+        }
+
+        const quantity = parseInt(document.getElementById("quantity").value) || 1;
+        if (quantity < 1) {
+            showNotification("⚠️ Количество должно быть больше 0", "warning");
+            return;
+        }
+
+        const btn = document.getElementById("addToCartBtn");
+        const btnText = document.getElementById("btnText");
+        const btnSpinner = document. getElementById("btnSpinner");
+
+        btn.disabled = true;
+        btnText.style.display = "none";
+        btnSpinner. style.display = "inline";
+
+        try {
+            const response = await fetch('/Product/AddToCart', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': getCsrfToken(),
+                    'X-Requested-With': 'XMLHttpRequest'  // AJAX
+                },
+                body: JSON.stringify({
+                    variantId: selectedVariantId,
+                    warehouseId: selectedWarehouseId,
+                    qty: quantity
+                })
+            });
+
+            // Unauthorized
+            if (response.status === 401) {
+                showNotification("❌ Требуется авторизация.  Перенаправляем на вход...", "warning");
+                const returnUrl = encodeURIComponent(window.location.href);
+                setTimeout(() => {
+                    window.location.href = `/Account/Login?returnUrl=${returnUrl}`;
+                }, 1000);
+                return;
+            }
+
+            if (!response.ok) {
+                showNotification(`❌ Ошибка сервера (${response.status})`, "danger");
+                return;
+            }
+
+            const data = await response. json();
+
+            if (data.success) {
+                const startElem = document.getElementById('mainProductImage');
+                const endElem = document.getElementById('cart-icon');
+                flyToCartAnimation(startElem, endElem);
+
+                showNotification(data.message, "success");
+                updateCartBadge();
+                document.getElementById("quantity").value = 1;
+            } else {
+                showNotification(data.message || "❌ Ошибка при добавлении", "danger");
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification("❌ Ошибка сети. Попробуйте позже.", "danger");
+        } finally {
+            btn.disabled = false;
+            btnText. style.display = "inline";
+            btnSpinner.style.display = "none";
+        }
+    }  
+
+
 
     document.addEventListener('DOMContentLoaded', () => {
         if (selectedVariantId) {
@@ -192,36 +397,12 @@
             let val = parseInt(qtyInput.value) || 1;
             qtyInput.value = val + 1;
         });
-    });
 
-    function addToCart() {
-        if (!selectedVariantId || !selectedWarehouseId) {
-            alert("Выберите вариант и склад с наличием товара");
-            return;
-        }
-
-        const quantity = parseInt(document.getElementById("quantity").value) || 1;
-
-        const form = document.createElement("form");
-        form.method = "POST";
-        form.action = "/Product/AddToCart";
-
-        const inputs = [
-            { name: "variantId", value: selectedVariantId },
-            { name: "warehouseId", value: selectedWarehouseId },
-            { name: "qty", value: quantity }
-        ];
-
-        inputs.forEach(inp => {
-            const i = document.createElement("input");
-            i.type = "hidden";
-            i.name = inp.name;
-            i.value = inp.value;
-            form.appendChild(i);
+        qtyInput.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") {
+                addToCart();
+            }
         });
-
-        document.body.appendChild(form);
-        form.submit();
-    }
+    });
 </script>
 }

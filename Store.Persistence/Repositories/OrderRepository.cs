@@ -13,7 +13,7 @@ public sealed class OrderRepository : IOrderRepository
     public Task AddAsync(Order order)
     {      
         _db.Orders.Add(order);        
-        return Task. CompletedTask;
+        return Task.CompletedTask;
     }
 
     public Task SaveChangesAsync()
