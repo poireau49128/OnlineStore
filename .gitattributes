@@ -1,0 +1,20 @@
+# Автонормализация переводов строк
+* text=auto
+
+# C# файлы
+*.cs text diff=csharp
+
+# Проектные файлы
+*.csproj text
+*.sln text
+
+# JSON / config
+*.json text
+*.yml text
+*.yaml text
+*.xml text
+
+# Бинарники
+*.dll binary
+*.exe binary
+*.pdb binary
