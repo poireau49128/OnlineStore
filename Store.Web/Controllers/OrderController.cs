@@ -51,6 +51,7 @@ public class OrderController : Controller
                 CartItemId = i.Id,
                 ProductVariantId = variant.Id,
                 WarehouseId = i.WarehouseId,
+                WarehouseName = i.Warehouse.Name,
                 ProductName = product.Name,
                 Color = variant.Color,
                 Size = variant.Size,

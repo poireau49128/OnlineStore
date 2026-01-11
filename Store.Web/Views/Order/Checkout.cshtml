@@ -30,7 +30,7 @@ else
                     <td>@item.ProductName</td>
                     <td>@item.Color</td>
                     <td>@item.Size</td>
-                    <td>@item.WarehouseId</td>
+                    <td>@item.WarehouseName</td>
                     <td>@item.Quantity</td>
                     <td>@item.UnitPrice.ToString("0.00") BYN</td>
                     <td>@item.DiscountPercent.ToString("0.##") %</td>
@@ -51,6 +51,7 @@ else
         </div>
 
         <button type="submit" class="btn btn-success">Подтвердить заказ</button>
+        <a asp-controller="Cart" asp-action="Index" class="btn btn-danger">Отмена</a>
     </form>
 
     @if (TempData["Error"] != null)

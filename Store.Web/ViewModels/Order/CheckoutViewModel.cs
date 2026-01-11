@@ -4,6 +4,7 @@ public sealed class CheckoutItemViewModel
 {
     public int CartItemId { get; init; }
     public int ProductVariantId { get; init; }
+    public string WarehouseName { get; init; } = null!;
     public int WarehouseId { get; init; }
 
     public string ProductName { get; init; } = null!;

@@ -2,6 +2,7 @@ public sealed class CheckoutItemDto
 {
     public int ProductVariantId { get; init; }
     public int WarehouseId { get; init; }
+    public string WarehouseName { get; init; } = null!;
     public int Quantity { get; init; }
 }
 
