@@ -85,8 +85,10 @@
 
     <div class="row">
         <div class="col-md-6">
-            <img id="mainProductImage" src="@Url.Content(Model.GetMainImagePath())" 
-                 class="img-fluid rounded shadow" alt="@Model.Name" style="max-height: 600px;object-fit:cover;">
+            @* <img id="mainProductImage" src="@Url.Content(Model.GetMainImagePath())" 
+                 class="img-fluid rounded shadow" alt="@Model.Name" style="max-height: 600px;object-fit:cover;"> *@
+            <div id="productGallery">
+            </div>
         </div>
 
         <div class="col-md-6">
@@ -163,7 +165,7 @@
 </div>
 
 @{
-    var variantsForJs = Model.Variants
+    @* var variantsForJs = Model.Variants
         .OrderBy(v => v.Images.Any() ? v.Images.Min(i => i.SortOrder) : int.MaxValue)
         .Select(v => new {
             id = v.Id,
@@ -171,7 +173,20 @@
             priceAmount = v.GetPrice(Model.BasePrice).Amount,
             priceCurrency = v.GetPrice(Model.BasePrice).Currency
         })
+        .ToList(); *@
+        var variantsForJs = Model.Variants
+        .OrderBy(v => v.Images.Any() ? v.Images.Min(i => i.SortOrder) : int.MaxValue)
+        .Select(v => new {
+            id = v.Id,
+            images = v.Images
+                .OrderBy(i => i.SortOrder)
+                .Select(i => Url.Content(i.RelativePath))
+                .ToList(),
+            priceAmount = v.GetPrice(Model.BasePrice).Amount,
+            priceCurrency = v.GetPrice(Model.BasePrice).Currency
+        })
         .ToList();
+
 
     var variantsJson = JsonSerializer.Serialize(variantsForJs, new JsonSerializerOptions { PropertyNamingPolicy = null });
 }
@@ -275,8 +290,9 @@
         const variant = variantsData.find(v => v.id === variantId);
         if (! variant) return;
 
-        const img = document.getElementById('mainProductImage');
-        if (img && variant.imagePath) img.src = variant.imagePath;
+        @* const img = document.getElementById('mainProductImage');
+        if (img && variant.imagePath) img.src = variant.imagePath; *@
+        renderGallery(variant.images);
 
         const priceElem = document.getElementById('productPrice');
         if (priceElem) priceElem.textContent = `${variant.priceAmount.toFixed(2)} ${variant.priceCurrency}`;
@@ -361,9 +377,9 @@
             const data = await response. json();
 
             if (data.success) {
-                const startElem = document.getElementById('mainProductImage');
+                const activeImage = getProductImageForAnimation();
                 const endElem = document.getElementById('cart-icon');
-                flyToCartAnimation(startElem, endElem);
+                flyToCartAnimation(activeImage, endElem);
 
                 showNotification(data.message, "success");
                 updateCartBadge();
@@ -381,9 +397,31 @@
         }
     }  
 
+    function getProductImageForAnimation() {
+        const carouselImage = document.querySelector(
+            '#productCarousel .carousel-item.active img'
+        );
+
+        if (carouselImage) return carouselImage;
+
+        const singleImage = document.getElementById('mainProductImage');
+        if (singleImage) return singleImage;
+
+        return null;
+    }
+
+
 
 
     document.addEventListener('DOMContentLoaded', () => {
+
+        const firstVariant = variantsData.find(v => v.id === selectedVariantId);
+        if (firstVariant) {
+            renderGallery(firstVariant.images);
+        }
+
+
+
         if (selectedVariantId) {
             loadStocksForVariant(selectedVariantId);
         }
@@ -404,5 +442,95 @@
             }
         });
     });
+
+
+
+
+
+
+
+
+
+
+
+    function renderGallery(images) {
+        const container = document.getElementById('productGallery');
+
+        if (!images || images.length === 0) {
+            container.innerHTML = `
+                <img id="mainProductImage"
+                    src="/img/no-image.png"
+                    class="img-fluid rounded shadow"
+                    style="max-height:600px;object-fit:cover;" />
+            `;
+            return;
+        }
+
+        // Если только 1 изображение — без карусели
+        if (images.length === 1) {
+            container.innerHTML = `
+                <img id="mainProductImage"
+                    src="${images[0]}"
+                    class="img-fluid rounded shadow"
+                    style="max-height:600px;object-fit:cover;" />
+            `;
+            return;
+        }
+
+        // Карусель + миниатюры
+        let indicators = '';
+        let slides = '';
+        let thumbs = '';
+
+        images.forEach((img, i) => {
+            indicators += `
+                <button type="button"
+                        data-bs-target="#productCarousel"
+                        data-bs-slide-to="${i}"
+                        class="${i === 0 ? 'active' : ''}">
+                </button>
+            `;
+
+            slides += `
+                <div class="carousel-item ${i === 0 ? 'active' : ''}">
+                    <img src="${img}"
+                        class="d-block w-100 rounded shadow"
+                        id="${i === 0 ? 'mainProductImage' : ''}"
+                        style="max-height:600px;object-fit:cover;">
+                </div>
+            `;
+
+            thumbs += `
+                <img src="${img}"
+                    class="img-thumbnail m-1"
+                    style="width:70px;height:70px;object-fit:cover;cursor:pointer"
+                    onclick="bootstrap.Carousel.getInstance(document.getElementById('productCarousel')).to(${i})">
+            `;
+        });
+
+        container.innerHTML = `
+            <div id="productCarousel" class="carousel slide" data-bs-ride="false">
+                <div class="carousel-indicators">
+                    ${indicators}
+                </div>
+                <div class="carousel-inner">
+                    ${slides}
+                </div>
+                <button class="carousel-control-prev" type="button"
+                        data-bs-target="#productCarousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon"></span>
+                </button>
+                <button class="carousel-control-next" type="button"
+                        data-bs-target="#productCarousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon"></span>
+                </button>
+            </div>
+
+            <div class="d-flex justify-content-center mt-2 flex-wrap">
+                ${thumbs}
+            </div>
+        `;
+    }
+
 </script>
 }

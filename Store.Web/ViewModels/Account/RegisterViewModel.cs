@@ -6,7 +6,7 @@ public class RegisterViewModel
 {
     [Required(ErrorMessage = "Введите email")]
     [EmailAddress(ErrorMessage = "Некорректный email")]
-    public string Email { get; set; } = null!;
+    public string Email { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Введите пароль")]
     [MinLength(6, ErrorMessage = "Минимум 6 символов")]

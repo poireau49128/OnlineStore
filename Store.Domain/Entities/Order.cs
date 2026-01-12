@@ -77,7 +77,7 @@ public class OrderItem
 
     public int Quantity { get; private set; }
     
-    public Money UnitPrice { get; private set; }
+    public Money UnitPrice { get; private set; } = null!;
 
     public decimal DiscountPercent { get; private set; } = 0;
     public string?  Comment { get; private set; }

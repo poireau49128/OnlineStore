@@ -47,7 +47,7 @@
                                 <div class="card-body">
                                     <h5 class="card-title">@product.Name</h5>
                                     <p class="card-text text-muted small">@product.Category?.Name</p>
-                                    <h4 class="text-primary">@($"{product.BasePrice.Amount:0.00} {product.BasePrice.Currency}")</h4>
+                                    <h4 class="text-primary">@($"{product.BasePrice?.Amount ?? 0:0.00} {product.BasePrice.Currency}")</h4>
                                 </div>
 
                                 <div class="card-footer bg-white">

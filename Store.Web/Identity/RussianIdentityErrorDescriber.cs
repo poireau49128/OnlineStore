@@ -46,14 +46,14 @@ public class RussianIdentityErrorDescriber : IdentityErrorDescriber
             Description = "Пользователь с таким email уже зарегистрирован."
         };
 
-    public override IdentityError InvalidEmail(string email)
+    public override IdentityError InvalidEmail(string? email)
         => new()
         {
             Code = nameof(InvalidEmail),
             Description = "Некорректный email."
         };
 
-    public override IdentityError InvalidUserName(string userName)
+    public override IdentityError InvalidUserName(string? userName)
         => new()
         {
             Code = nameof(InvalidUserName),

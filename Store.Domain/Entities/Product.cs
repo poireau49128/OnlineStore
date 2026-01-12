@@ -14,7 +14,7 @@ public class Product
     [Timestamp]
     public byte[]? RowVersion { get; private set; }
 
-    public Money BasePrice { get; private set; }
+    public Money BasePrice { get; private set; } = null!;
 
     public string? BaseColor {get; private set;}
     public string? BaseSize {get; private set;}

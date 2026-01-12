@@ -8,7 +8,7 @@ public class ProductDto
     public string? BaseColor { get; set; }
     public string? BaseSize { get; set; }
 
-    public Money BasePrice { get; set; }
+    public Money BasePrice { get; set; } = null!;
     public List<ProductVariantDto> Variants { get; set; } = new();
     public List<string> ImagePaths { get; set; } = new();
 }
