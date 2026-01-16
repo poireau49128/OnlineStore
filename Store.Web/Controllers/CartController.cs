@@ -86,7 +86,7 @@ public class CartController : Controller
             return Json(new
             {
                 success = true,
-                message = "✓ Количество обновлено",
+                message = "✓ Количество обновлено в соответствии с остатками на складе",
                 cartCount,
                 totalAmount,
                 currency,

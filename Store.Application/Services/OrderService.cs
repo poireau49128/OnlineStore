@@ -1,5 +1,6 @@
 using Store.Domain.Entities;
 using Store.Domain.ValueObjects;
+using Store.Application.Exceptions;
 
 public sealed class OrderService : IOrderService
 {
@@ -43,7 +44,9 @@ public sealed class OrderService : IOrderService
                     cartItem.WarehouseId);
 
                 if (! stock.CanFulfill(cartItem.Quantity))
-                    throw new InvalidOperationException("Insufficient stock");
+                    throw new InsufficientStockException(
+                        $"Недостаточно \"{cartItem.ProductVariant.Product.Name} {cartItem.ProductVariant.Color}\" на складе. Доступно: {stock.Quantity}"
+                    );
 
                 stock.Decrease(cartItem.Quantity);
 

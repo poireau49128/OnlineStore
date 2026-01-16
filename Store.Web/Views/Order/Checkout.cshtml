@@ -2,6 +2,14 @@
 
 <h1>Оформление заказа</h1>
 
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["Error"]
+    </div>
+}
+
+
 @if (!Model.Items.Any())
 {
     <p>Корзина пуста</p>
@@ -63,11 +71,4 @@ else
         <button type="submit" class="btn btn-success">Подтвердить заказ</button>
         <a asp-controller="Cart" asp-action="Index" class="btn btn-danger">Отмена</a>
     </form>
-
-    @if (TempData["Error"] != null)
-    {
-        <div class="alert alert-danger mt-3">
-            @TempData["Error"]
-        </div>
-    }
 }

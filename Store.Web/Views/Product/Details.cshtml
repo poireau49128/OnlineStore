@@ -200,6 +200,8 @@
     const variantsData = @Html.Raw(variantsJson);
     let selectedVariantId = variantsData[0]?.id || null;
     let selectedWarehouseId = null;
+    let selectedWarehouseAvailableQty = 0;
+
 
     function flyToCartAnimation(startElem, endElem) {
         if (!startElem || !endElem) return;
@@ -257,7 +259,9 @@
             stocks.forEach((s, index) => {
                 html += `
                     <button type="button" class="btn btn-outline-secondary warehouse-btn ${index === 0 ? 'selected' : ''}" 
-                            data-warehouse-id="${s.warehouse.id}" onclick="selectWarehouse(this)">
+                            data-warehouse-id="${s.warehouse.id}"
+                            data-available="${s.quantity}"
+                            onclick="selectWarehouse(this)">
                         📦 ${s.warehouse.name} — <strong>${s.quantity}</strong> шт
                     </button>
                 `;
@@ -265,6 +269,7 @@
             div.innerHTML = html;
 
             selectedWarehouseId = stocks[0].warehouse.id;
+            selectedWarehouseAvailableQty = stocks[0].quantity;
 
         } catch (e) {
             console.error("Error loading stocks:", e);
@@ -304,6 +309,7 @@
         document.querySelectorAll('.warehouse-btn').forEach(b => b.classList.remove('selected'));
         button.classList.add('selected');
         selectedWarehouseId = button.dataset.warehouseId;
+        selectedWarehouseAvailableQty = parseInt(button.dataset.available);
     }
 
     function showNotification(message, type = "info") {
@@ -345,6 +351,14 @@
         btnSpinner. style.display = "inline";
 
         try {
+            if (quantity > selectedWarehouseAvailableQty) {
+                showNotification(
+                    `❌ На складе доступно только ${selectedWarehouseAvailableQty} шт.`,
+                    "warning"
+                );
+                return;
+            }
+
             const response = await fetch('/Product/AddToCart', {
                 method: 'POST',
                 headers: {

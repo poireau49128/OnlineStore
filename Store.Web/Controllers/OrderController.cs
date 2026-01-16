@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Store.Web.ViewModels.Order;
+using Store.Application.Exceptions;
 
 [Authorize]
 public class OrderController : Controller
@@ -92,7 +93,12 @@ public class OrderController : Controller
             var orderId = await _orderService.CheckoutAsync(command);
             return RedirectToAction("Success", new { id = orderId });
         }
-        catch (DbUpdateConcurrencyException)
+        catch (InsufficientStockException ex)
+        {
+            TempData["Error"] = ex.Message;
+            return RedirectToAction(nameof(Checkout));
+        }
+            catch (DbUpdateConcurrencyException)
         {
             TempData["Error"] =
                 "Один из товаров закончился. Корзина обновлена.";
