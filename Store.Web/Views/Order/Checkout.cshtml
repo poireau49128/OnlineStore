@@ -33,8 +33,13 @@ else
                     <td>@item.WarehouseName</td>
                     <td>@item.Quantity</td>
                     <td>@item.UnitPrice.ToString("0.00") BYN</td>
-                    <td>@item.DiscountPercent.ToString("0.##") %</td>
-                    <td>@item.TotalWithDiscount.ToString("0.00") BYN</td>
+                    <td style="color: red;">@item.DiscountPercent.ToString("0.##") %</td>
+                    <td>
+                        <div>
+                            @item.TotalWithDiscount.ToString("0.00") BYN <br>
+                            <s style="color: red; font-size: 0.8em;">@item.Total.ToString("0.00") BYN</s>
+                        </div>
+                    </td>
                 </tr>
             }
             </tbody>
@@ -46,8 +51,13 @@ else
         </div>
 
         <div class="mb-3">
-            <strong>Итого без скидки: @Model.TotalAmount.ToString("0.00") BYN</strong><br/>
-            <strong>Итого со скидкой: @Model.TotalWithDiscount.ToString("0.00") BYN</strong>
+            <strong>
+                Итого: 
+                <div>
+                    @Model.TotalWithDiscount.ToString("0.00") BYN <br>
+                    <s style="color: red; font-size: 0.8em;">@Model.TotalAmount.ToString("0.00") BYN</s>
+                </div>
+            </strong>
         </div>
 
         <button type="submit" class="btn btn-success">Подтвердить заказ</button>

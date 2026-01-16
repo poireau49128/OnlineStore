@@ -1,0 +1,32 @@
+@model IReadOnlyList<Store.Web.ViewModels.Order.OrderListItemViewModel>
+
+<h2>Мои заказы</h2>
+
+@if (!Model.Any())
+{
+    <p>У вас пока нет заказов.</p>
+}
+else
+{
+    <div class="row row-cols-1 row-cols-md-2 g-4">
+        @foreach (var order in Model)
+        {
+            <div class="col">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">Заказ №@order.Id</h5>
+                        <p class="card-text">
+                            <strong>Дата:</strong> @order.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")<br />
+                            <strong>Статус:</strong> @order.Status<br />
+                            <strong>Сумма:</strong> @order.Total.ToString("0.00") BYN
+                        </p>
+                        <a asp-action="Details" asp-route-id="@order.Id"
+                           class="btn btn-outline-primary btn-sm">
+                            Подробнее →
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

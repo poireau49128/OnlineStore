@@ -10,17 +10,17 @@ namespace Store.Persistence.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_CustomerCategoryDiscount_AspNetUsers_ApplicationUserId",
-                table: "CustomerCategoryDiscount");
+            // migrationBuilder.DropForeignKey(
+            //     name: "FK_CustomerCategoryDiscount_AspNetUsers_ApplicationUserId",
+            //     table: "CustomerCategoryDiscount");
 
-            migrationBuilder.DropIndex(
-                name: "IX_CustomerCategoryDiscount_ApplicationUserId",
-                table: "CustomerCategoryDiscount");
+            // migrationBuilder.DropIndex(
+            //     name: "IX_CustomerCategoryDiscount_ApplicationUserId",
+            //     table: "CustomerCategoryDiscount");
 
-            migrationBuilder.DropColumn(
-                name: "ApplicationUserId",
-                table: "CustomerCategoryDiscount");
+            // migrationBuilder.DropColumn(
+            //     name: "ApplicationUserId",
+            //     table: "CustomerCategoryDiscount");
         }
 
         /// <inheritdoc />

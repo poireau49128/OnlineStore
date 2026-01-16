@@ -22,6 +22,7 @@ public class Order
 
     private readonly List<OrderItem> _items = new();
     public IReadOnlyCollection<OrderItem> Items => _items.AsReadOnly();
+    public Money TotalPrice { get; private set; }
 
     private Order() { }
 
@@ -38,7 +39,7 @@ public class Order
     {
         if (quantity <= 0) throw new ArgumentException("Quantity must be positive");
 
-        var item = new OrderItem(productVariantId, warehouseId, quantity, unitPrice, discountPercent, comment);
+        var item = new OrderItem(productVariantId, warehouseId, quantity, unitPrice, discountPercent);
         
         item.SetOrder(this);
 
@@ -55,6 +56,24 @@ public class Order
         }
         return total;
     }
+
+    public void RecalculateTotal()
+    {
+        if (!_items.Any())
+        {
+            TotalPrice = Money.Zero("BYN");
+            return;
+        }
+
+        var currency = _items[0].UnitPrice.Currency;
+        var total = Money.Zero(currency);
+
+        foreach (var item in _items)
+            total += item.TotalPrice;
+
+        TotalPrice = total;
+    }
+
 
     public void ChangeStatus(OrderStatus newStatus)
     {
@@ -77,15 +96,16 @@ public class OrderItem
 
     public int Quantity { get; private set; }
     
-    public Money UnitPrice { get; private set; } = null!;
+    public Money UnitPrice { get; private set; }     // цена с учётом скидок
+    public Money OriginalPrice { get; private set; } // опционально
+    public Money TotalPrice => UnitPrice * Quantity;
 
     public decimal DiscountPercent { get; private set; } = 0;
-    public string?  Comment { get; private set; }
 
     private OrderItem() { }
 
     public OrderItem(int productVariantId, int warehouseId, int quantity,
-                     Money unitPrice, decimal discountPercent = 0, string? comment = null)
+                     Money unitPrice, decimal discountPercent = 0)
     {
         ProductVariantId = productVariantId;
         WarehouseId = warehouseId;
@@ -93,7 +113,6 @@ public class OrderItem
         Quantity = quantity;
         UnitPrice = unitPrice ??  throw new ArgumentNullException(nameof(unitPrice));
         DiscountPercent = discountPercent;
-        Comment = comment;
     }
 
     public Money GetTotal()

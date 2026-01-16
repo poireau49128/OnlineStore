@@ -53,9 +53,9 @@ public sealed class OrderService : IOrderService
                 var variant = cartItem.ProductVariant;
                 var product = variant.Product;
 
-                var unitPrice = variant.GetPrice(product.BasePrice);
+                var baseUnitPrice = variant.GetPrice(product.BasePrice);
 
-                var orderUnitPrice = unitPrice.Clone();
+                //  var finalUnitPrice = baseUnitPrice.Clone();
 
                 var discountPercent =
                     await _discountService.GetCategoryDiscountAsync(
@@ -63,11 +63,14 @@ public sealed class OrderService : IOrderService
                         cartItem.ProductVariant.Product.CategoryId,
                         DateTime.UtcNow);
 
+                var discountedAmount = baseUnitPrice.Amount * (1 - discountPercent / 100m);
+                var finalUnitPrice = Money.From(discountedAmount, baseUnitPrice.Currency);
+
                 order.AddItem(
                     cartItem.ProductVariantId,
                     cartItem.WarehouseId,
                     cartItem.Quantity,
-                    orderUnitPrice,
+                    finalUnitPrice,
                     discountPercent,
                     comment: null);
             }

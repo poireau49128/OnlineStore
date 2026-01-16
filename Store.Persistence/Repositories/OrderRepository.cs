@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Store.Domain.Entities;
 using Store.Persistence;
 
@@ -15,6 +16,27 @@ public sealed class OrderRepository : IOrderRepository
         _db.Orders.Add(order);        
         return Task.CompletedTask;
     }
+
+    public async Task<List<Order>> GetByUserAsync(string userId)
+    {
+        return await _db.Orders
+            .AsNoTracking()
+            .Where(o => o.UserId == userId)
+            .OrderByDescending(o => o.CreatedAt)
+            .ToListAsync();
+    }
+
+    public async Task<Order?> GetByIdAsync(int id)
+    {
+        return await _db.Orders
+            .Include(o => o.Items)
+                .ThenInclude(i => i.ProductVariant)
+                    .ThenInclude(v => v.Product)
+            .Include(o => o.Items)
+                .ThenInclude(i => i.Warehouse)
+            .FirstOrDefaultAsync(o => o.Id == id);
+    }
+
 
     public Task SaveChangesAsync()
         => _db.SaveChangesAsync();

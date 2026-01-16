@@ -9,14 +9,20 @@ public class OrderController : Controller
     private readonly CartService _cart;
     private readonly IOrderService _orderService;
     private readonly IDiscountService _discountService;
+    private readonly IOrderRepository _orderRepository;
+    private readonly IOrderQueryService _orderQuery;
 
     public OrderController(
         CartService cart,
         IOrderService orderService,
+        IOrderRepository orderRepository,
+        IOrderQueryService orderQuery,
         IDiscountService discountService)
     {
         _cart = cart;
         _orderService = orderService;
+        _orderRepository = orderRepository;
+        _orderQuery = orderQuery;
         _discountService = discountService;
     }
 
@@ -93,6 +99,29 @@ public class OrderController : Controller
             return RedirectToAction(nameof(Checkout));
         }
     }
+
+    [HttpGet]
+    public async Task<IActionResult> UserOrders()
+    {
+        var userId = User.GetUserId();
+        var orders = await _orderQuery.GetUserOrdersAsync(userId);
+
+        return View(orders.Select(o => o.ToVm()).ToList());
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Details(int id)
+    {
+        var userId = User.GetUserId();
+        var order = await _orderQuery.GetOrderDetailsAsync(id, userId);
+
+        if (order == null)
+            return NotFound();
+
+        return View(order.ToVm());
+    }
+
+
 
     public IActionResult Success(int id) => View(id);
 }

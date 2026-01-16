@@ -65,6 +65,8 @@ builder.Services.AddScoped<
 builder.Services.AddScoped<IDiscountService, DiscountService>();
 
 builder.Services.AddScoped<CartService>();
+builder.Services.AddScoped<IOrderQueryService, OrderQueryService>();
+
 
 
 builder.Services.AddControllersWithViews();

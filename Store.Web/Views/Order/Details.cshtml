@@ -1,0 +1,41 @@
+@model Store.Web.ViewModels.Order.OrderDetailsViewModel
+
+<h2>Заказ №@Model.Id</h2>
+
+<p>
+    <strong>Дата:</strong> @Model.CreatedAt.ToLocalTime()<br />
+    <strong>Статус:</strong> @Model.Status<br />
+    <strong>Комментарий: </strong>@(Model.Comment ?? "отсутствует")
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Товар</th>
+            <th>Цвет</th>
+            <th>Размер</th>
+            <th>Склад</th>
+            <th>Кол-во</th>
+            <th>Цена</th>
+            <th>Скидка</th>
+            <th>Итого</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.Items)
+        {
+            <tr>
+                <td>@item.ProductName</td>
+                <td>@item.Color</td>
+                <td>@item.Size</td>
+                <td>@item.WarehouseName</td>
+                <td>@item.Quantity</td>
+                <td>@item.Price.ToString("0.00")</td>
+                <td>@item.Discount %</td>
+                <td>@item.Total.ToString("0.00")</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a asp-action="UserOrders" class="btn btn-secondary">← Назад к заказам</a>

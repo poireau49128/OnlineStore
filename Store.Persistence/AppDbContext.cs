@@ -215,17 +215,32 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         entity.Property(o => o.UserId)
             .IsRequired();
 
-        entity.Property(o => o.Comment)
+        entity.Property(o => o. Comment)
             .HasMaxLength(1000);
 
-        entity.HasOne<ApplicationUser>() 
-            .WithMany() 
+        entity.HasOne<ApplicationUser>()
+            .WithMany(u => u.Orders)
             .HasForeignKey(o => o.UserId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior. Restrict)
+            .HasConstraintName("FK_Orders_AspNetUsers_UserId");
+
+        entity.OwnsOne(oi => oi.TotalPrice, money =>
+        {
+            money.Property(m => m.Amount)
+                .HasColumnName("TotalPriceAmount")
+                .HasColumnType("decimal(18,2)")
+                .IsRequired();
+
+            money.Property(m => m.Currency)
+                .HasColumnName("TotalPriceCurrency")
+                .HasMaxLength(3)
+                .IsRequired();
+        });
         
+
         entity.HasMany(o => o.Items)
-            .WithOne(oi => oi.Order)
-            .HasForeignKey(oi => oi.OrderId)
+            .WithOne(oi => oi. Order)
+            .HasForeignKey(oi => oi. OrderId)
             .IsRequired()
             .OnDelete(DeleteBehavior.Cascade);
 
@@ -239,9 +254,6 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         var entity = modelBuilder.Entity<OrderItem>();
 
         entity.HasKey(oi => oi.Id);
-
-        entity.Property(oi => oi.Comment)
-            .HasMaxLength(1000);
         
         entity.Property(oi => oi.DiscountPercent)
             .HasPrecision(5, 2);
@@ -264,6 +276,19 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
                 .HasMaxLength(3)
                 .IsRequired();
         });
+        entity.OwnsOne(oi => oi.OriginalPrice, money =>
+        {
+            money.Property(m => m.Amount)
+                .HasColumnName("OriginalPriceAmount")
+                .HasColumnType("decimal(18,2)")
+                .IsRequired();
+
+            money.Property(m => m.Currency)
+                .HasColumnName("OriginalPriceCurrency")
+                .HasMaxLength(3)
+                .IsRequired();
+        });
+        entity.Ignore(oi => oi. TotalPrice);
     }
 
     // ---------------- DISCOUNT ----------------
