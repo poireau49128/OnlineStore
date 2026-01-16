@@ -55,8 +55,6 @@ public sealed class OrderService : IOrderService
 
                 var baseUnitPrice = variant.GetPrice(product.BasePrice);
 
-                //  var finalUnitPrice = baseUnitPrice.Clone();
-
                 var discountPercent =
                     await _discountService.GetCategoryDiscountAsync(
                         command.UserId,
@@ -71,8 +69,8 @@ public sealed class OrderService : IOrderService
                     cartItem.WarehouseId,
                     cartItem.Quantity,
                     finalUnitPrice,
-                    discountPercent,
-                    comment: null);
+                    discountPercent);
+                order.RecalculateTotal();
             }
 
             await _orderRepository.AddAsync(order);

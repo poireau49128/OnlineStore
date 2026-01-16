@@ -3,7 +3,7 @@
 <h2>Заказ №@Model.Id</h2>
 
 <p>
-    <strong>Дата:</strong> @Model.CreatedAt.ToLocalTime()<br />
+    <strong>Дата:</strong> @Model.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")<br />
     <strong>Статус:</strong> @Model.Status<br />
     <strong>Комментарий: </strong>@(Model.Comment ?? "отсутствует")
 </p>
@@ -17,7 +17,7 @@
             <th>Склад</th>
             <th>Кол-во</th>
             <th>Цена</th>
-            <th>Скидка</th>
+            @* <th>Скидка</th> *@
             <th>Итого</th>
         </tr>
     </thead>
@@ -30,12 +30,13 @@
                 <td>@item.Size</td>
                 <td>@item.WarehouseName</td>
                 <td>@item.Quantity</td>
-                <td>@item.Price.ToString("0.00")</td>
-                <td>@item.Discount %</td>
-                <td>@item.Total.ToString("0.00")</td>
+                <td>@item.Price.Amount.ToString("0.00") @item.Price.Currency</td>
+                @* <td>@item.Discount.ToString("0.##")%</td> *@
+                <td>@item.Total.Amount.ToString("0.00") @item.Price.Currency</td>
             </tr>
         }
     </tbody>
 </table>
+<b>Общая стоимость: @Model.Total.Amount.ToString("0.00") @Model.Total.Currency</b><br>
 
 <a asp-action="UserOrders" class="btn btn-secondary">← Назад к заказам</a>

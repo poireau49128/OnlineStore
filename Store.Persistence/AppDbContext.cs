@@ -276,18 +276,6 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
                 .HasMaxLength(3)
                 .IsRequired();
         });
-        entity.OwnsOne(oi => oi.OriginalPrice, money =>
-        {
-            money.Property(m => m.Amount)
-                .HasColumnName("OriginalPriceAmount")
-                .HasColumnType("decimal(18,2)")
-                .IsRequired();
-
-            money.Property(m => m.Currency)
-                .HasColumnName("OriginalPriceCurrency")
-                .HasMaxLength(3)
-                .IsRequired();
-        });
         entity.Ignore(oi => oi. TotalPrice);
     }
 

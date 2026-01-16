@@ -38,8 +38,7 @@ public class CartController : Controller
                     Quantity = item.Quantity,
                     WarehouseName = item.Warehouse.Name,
                     AvailableQuantity = stock?.Quantity ?? 0,
-                    UnitPrice = price.Amount,
-                    Currency = price.Currency,
+                    UnitPrice = price,
                 };
             }).ToList()
         };

@@ -1,4 +1,4 @@
-@model IReadOnlyList<Store.Web.ViewModels.Order.OrderListItemViewModel>
+@model IReadOnlyList<Store.Web.ViewModels.Order.OrderListViewModel>
 
 <h2>Мои заказы</h2>
 
@@ -18,7 +18,7 @@ else
                         <p class="card-text">
                             <strong>Дата:</strong> @order.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")<br />
                             <strong>Статус:</strong> @order.Status<br />
-                            <strong>Сумма:</strong> @order.Total.ToString("0.00") BYN
+                            <strong>Сумма:</strong> @order.Total.Amount.ToString("0.00") BYN
                         </p>
                         <a asp-action="Details" asp-route-id="@order.Id"
                            class="btn btn-outline-primary btn-sm">

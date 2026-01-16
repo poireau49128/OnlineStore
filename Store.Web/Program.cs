@@ -68,10 +68,14 @@ builder.Services.AddScoped<CartService>();
 builder.Services.AddScoped<IOrderQueryService, OrderQueryService>();
 
 
-
-builder.Services.AddControllersWithViews();
+var mvcBuilder = builder.Services.AddControllersWithViews();
+if (builder.Environment.IsDevelopment())
+{
+    mvcBuilder.AddRazorRuntimeCompilation();
+}
 builder.Services.AddAuthentication();
 builder.Services.AddAuthorization();
+
 
 var app = builder.Build();
 

@@ -1,9 +1,15 @@
+using Store.Domain.ValueObjects;
+
 namespace Store.Web.ViewModels.Cart;
 
 public class CartViewModel
 {
     public List<CartItemViewModel> Items { get; set; } = new();
 
-    public decimal TotalAmount => Items.Sum(i => i.TotalPrice);
-    public string Currency => Items.FirstOrDefault()?.Currency ?? "BYN";
+    public Money Total =>
+        Items.Count == 0
+            ? Money.Zero()
+            : Items
+                .Select(i => i.TotalPrice)
+                .Aggregate((a, b) => a + b);
 }

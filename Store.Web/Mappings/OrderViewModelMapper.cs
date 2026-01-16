@@ -2,7 +2,7 @@ using Store.Web.ViewModels.Order;
 
 public static class OrderViewModelMapper
 {
-    public static OrderListItemViewModel ToVm(this OrderListItemDto dto)
+    public static OrderListViewModel ToVm(this OrderListDto dto)
         => new()
         {
             Id = dto.Id,
@@ -28,6 +28,7 @@ public static class OrderViewModelMapper
                 Discount = i.Discount,
                 Total = i.UnitPrice * i.Quantity
             }).ToList(),
-            Comment = dto.Comment
+            Comment = dto.Comment,
+            Total = dto.Total            
         };
 }

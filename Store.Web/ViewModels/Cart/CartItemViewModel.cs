@@ -1,3 +1,5 @@
+using Store.Domain.ValueObjects;
+
 namespace Store.Web.ViewModels.Cart;
 
 public class CartItemViewModel
@@ -15,8 +17,6 @@ public class CartItemViewModel
     public int AvailableQuantity { get; set; }
 
 
-    public decimal UnitPrice { get; set; }
-    public decimal TotalPrice => UnitPrice * Quantity;
-
-    public string Currency { get; set; } = "BYN";
+    public Money UnitPrice { get; set; } = Money.Zero();
+    public Money TotalPrice => UnitPrice * Quantity;
 }

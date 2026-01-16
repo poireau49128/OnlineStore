@@ -35,7 +35,7 @@ public class Order
     }
 
     public void AddItem(int productVariantId, int warehouseId, int quantity, Money unitPrice,
-                        decimal discountPercent = 0, string? comment = null)
+                        decimal discountPercent = 0)
     {
         if (quantity <= 0) throw new ArgumentException("Quantity must be positive");
 
@@ -44,17 +44,6 @@ public class Order
         item.SetOrder(this);
 
         _items.Add(item);
-    }
-
-    public Money GetTotal()
-    {
-        var currency = Items.FirstOrDefault()?.UnitPrice.Currency ?? "BYN";
-        var total = Money.Zero(currency);
-        foreach (var item in _items)
-        {
-            total += item.UnitPrice * item.Quantity;
-        }
-        return total;
     }
 
     public void RecalculateTotal()
@@ -97,7 +86,6 @@ public class OrderItem
     public int Quantity { get; private set; }
     
     public Money UnitPrice { get; private set; }     // цена с учётом скидок
-    public Money OriginalPrice { get; private set; } // опционально
     public Money TotalPrice => UnitPrice * Quantity;
 
     public decimal DiscountPercent { get; private set; } = 0;

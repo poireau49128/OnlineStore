@@ -7,16 +7,16 @@ public sealed class OrderQueryService : IOrderQueryService
         _orderRepo = orderRepo;
     }
 
-    public async Task<IReadOnlyList<OrderListItemDto>> GetUserOrdersAsync(string userId)
+    public async Task<IReadOnlyList<OrderListDto>> GetUserOrdersAsync(string userId)
     {
         var orders = await _orderRepo.GetByUserAsync(userId);
 
-        return orders.Select(o => new OrderListItemDto
+        return orders.Select(o => new OrderListDto
         {
             Id = o.Id,
             CreatedAt = o.CreatedAt,
             Status = o.Status,
-            Total = o.Items.Sum(i => i.UnitPrice.Amount * i.Quantity)
+            Total = o.TotalPrice
         }).ToList();
     }
 
@@ -39,12 +39,12 @@ public sealed class OrderQueryService : IOrderQueryService
                 Size = i.ProductVariant.Size,
                 WarehouseName = i.Warehouse.Name,
                 Quantity = i.Quantity,
-                UnitPrice = i.UnitPrice.Amount,
+                UnitPrice = i.UnitPrice,
                 Discount = i.DiscountPercent,
-                TotalPrice = i.UnitPrice.Amount * i.Quantity
+                TotalPrice = i.TotalPrice
             }).ToList(),
             Comment = order.Comment,
-            Total = order.Items.Sum(i => i.UnitPrice.Amount * i.Quantity)
+            Total = order.TotalPrice
         };
     }
 }

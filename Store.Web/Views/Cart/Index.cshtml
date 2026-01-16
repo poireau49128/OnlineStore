@@ -16,20 +16,18 @@ else
             <thead class="table-light">
                 <tr>
                     <th>Товар</th>
-                    <th>Вариант</th>
                     <th>Склад</th>
                     <th>Кол-во</th>
                     <th>Цена</th>
                     <th>Сумма</th>
-                    <th>Действие</th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
                 @foreach (var item in Model.Items)
                 {
                     <tr class="cart-item" data-item-id="@item.Id">
-                        <td>@item.ProductName</td>
-                        <td>@item.Color @(! string.IsNullOrEmpty(item.Size) ? $"({item.Size})" : "")</td>
+                        <td>@item.ProductName @item.Color @(! string.IsNullOrEmpty(item.Size) ? $"({item.Size})" : "")</td>
                         <td>@item.WarehouseName</td>
                         <td>
                             <div class="input-group" style="width: 120px;">
@@ -42,9 +40,9 @@ else
                                 </button>
                             </div>
                         </td>
-                        <td>@item.UnitPrice.ToString("0.00") @item.Currency</td>
-                        <td class="total-price" data-total="@(item.Quantity * item.UnitPrice)">
-                            @(item.Quantity * item.UnitPrice) @item.Currency
+                        <td>@item.UnitPrice.Amount.ToString("0.00") @item.UnitPrice.Currency</td>
+                        <td class="total-price" data-total="@(item.Quantity * item.UnitPrice.Amount)">
+                            @(item.Quantity * item.UnitPrice.Amount) @item.UnitPrice.Currency
                         </td>
                         <td>
                             <button class="btn btn-sm btn-danger btn-remove" type="button" data-item-id="@item.Id">
@@ -65,7 +63,7 @@ else
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title">Сумма заказа</h5>
-                    <h4 id="total-amount">@Model.TotalAmount.ToString("0.00") @Model.Currency</h4>
+                    <h4 id="total-amount">@Model.Total.Amount.ToString("0.00") @Model.Total.Currency</h4>
                     <a asp-controller="Order" asp-action="Checkout" class="btn btn-success w-100 mt-3">
                         ✓ Оформить заказ
                     </a>
