@@ -1,4 +1,5 @@
 using Store.Domain.Entities;
+using Store.Domain.Enums;
 using Store.Domain.ValueObjects;
 
 public sealed class OrderListDto

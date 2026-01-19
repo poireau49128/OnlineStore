@@ -19,8 +19,8 @@ builder.Services
     })
     .AddEntityFrameworkStores<AppDbContext>()
     .AddErrorDescriber<RussianIdentityErrorDescriber>()
-    .AddDefaultTokenProviders()
-    .AddDefaultUI();
+    .AddDefaultTokenProviders();
+    //.AddDefaultUI();
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
@@ -67,6 +67,9 @@ builder.Services.AddScoped<IDiscountService, DiscountService>();
 builder.Services.AddScoped<CartService>();
 builder.Services.AddScoped<IOrderQueryService, OrderQueryService>();
 
+builder.Services.AddScoped<IAdminOrderQueryService, AdminOrderQueryService>();
+
+
 
 var mvcBuilder = builder.Services.AddControllersWithViews();
 if (builder.Environment.IsDevelopment())
@@ -74,7 +77,11 @@ if (builder.Environment.IsDevelopment())
     mvcBuilder.AddRazorRuntimeCompilation();
 }
 builder.Services.AddAuthentication();
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("Admin", policy =>
+        policy.RequireRole("Admin"));
+});
 
 
 var app = builder.Build();
@@ -96,10 +103,14 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
+
+app.MapControllerRoute(
+    name: "areas",
+    pattern: "{area:exists}/{controller=Orders}/{action=Index}/{id?}");
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Product}/{action=Index}/{id?}");
 
-app.MapRazorPages();
+// app.MapRazorPages();
 
 app.Run();

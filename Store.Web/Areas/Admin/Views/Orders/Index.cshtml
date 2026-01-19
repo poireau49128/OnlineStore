@@ -1,0 +1,68 @@
+@using Store.Domain.Enums
+@model List<AdminOrderListDto>
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Заказы";
+}
+
+
+
+
+<div class="container-fluid">
+    <div class="row">
+        <partial name="_AdminSidebar" />
+        <main class="col">
+            <form method="get" class="row g-2 mb-4">
+                <div class="col-auto">
+                    <select name="status" class="form-select" onchange="this.form.submit()">
+                        <option value="">Все статусы</option>
+                        @foreach (OrderStatus s in Enum.GetValues(typeof(OrderStatus)))
+                        {
+                            <option value="@s" selected="@(Context.Request.Query["status"] == s.ToString())">
+                                @s.ToUserText()
+                            </option>
+                        }
+                    </select>
+                </div>
+            </form>
+
+
+
+            <h2>Заказы</h2>
+
+            @if (!Model.Any())
+            {
+                <p>Заказов нет.</p>
+            }
+            else
+            {
+                <div class="row row-cols-1 row-cols-md-2 g-4">
+                    @foreach (var order in Model)
+                    {
+                        <div class="col">
+                            <div class="card shadow-sm">
+                                <div class="card-body">
+                                    <h5 class="card-title">Заказ №@order.Id</h5>
+
+                                    <p class="card-text">
+                                        <strong>Пользователь:</strong> @order.UserEmail<br />
+                                        <strong>Дата:</strong> @order.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")<br />
+                                        <strong>Статус:</strong> @order.Status.ToUserText()<br />
+                                        <strong>Сумма:</strong>
+                                        @order.TotalPrice.Amount.ToString("0.00") @order.TotalPrice.Currency
+                                    </p>
+
+                                    <a href="/Admin/Orders/Details/@order.Id"
+                                    class="btn btn-outline-primary btn-sm">
+                                        Подробнее →
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </main>
+    </div>
+</div>

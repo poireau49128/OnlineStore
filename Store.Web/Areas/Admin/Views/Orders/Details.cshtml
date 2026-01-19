@@ -1,0 +1,124 @@
+@using Store.Domain.Enums
+@model AdminOrderDetailsDto
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = $"Заказ №{Model.Id}";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <partial name="_AdminSidebar" />
+        <main class="col">
+            <h2>Заказ №@Model.Id</h2>
+
+            <p>
+                <strong>Пользователь:</strong> @Model.UserEmail<br />
+                <strong>Дата:</strong> @Model.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")<br />
+                <strong>Статус:</strong> <span id="status-text">@Model.Status.ToUserText()</span><br />
+                <strong>Сумма:</strong> @Model.TotalPrice.Amount.ToString("0.00") @Model.TotalPrice.Currency
+            </p>
+
+            <form id="change-status-form" method="post" action="/Admin/Orders/ChangeStatus">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.Id" />
+
+                <select name="status" class="form-select w-auto d-inline" id="status-select">
+                    @{
+                        // текущий статус первым
+                        <option value="@Model.Status" selected>@Model.Status.ToUserText()</option>
+
+                        // разрешённые следующие статусы
+                        foreach (var s in OrderStatusRules.GetAllowedNext(Model.Status))
+                        {
+                            <option value="@s">@s.ToUserText()</option>
+                        }
+                    }
+                </select>
+
+                <button class="btn btn-success btn-sm ms-2">
+                    Сохранить
+                </button>
+            </form>
+
+            <table class="table table-striped mt-4">
+                <thead>
+                <tr>
+                    <th>Товар</th>
+                    <th>Кол-во</th>
+                    <th>Цена</th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach (var item in Model.Items)
+                {
+                    <tr>
+                        <td>@item.ProductName</td>
+                        <td>@item.Quantity</td>
+                        <td>@item.Price</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+
+            <a href="/Admin/Orders" class="btn btn-secondary">← Назад</a>
+        </main>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+document.getElementById('change-status-form')
+.addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const form = this;
+    const formData = new FormData(form);
+    const statusSelect = document.getElementById('status-select');
+    const statusText = document.getElementById('status-text');
+
+    try {
+        const response = await fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+            showToast(data.message || 'Ошибка при обновлении статуса', 'warning');
+            return;
+        }
+
+        // Обновляем текст статуса на странице
+        statusText.textContent = data.status;
+
+        // Обновляем select
+        statusSelect.innerHTML = '';
+        const optionCurrent = document.createElement('option');
+        optionCurrent.value = data.statusEnum;
+        optionCurrent.text = data.status;
+        optionCurrent.selected = true;
+        statusSelect.appendChild(optionCurrent);
+
+        if (data.allowedNextStatuses) {
+            data.allowedNextStatuses.forEach(s => {
+                const option = document.createElement('option');
+                option.value = s.value;
+                option.text = s.text;
+                statusSelect.appendChild(option);
+            });
+        }
+        showToast(data.message || 'Статус обновлён', 'success');
+        
+    } catch (err) {
+        console.error(err);
+        showToast('Ошибка при сохранении', 'danger');
+    }
+});
+
+</script>
+}

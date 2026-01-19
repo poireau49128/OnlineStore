@@ -6,4 +6,6 @@ public interface IOrderRepository
     Task SaveChangesAsync();
     Task<List<Order>> GetByUserAsync(string userId);
     Task<Order?> GetByIdAsync(int id);
+
+    Task<List<Order>> GetAllAsync();
 }

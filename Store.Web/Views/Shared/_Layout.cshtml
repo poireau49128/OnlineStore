@@ -92,7 +92,11 @@
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div id="toast-container"
+        class="position-fixed top-0 end-0 p-3"
+        style="z-index: 1100;">
+    </div>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
             <a class="navbar-brand" href="/">🏠 BekmaWood</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -101,10 +105,20 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="@Url.Action("Index", "Product")">Каталог</a>
+                        <a class="nav-link"
+                            asp-area=""
+                            asp-controller="Product"
+                            asp-action="Index">
+                                Каталог
+                        </a>
+
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="@Url.Action("Index", "Cart")" id="cart-icon">
+                        <a class="nav-link"
+                            asp-area=""
+                            asp-controller="Cart"
+                            asp-action="Index"
+                            id="cart-icon">
                             🛒 Корзина
                             <span id="cart-count-badge" class="position-absolute badge rounded-pill bg-danger" style="display: none;">0</span>
                         </a>
@@ -112,24 +126,38 @@
                     <li class="nav-item dropdown">
                         @if (User.Identity?.IsAuthenticated == true)
                         {
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <a class="nav-link dropdown-toggle"
+                                href="#"
+                                role="button" data-bs-toggle="dropdown">
                                 👤 @User.Identity.Name
                             </a>
 
                             <ul class="dropdown-menu dropdown-menu-end">
+                                @if (User.IsInRole("Admin"))
+                                {
+                                    <li>
+                                        <a class="dropdown-item"
+                                        asp-area="Admin"
+                                        asp-controller="Orders"
+                                        asp-action="Index">
+                                            🛠 Админка
+                                        </a>
+                                    </li>
+                                }
+
                                 <li>
-                                    <a class="dropdown-item" asp-controller="Account" asp-action="Profile">
+                                    <a class="dropdown-item" asp-area="" asp-controller="Account" asp-action="Profile">
                                         ⚙️ Профиль
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" asp-controller="Order" asp-action="UserOrders">
+                                    <a class="dropdown-item" asp-area="" asp-controller="Order" asp-action="UserOrders">
                                         📦 Мои заказы
                                     </a>
                                 </li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
-                                    <form asp-controller="Account" asp-action="Logout" method="post" class="px-3">
+                                    <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="px-3">
                                         <button class="btn btn-link dropdown-item text-danger">
                                             🚪 Выйти
                                         </button>
@@ -140,6 +168,7 @@
                         else
                         {
                             <a class="btn btn-outline-light ms-2"
+                               asp-area=""
                                asp-controller="Account"
                                asp-action="Login"
                                asp-route-returnUrl="@Context.Request.Path">
@@ -164,6 +193,31 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
+    <script>
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+
+            const toast = document.createElement('div');
+            toast.className = `toast align-items-center text-bg-${type} border-0 show mb-2`;
+            toast.role = 'alert';
+
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto"></button>
+                </div>
+            `;
+
+            toast.querySelector('button').onclick = () => toast.remove();
+            container.appendChild(toast);
+
+            setTimeout(() => toast.remove(), 3000);
+        }
+    </script>
+
+
     <script>
         function getCsrfToken() {
             return document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';

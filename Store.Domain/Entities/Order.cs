@@ -1,16 +1,7 @@
+using Store.Domain.Enums;
 using Store.Domain.ValueObjects;
 
 namespace Store.Domain.Entities;
-
-public enum OrderStatus
-{
-    Pending,
-    Confirmed,
-    Paid,
-    Shipped,
-    Completed,
-    Cancelled
-}
 
 public class Order
 {

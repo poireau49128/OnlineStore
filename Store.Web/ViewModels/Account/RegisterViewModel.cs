@@ -13,7 +13,7 @@ public class RegisterViewModel
     [DataType(DataType.Password)]
     public string Password { get; set; } = null!;
 
-    [Required]
+    [Required(ErrorMessage = "Введите пароль")]
     [DataType(DataType.Password)]
     [Compare("Password", ErrorMessage = "Пароли не совпадают")]
     public string ConfirmPassword { get; set; } = null!;

@@ -7,6 +7,7 @@ public class ProfileViewModel
     [Required]
     [EmailAddress]
     public string Email { get; set; } = null!;
+    public string? IdentityRole { get; set; } = null!;
 
     public string? FullName { get; set; } = null!;
 

@@ -40,4 +40,16 @@ public sealed class OrderRepository : IOrderRepository
 
     public Task SaveChangesAsync()
         => _db.SaveChangesAsync();
+
+
+    public async Task<List<Order>> GetAllAsync()
+    {
+        return await _db.Orders
+            .Include(o => o.Items)
+                .ThenInclude(i => i.ProductVariant)
+                    .ThenInclude(v => v.Product)
+            .OrderByDescending(o => o.CreatedAt)
+            .ToListAsync();
+    }
+
 }

@@ -102,12 +102,16 @@ public class AccountController : Controller
     public async Task<IActionResult> Profile()
     {
         var user = await _userManager.GetUserAsync(User);
+
         if (user == null)
             return NotFound();
+
+        var roles = await _userManager.GetRolesAsync(user);
 
         var model = new ProfileViewModel
         {
             Email = user.Email!,
+            IdentityRole = string.Join(", ", roles),
             FullName = user.FullName ?? "",
             Address = user.Address ?? "",
             PhoneNumber = user.PhoneNumber ?? ""
