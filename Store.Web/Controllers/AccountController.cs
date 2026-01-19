@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Store.Web.ViewModels.Account;
 using Store.Persistence;
 using Microsoft.AspNetCore.Authorization;
+using Store.Persistence.Identity;
 
 namespace Store.Web.Controllers;
 
@@ -176,14 +177,18 @@ public class AccountController : Controller
             foreach (var error in result.Errors)
                 ModelState.AddModelError(string.Empty, error.Description);
 
+            ModelState.Remove(nameof(ChangePasswordViewModel.CurrentPassword));
+            ModelState.Remove(nameof(ChangePasswordViewModel.NewPassword));
+            ModelState.Remove(nameof(ChangePasswordViewModel.ConfirmPassword));
+
             return View(model);
         }
 
         await _signInManager.RefreshSignInAsync(user);
-        ViewBag.Success = "Пароль успешно изменён";
 
-        return View();
+        ModelState.Clear();
+        TempData["Success"] = "Пароль успешно изменён";
+
+        return RedirectToAction(nameof(Profile));
     }
-
-
 }

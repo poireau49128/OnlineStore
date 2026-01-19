@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Store.Persistence;
 using Store.Web.Identity;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Store.Persistence.Identity;
+using Store.Application.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +16,7 @@ builder.Services
     {
         options.Password.RequireDigit = false;
         options.Password.RequireUppercase = false;
+        options.Password.RequireLowercase = false;
         options.Password.RequireNonAlphanumeric = false;
         options.Password.RequiredLength = 6;
     })
@@ -57,17 +60,17 @@ builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IProductStockRepository, ProductStockRepository>();
 builder.Services.AddScoped<IUnitOfWork, EfUnitOfWork>();
-
-builder.Services.AddScoped<
-    ICustomerCategoryDiscountRepository,
-    CustomerCategoryDiscountRepository>();
-
+builder.Services.AddScoped<ICustomerCategoryDiscountRepository, CustomerCategoryDiscountRepository>();
 builder.Services.AddScoped<IDiscountService, DiscountService>();
-
 builder.Services.AddScoped<CartService>();
 builder.Services.AddScoped<IOrderQueryService, OrderQueryService>();
-
 builder.Services.AddScoped<IAdminOrderQueryService, AdminOrderQueryService>();
+builder.Services.AddScoped<IRoleSeeder, RoleSeeder>();
+builder.Services.AddScoped<IUserQueryService, UserQueryService>();
+builder.Services.AddScoped<IUserDetailsQueryService, UserDetailsQueryService>();
+builder.Services.AddScoped<IUserRoleService, UserRoleService>();
+
+
 
 
 
@@ -94,6 +97,13 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
+
+using (var scope = app.Services.CreateScope())
+{
+    var roleSeeder = scope.ServiceProvider.GetRequiredService<IRoleSeeder>();
+    await roleSeeder.SeedAsync();
+}
+
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();

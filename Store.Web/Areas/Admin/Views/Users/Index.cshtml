@@ -1,0 +1,37 @@
+@model IReadOnlyList<Store.Application.DTOs.UserListItemDto>
+
+<div class="container-fluid">
+    <div class="row">
+        <partial name="_AdminSidebar" />
+        <main class="col">
+            <h2>Пользователи</h2>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Email</th>
+                        <th>ФИО</th>
+                        <th>Адрес</th>
+                        <th>Телефон</th>
+                        <th>Дата регистрации</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in Model)
+                    {
+                        <tr>
+                            <td>@user.Email</td>
+                            <td>@user.FullName</td>
+                            <td>@user.Address</td>
+                            <td>@user.PhoneNumber</td>
+                            <td>@user.RegisteredAt?.ToLocalTime().ToString("dd.MM.yyyy")</td>
+                            <td>
+                                <a asp-action="Details" asp-route-id="@user.Id">Открыть</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </main>
+    </div>
+</div>

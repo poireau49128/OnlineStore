@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Store.Domain.Entities;
+using Store.Persistence.Identity;
 
 namespace Store.Persistence;
 
@@ -287,7 +288,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
 
         entity.HasKey(d => d.Id);
 
-        entity.HasOne<Store.Persistence.ApplicationUser>() 
+        entity.HasOne<Store.Persistence.Identity.ApplicationUser>() 
             .WithMany(u => u.CategoryDiscounts)
             .HasForeignKey(d => d.UserId)
             .IsRequired()

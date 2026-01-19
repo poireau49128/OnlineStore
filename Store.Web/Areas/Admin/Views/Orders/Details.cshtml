@@ -67,58 +67,28 @@
 </div>
 
 @section Scripts {
-<script>
-document.getElementById('change-status-form')
-.addEventListener('submit', async function(e) {
-    e.preventDefault();
+    <script>
+        handleAjaxForm('#change-status-form', function(data) {
+            const statusText = document.getElementById('status-text');
+            const statusSelect = document.getElementById('status-select');
 
-    const form = this;
-    const formData = new FormData(form);
-    const statusSelect = document.getElementById('status-select');
-    const statusText = document.getElementById('status-text');
+            statusText.textContent = data.status;
 
-    try {
-        const response = await fetch(form.action, {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
+            statusSelect.innerHTML = '';
+            const optionCurrent = document.createElement('option');
+            optionCurrent.value = data.statusEnum;
+            optionCurrent.text = data.status;
+            optionCurrent.selected = true;
+            statusSelect.appendChild(optionCurrent);
+
+            if (data.allowedNextStatuses) {
+                data.allowedNextStatuses.forEach(s => {
+                    const option = document.createElement('option');
+                    option.value = s.value;
+                    option.text = s.text;
+                    statusSelect.appendChild(option);
+                });
             }
         });
-
-        const data = await response.json();
-
-        if (!data.success) {
-            showToast(data.message || 'Ошибка при обновлении статуса', 'warning');
-            return;
-        }
-
-        // Обновляем текст статуса на странице
-        statusText.textContent = data.status;
-
-        // Обновляем select
-        statusSelect.innerHTML = '';
-        const optionCurrent = document.createElement('option');
-        optionCurrent.value = data.statusEnum;
-        optionCurrent.text = data.status;
-        optionCurrent.selected = true;
-        statusSelect.appendChild(optionCurrent);
-
-        if (data.allowedNextStatuses) {
-            data.allowedNextStatuses.forEach(s => {
-                const option = document.createElement('option');
-                option.value = s.value;
-                option.text = s.text;
-                statusSelect.appendChild(option);
-            });
-        }
-        showToast(data.message || 'Статус обновлён', 'success');
-        
-    } catch (err) {
-        console.error(err);
-        showToast('Ошибка при сохранении', 'danger');
-    }
-});
-
-</script>
+    </script>
 }

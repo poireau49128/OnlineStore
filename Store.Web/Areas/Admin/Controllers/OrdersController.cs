@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Store.Domain.Enums;
 
 [Area("Admin")]
-[Authorize(Roles = "Admin")]
+[Authorize(Policy = "Admin")]
 public class OrdersController : Controller
 {
     private readonly IAdminOrderQueryService _queryService;
