@@ -133,7 +133,7 @@ namespace Store.Web.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { success = false, message = "��шибка сервера:  " + ex.Message });
+                return StatusCode(500, new { success = false, message = "Ошибка сервера:  " + ex.Message });
             }
         }
     }

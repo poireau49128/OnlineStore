@@ -32,12 +32,17 @@
 })();
 
 // ---------------- UNIVERSAL AJAX HANDLER ----------------
-function handleAjaxForm(formSelector, onSuccess) {
+function handleAjaxForm(formSelector, onSuccess, options = {}) {
     const form = typeof formSelector === 'string' ? document.querySelector(formSelector) : formSelector;
     if (!form) return;
 
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
+
+        if (options.confirm) {
+            const message = options.confirmMessage || 'Вы уверены?';
+            if (!confirm(message)) return;
+        }
 
         const formData = new FormData(form);
         try {
