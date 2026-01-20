@@ -87,17 +87,4 @@ public class Product
     {
         Sku = $"{Transliterate(Name)}-{Id}";
     }
-
-    public string GetMainImagePath()
-    {
-        var variantImage = Variants
-            .SelectMany(v => v.Images)
-            .OrderBy(i => i.SortOrder)
-            .FirstOrDefault();
-
-        if (variantImage != null) return variantImage.RelativePath;
-
-        // Если нет ничего — дефолтная картинка
-        return "/img/no-image.png";
-    }
 }

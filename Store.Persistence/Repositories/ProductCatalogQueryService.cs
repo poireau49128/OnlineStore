@@ -4,8 +4,7 @@ using Store.Application.Interfaces;
 
 namespace Store.Persistence.Repositories;
 
-public sealed class ProductCatalogQueryService
-    : IProductCatalogQueryService
+public sealed class ProductCatalogQueryService : IProductCatalogQueryService
 {
     private readonly AppDbContext _db;
 
@@ -17,15 +16,11 @@ public sealed class ProductCatalogQueryService
     public async Task<IReadOnlyList<ProductCatalogItemDto>> GetCatalogAsync(
         int? categoryId,
         string? searchTerm,
-        int skip,
-        int take)
+        int? skip = null, 
+        int? take = null)
     {
         var query = _db.Products
             .AsNoTracking()
-            .Include(p => p.Category)
-                .ThenInclude(c => c.ProductType)
-            .Include(p => p.Variants)
-                .ThenInclude(v => v.Images)
             .AsQueryable();
 
         if (categoryId.HasValue)
@@ -34,20 +29,27 @@ public sealed class ProductCatalogQueryService
         if (!string.IsNullOrWhiteSpace(searchTerm))
             query = query.Where(p => p.Name.Contains(searchTerm));
 
-        return await query
+        query = query
             .OrderBy(p => p.Category.ProductType.Id)
             .ThenBy(p => p.Category.Name)
-            .ThenBy(p => p.Name)
-            .Skip(skip)
-            .Take(take)
+            .ThenBy(p => p.Id);
+
+        if (skip.HasValue) query = query.Skip(skip.Value);
+        if (take.HasValue) query = query.Take(take.Value);
+
+        return await query
             .Select(p => new ProductCatalogItemDto
             {
                 Id = p.Id,
                 Name = p.Name,
-                CategoryName = p.Category.Name,
-                ProductTypeName = p.Category.ProductType.Name,
+                CategoryName = p.Category.Name ?? "Без категории",
+                ProductTypeName = p.Category.ProductType.Name ?? "Без типа",
                 Price = p.BasePrice,
-                ImagePath = p.GetMainImagePath()
+                ImagePath = p.Variants
+                    .SelectMany(v => v.Images)
+                    .OrderBy(i => i.SortOrder)
+                    .Select(i => i.RelativePath)
+                    .FirstOrDefault() ?? "/img/no-image.png"
             })
             .ToListAsync();
     }

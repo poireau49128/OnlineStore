@@ -7,8 +7,8 @@ public interface IProductCatalogQueryService
     Task<IReadOnlyList<ProductCatalogItemDto>> GetCatalogAsync(
         int? categoryId,
         string? searchTerm,
-        int skip,
-        int take);
+        int? skip = null,
+        int? take = null);
 
     Task<int> GetCatalogCountAsync(
         int? categoryId,
