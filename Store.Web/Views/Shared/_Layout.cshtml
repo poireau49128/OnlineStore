@@ -121,10 +121,6 @@
 
     
     <script>
-        @* function getCsrfToken() {
-            return document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
-        } *@
-
         async function updateCartBadge() {
             try {
                 const response = await fetch('/Cart/GetCount');

@@ -1,9 +1,13 @@
+using Store.Domain.Entities;
 using Store.Domain.ValueObjects;
 
-public class ProductVariantDto
+namespace Store.Application.DTOs;
+
+public sealed class ProductVariantDto
 {
-    public string Color { get; set; } = null!;
-    public string? Size { get; set; }
-    public Money Price { get; set; } = null!;
-    public List<string> ImagePaths { get; set; } = new();
+    public int Id { get; init; }
+    public string Color { get; init; } = null!;
+    public string? Size { get; init; }
+    public Money Price { get; init; } = null!;
+    public IReadOnlyList<string> Images { get; init; } = [];
 }

@@ -1,4 +1,4 @@
-@model Store.Domain.Entities.Product
+@model Store.Web.ViewModels.Product.ProductDetailsViewModel
 @using System.Text.Json
 
 @{
@@ -77,7 +77,7 @@
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="@Url.Action("Index", "Product")">Каталог</a></li>
             <li class="breadcrumb-item">
-                <a href="@Url.Action("Index", "Product", new { categoryId = Model.CategoryId })">@Model.Category?.Name</a>
+                <a href="@Url.Action("Index", "Product", new { categoryId = Model.CategoryId })">@Model.CategoryName</a>
             </li>
             <li class="breadcrumb-item active">@Model.Name</li>
         </ol>
@@ -85,17 +85,14 @@
 
     <div class="row">
         <div class="col-md-6">
-            @* <img id="mainProductImage" src="@Url.Content(Model.GetMainImagePath())" 
-                 class="img-fluid rounded shadow" alt="@Model.Name" style="max-height: 600px;object-fit:cover;"> *@
-            <div id="productGallery">
-            </div>
+            <div id="productGallery"></div>
         </div>
 
         <div class="col-md-6">
             <h1>@Model.Name</h1>
             <p class="text-muted">
-                <span class="badge bg-secondary">@Model.Category?.ProductType?.Name</span>
-                <span class="badge bg-info">@Model.Category?.Name</span>
+                <span class="badge bg-secondary">@Model.ProductTypeName</span>
+                <span class="badge bg-info">@Model.CategoryName</span>
             </p>
 
             @if (!string.IsNullOrEmpty(Model.Sku))
@@ -121,10 +118,10 @@
                 <div class="mb-4">
                     <h5>Доступные цвета</h5>
                     <div id="colors" class="d-flex gap-2 flex-wrap">
-                        @foreach (var v in Model.Variants
-                            .OrderBy(v => v.Images.Any() ? v.Images.Min(i => i.SortOrder) : int.MaxValue))
+                        @foreach (var v in Model.Variants)
                         {
-                            <button class="btn btn-outline-secondary color-variant" type="button" 
+                            <button class="btn btn-outline-secondary color-variant"
+                                    type="button" 
                                     data-variant-id="@v.Id" 
                                     onclick="selectVariant(@v.Id)">
                                 @v.Color @(v.Size != null ? $"({v.Size})" : "")
@@ -165,30 +162,22 @@
 </div>
 
 @{
-    @* var variantsForJs = Model.Variants
-        .OrderBy(v => v.Images.Any() ? v.Images.Min(i => i.SortOrder) : int.MaxValue)
+    var orderedVariants = Model.Variants
+        .ToList();
+
+    var variantsForJs = orderedVariants
         .Select(v => new {
             id = v.Id,
-            imagePath = Url.Content(v.Images.OrderBy(i => i.SortOrder).FirstOrDefault()?.RelativePath ?? "/img/no-image.png"),
-            priceAmount = v.GetPrice(Model.BasePrice).Amount,
-            priceCurrency = v.GetPrice(Model.BasePrice).Currency
-        })
-        .ToList(); *@
-        var variantsForJs = Model.Variants
-        .OrderBy(v => v.Images.Any() ? v.Images.Min(i => i.SortOrder) : int.MaxValue)
-        .Select(v => new {
-            id = v.Id,
-            images = v.Images
-                .OrderBy(i => i.SortOrder)
-                .Select(i => Url.Content(i.RelativePath))
-                .ToList(),
-            priceAmount = v.GetPrice(Model.BasePrice).Amount,
-            priceCurrency = v.GetPrice(Model.BasePrice).Currency
+            images = v.Images.ToList(),
+            priceAmount = v.Price.Amount,
+            priceCurrency = v.Price.Currency
         })
         .ToList();
 
-
-    var variantsJson = JsonSerializer.Serialize(variantsForJs, new JsonSerializerOptions { PropertyNamingPolicy = null });
+    var variantsJson = JsonSerializer.Serialize(
+        variantsForJs,
+        new JsonSerializerOptions { PropertyNamingPolicy = null }
+    );
 }
 
 @section Scripts {
@@ -281,29 +270,24 @@
     function selectVariant(variantId) {
         selectedVariantId = variantId;
 
-        document.querySelectorAll('#colors .color-variant').forEach(btn => {
-            btn.classList.remove('selected');
-        });
-
-        const buttons = document.querySelectorAll('#colors .color-variant');
-        buttons.forEach(btn => {
-            if (parseInt(btn.getAttribute('data-variant-id')) === variantId) {
-                btn.classList.add('selected');
-            }
-        });
+        document.querySelectorAll('#colors .color-variant')
+            .forEach(btn =>
+                btn.classList.toggle(
+                    'selected',
+                    parseInt(btn.dataset.variantId) === variantId
+                )
+            );
 
         const variant = variantsData.find(v => v.id === variantId);
-        if (! variant) return;
+        if (!variant) return;
 
-        @* const img = document.getElementById('mainProductImage');
-        if (img && variant.imagePath) img.src = variant.imagePath; *@
         renderGallery(variant.images);
-
-        const priceElem = document.getElementById('productPrice');
-        if (priceElem) priceElem.textContent = `${variant.priceAmount.toFixed(2)} ${variant.priceCurrency}`;
+        document.getElementById('productPrice').textContent =
+            `${variant.priceAmount.toFixed(2)} ${variant.priceCurrency}`;
 
         loadStocksForVariant(variantId);
     }
+
 
     function selectWarehouse(button) {
         document.querySelectorAll('.warehouse-btn').forEach(b => b.classList.remove('selected'));
@@ -424,48 +408,11 @@
         return null;
     }
 
-
-
-
     document.addEventListener('DOMContentLoaded', () => {
+        if (!variantsData.length) return;
 
-        const firstVariant = variantsData.find(v => v.id === selectedVariantId);
-        if (firstVariant) {
-            renderGallery(firstVariant.images);
-        }
-
-
-
-        if (selectedVariantId) {
-            loadStocksForVariant(selectedVariantId);
-        }
-
-        const qtyInput = document.getElementById("quantity");
-        document.getElementById("qtyMinus").addEventListener("click", () => {
-            let val = parseInt(qtyInput.value) || 1;
-            qtyInput.value = Math.max(1, val - 1);
-        });
-        document.getElementById("qtyPlus").addEventListener("click", () => {
-            let val = parseInt(qtyInput.value) || 1;
-            qtyInput.value = val + 1;
-        });
-
-        qtyInput.addEventListener("keypress", (e) => {
-            if (e.key === "Enter") {
-                addToCart();
-            }
-        });
+        selectVariant(variantsData[0].id);
     });
-
-
-
-
-
-
-
-
-
-
 
     function renderGallery(images) {
         const container = document.getElementById('productGallery');

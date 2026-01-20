@@ -5,91 +5,84 @@ using Store.Domain.Entities;
 using Store. Persistence;
 using X.PagedList;
 using Microsoft.AspNetCore.Http.Extensions;
+using Store.Application.Interfaces;
+using Store.Application.DTOs;
+using Store.Web.ViewModels.Product;
 
 namespace Store.Web.Controllers
 {
     public class ProductController : Controller
     {
-        private readonly AppDbContext _db;
+        private readonly IProductCatalogQueryService _catalog;
+        private readonly IProductStockQueryService _stockQuery;
+        private readonly ICategoryQueryService _categories;
         private readonly CartService _cart;
         private const int PageSize = 9;
 
-        public ProductController(AppDbContext db, CartService cart)
+        public ProductController(IProductCatalogQueryService catalog,IProductStockQueryService stockQuery, CartService cart, ICategoryQueryService categories)
         {
-            _db = db;
+            _catalog = catalog;
+            _stockQuery = stockQuery;
             _cart = cart;
+            _categories = categories;
         }
 
         public async Task<IActionResult> Index(int page = 1, int?  categoryId = null, string?  searchTerm = null)
         {
-            var query = _db.Products
-                . Include(p => p. Variants)
-                    .ThenInclude(v => v. Images)
-                .Include(p => p.Category)
-                    .ThenInclude(c => c.ProductType)
-                .AsQueryable();
+            var total = await _catalog.GetCatalogCountAsync(categoryId, searchTerm);
+            var items = await _catalog.GetCatalogAsync(
+                categoryId,
+                searchTerm,
+                skip: (page - 1) * PageSize,
+                take: PageSize);
 
-            if (categoryId.HasValue)
+            var pagedList = new StaticPagedList<ProductCatalogItemDto>(
+                items,
+                page,
+                PageSize,
+                total);
+
+            var model = new ProductCatalogViewModel
             {
-                query = query.Where(p => p.CategoryId == categoryId.Value);
-            }
+                Products = pagedList,
+                Categories = await _categories.GetAllAsync(),
+                SelectedCategoryId = categoryId,
+                SearchTerm = searchTerm
+            };
 
-            if (!string.IsNullOrWhiteSpace(searchTerm))
-            {
-                query = query. Where(p => p.Name. Contains(searchTerm));
-            }
-
-            var totalCount = await query.CountAsync();
-
-            var items = await query
-                .OrderBy(p => p.CategoryId)
-                .ThenBy(p => p.Name)
-                .Skip((page - 1) * PageSize)
-                .Take(PageSize)
-                .ToListAsync();
-
-            var pagedList = new StaticPagedList<Product>(items, page, PageSize, totalCount);
-
-            ViewBag.Categories = await _db.Categories
-                .Include(c => c.ProductType)
-                .ToListAsync();
-            ViewBag. SelectedCategoryId = categoryId;
-            ViewBag.SearchTerm = searchTerm;
-
-            return View(pagedList);
+            return View(model);
         }
 
         public async Task<IActionResult> Details(int id)
         {
-            var product = await _db. Products
-                .Include(p => p. Variants)
-                    .ThenInclude(v => v. Images)
-                .Include(p => p. Variants)
-                    .ThenInclude(v => v. Stocks)
-                        .ThenInclude(s => s. Warehouse)
-                .Include(p => p.Category)
-                    .ThenInclude(c => c.ProductType)
-                .FirstOrDefaultAsync(p => p.Id == id);
+            var product = await _catalog.GetDetailsAsync(id);
 
             if (product == null) return NotFound();
 
-            return View(product);
+            var model = new ProductDetailsViewModel
+            {
+                Id = product.Id,
+                Name = product.Name,
+                Description = product.Description,
+                CategoryName = product.CategoryName,
+                ProductTypeName = product.ProductTypeName,
+                Sku = product.Sku,
+                BasePrice = product.BasePrice,
+                Variants = product.Variants,
+                CategoryId = product.CategoryId
+            };
+
+            return View(model);
         }
 
         [HttpGet]
         public async Task<IActionResult> GetStock(int id)
         {
-            var stocks = await _db.ProductStocks
-                .Where(s => s.ProductVariantId == id)
-                .Include(s => s.Warehouse)
-                .Select(s => new 
-                { 
-                    warehouse = new { s.Warehouse.Id, s.Warehouse.Name }, 
-                    s.Quantity 
-                })
-                .ToListAsync();
-
-            return Json(stocks);
+            var stocks = await _stockQuery.GetByVariantAsync(id);
+            return Json(stocks.Select(s => new {
+                        warehouse = s.Warehouse,
+                        quantity = s.Quantity
+                    }));
         }
 
         [Authorize]
@@ -97,45 +90,46 @@ namespace Store.Web.Controllers
         [HttpPost]
         public async Task<IActionResult> AddToCart([FromBody] AddToCartRequest model)
         {
-            try
+            if (model == null ||
+                model.variantId <= 0 ||
+                model.warehouseId <= 0 ||
+                model.qty < 1)
             {
-                if (model == null || model.variantId <= 0 || model.warehouseId <= 0 || model.qty < 1)
+                return BadRequest(new
                 {
-                    return BadRequest(new { success = false, message = "Некорректные данные товара" });
-                }
-
-                var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value;
-
-                var stock = await _db.ProductStocks
-                    .FirstOrDefaultAsync(s => s.ProductVariantId == model.variantId && s. WarehouseId == model.warehouseId);
-
-                if (stock == null)
-                {
-                    return BadRequest(new { success = false, message = "Товар отсутствует на этом складе" });
-                }
-
-                if (stock.Quantity < model. qty)
-                {
-                    return BadRequest(new { success = false, message = $"На складе только {stock.Quantity} шт.  товара" });
-                }
-
-                await _cart.AddAsync(userId, model.variantId, model.warehouseId, model. qty);
-
-                var cartItems = await _cart.GetAsync(userId);
-                int cartCount = cartItems. Sum(x => x. Quantity);
-
-                return Json(new 
-                { 
-                    success = true, 
-                    message = "✓ Товар добавлен в корзину", 
-                    cartCount 
+                    success = false,
+                    message = "Некорректные данные товара"
                 });
             }
-            catch (Exception ex)
+
+            try
             {
-                return StatusCode(500, new { success = false, message = "Ошибка сервера:  " + ex.Message });
+                var userId = User.FindFirst(
+                    System.Security.Claims.ClaimTypes.NameIdentifier)!.Value;
+
+                var cartCount = await _cart.AddWithStockCheckAsync(
+                    userId,
+                    model.variantId,
+                    model.warehouseId,
+                    model.qty);
+
+                return Json(new
+                {
+                    success = true,
+                    message = "✓ Товар добавлен в корзину",
+                    cartCount
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
             }
         }
+
     }
 
     public class AddToCartRequest

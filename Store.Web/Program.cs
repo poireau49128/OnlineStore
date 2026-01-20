@@ -5,6 +5,7 @@ using Store.Web.Identity;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Store.Persistence.Identity;
 using Store.Application.Interfaces;
+using Store.Persistence.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -69,6 +70,9 @@ builder.Services.AddScoped<IRoleSeeder, RoleSeeder>();
 builder.Services.AddScoped<IUserQueryService, UserQueryService>();
 builder.Services.AddScoped<IUserDetailsQueryService, UserDetailsQueryService>();
 builder.Services.AddScoped<IUserRoleService, UserRoleService>();
+builder.Services.AddScoped<IProductCatalogQueryService, ProductCatalogQueryService>();
+builder.Services.AddScoped<IProductStockQueryService, ProductStockQueryService>();
+builder.Services.AddScoped<ICategoryQueryService, CategoryQueryService>();
 
 
 

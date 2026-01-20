@@ -1,4 +1,4 @@
-@model X.PagedList.IPagedList<Store.Domain.Entities.Product>
+@model Store.Web.ViewModels.Product.ProductCatalogViewModel
 
 @{
     ViewData["Title"] = "Каталог товаров";
@@ -18,10 +18,10 @@
 
             <h5>Категории</h5>
             <a href="@Url.Action("Index", "Product")" class="btn btn-outline-primary btn-sm d-block mb-2 @(ViewBag.SelectedCategoryId == null ? "active" : "")">Все товары</a>
-            @foreach (var category in ViewBag.Categories as List<Store.Domain.Entities.Category>)
+            @foreach (var category in Model.Categories)
             {
                 <a href="@Url.Action("Index", "Product", new { categoryId = category.Id, page = 1 })"
-                   class="btn btn-outline-primary btn-sm d-block mb-2 @(ViewBag.SelectedCategoryId == category.Id ? "active" : "")">
+                   class="btn btn-outline-primary btn-sm d-block mb-2 @(Model.SelectedCategoryId== category.Id ? "active" : "")">
                     @category.Name
                 </a>
             }
@@ -31,23 +31,24 @@
         <div class="col-md-9">
             <h2>@ViewData["Title"]</h2>
 
-            @if (!Model.Any())
+            @if (!Model.Products.Any())
             {
                 <div class="alert alert-info">😕 Товары не найдены. Попробуйте изменить фильтры.</div>
             }
             else
             {
                 <div class="row">
-                    @foreach (var product in Model)
+                    @foreach (var product in Model.Products)
                     {
                         <div class="col-md-6 col-lg-4 mb-4">
                             <div class="card h-100 shadow-sm product-card">
-                                <img src="@Url.Content(product.GetMainImagePath())" class="card-img-top" alt="@product.Name" style="height:250px;object-fit:cover;">
+                                @* <img src="@Url.Content(product.GetMainImagePath())" class="card-img-top" alt="@product.Name" style="height:250px;object-fit:cover;"> *@
+                                <img src="@Url.Content(product.ImagePath)" class="card-img-top" alt="@product.Name" style="height:250px;object-fit:cover;">
 
                                 <div class="card-body">
                                     <h5 class="card-title">@product.Name</h5>
-                                    <p class="card-text text-muted small">@product.Category?.Name</p>
-                                    <h4 class="text-primary">@($"{product.BasePrice?.Amount ?? 0:0.00} {product.BasePrice.Currency}")</h4>
+                                    <p class="card-text text-muted small">@product.CategoryName</p>
+                                    <h4 class="text-primary">@($"{product.Price?.Amount ?? 0:0.00} {product.Price?.Currency ?? "BYN"}")</h4>
                                 </div>
 
                                 <div class="card-footer bg-white">
@@ -61,27 +62,27 @@
                 <!-- Пагинация -->
                 <nav aria-label="Page navigation" class="mt-4">
                     <ul class="pagination justify-content-center">
-                        @if (Model.HasPreviousPage)
+                        @if (Model.Products.HasPreviousPage)
                         {
                             <li class="page-item">
-                                <a class="page-link" href="@Url.Action("Index", "Product", new { page = Model.PageNumber - 1, categoryId = ViewBag.SelectedCategoryId, searchTerm = ViewBag.SearchTerm })">← Назад</a>
+                                <a class="page-link" href="@Url.Action("Index", "Product", new { page = Model.Products.PageNumber - 1, categoryId = ViewBag.SelectedCategoryId, searchTerm = ViewBag.SearchTerm })">← Назад</a>
                             </li>
                         }
-                        @for (int i = 1; i <= Model.PageCount; i++)
+                        @for (int i = 1; i <= Model.Products.PageCount; i++)
                         {
-                            <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                            <li class="page-item @(i == Model.Products.PageNumber ? "active" : "")">
                                 <a class="page-link" href="@Url.Action("Index", "Product", new { page = i, categoryId = ViewBag.SelectedCategoryId, searchTerm = ViewBag.SearchTerm })">@i</a>
                             </li>
                         }
-                        @if (Model.HasNextPage)
+                        @if (Model.Products.HasNextPage)
                         {
                             <li class="page-item">
-                                <a class="page-link" href="@Url.Action("Index", "Product", new { page = Model.PageNumber + 1, categoryId = ViewBag.SelectedCategoryId, searchTerm = ViewBag.SearchTerm })">Вперёд →</a>
+                                <a class="page-link" href="@Url.Action("Index", "Product", new { page = Model.Products.PageNumber + 1, categoryId = ViewBag.SelectedCategoryId, searchTerm = ViewBag.SearchTerm })">Вперёд →</a>
                             </li>
                         }
                     </ul>
                     <div class="text-center text-muted">
-                        <small>Страница @Model.PageNumber из @Model.PageCount | Всего: @Model.TotalItemCount товаров</small>
+                        <small>Страница @Model.Products.PageNumber из @Model.Products.PageCount | Всего: @Model.Products.TotalItemCount товаров</small>
                     </div>
                 </nav>
             }
