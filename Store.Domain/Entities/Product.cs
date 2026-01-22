@@ -87,4 +87,30 @@ public class Product
     {
         Sku = $"{Transliterate(Name)}-{Id}";
     }
+
+    public void UpdateName(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentException("Name is required", nameof(name));
+        Name = name;
+    }
+
+    public void UpdateDescription(string?  description)
+    {
+        Description = description;
+    }
+
+    public void UpdateBasePrice(Money price)
+    {
+        if (price == null)
+            throw new ArgumentNullException(nameof(price));
+        BasePrice = price;
+    }
+
+    public void UpdateCategory(int categoryId)
+    {
+        if (categoryId <= 0)
+            throw new ArgumentException("Invalid category", nameof(categoryId));
+        CategoryId = categoryId;
+    }
 }

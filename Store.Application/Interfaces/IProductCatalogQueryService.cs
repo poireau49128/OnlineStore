@@ -8,7 +8,8 @@ public interface IProductCatalogQueryService
         int? categoryId,
         string? searchTerm,
         int? skip = null,
-        int? take = null);
+        int? take = null,
+        bool includeAdminData = false);
 
     Task<int> GetCatalogCountAsync(
         int? categoryId,

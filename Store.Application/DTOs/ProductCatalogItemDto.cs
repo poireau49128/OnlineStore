@@ -10,4 +10,7 @@ public sealed class ProductCatalogItemDto
     public string ProductTypeName { get; init; } = null!;
     public Money Price { get; init; } = null!;
     public string ImagePath { get; init; } = "/img/no-image.png";
+
+    public int? VariantsCount { get; init; }
+    public int? TotalStock { get; init; }
 }

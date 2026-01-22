@@ -17,7 +17,8 @@ public sealed class ProductCatalogQueryService : IProductCatalogQueryService
         int? categoryId,
         string? searchTerm,
         int? skip = null, 
-        int? take = null)
+        int? take = null,
+        bool includeAdminData = false)
     {
         var query = _db.Products
             .AsNoTracking()
@@ -37,19 +38,31 @@ public sealed class ProductCatalogQueryService : IProductCatalogQueryService
         if (skip.HasValue) query = query.Skip(skip.Value);
         if (take.HasValue) query = query.Take(take.Value);
 
-        return await query
-            .Select(p => new ProductCatalogItemDto
+        return await query.Select(p => new ProductCatalogItemDto
             {
                 Id = p.Id,
                 Name = p.Name,
                 CategoryName = p.Category.Name ?? "Без категории",
                 ProductTypeName = p.Category.ProductType.Name ?? "Без типа",
                 Price = p.BasePrice,
+
                 ImagePath = p.Variants
-                    .SelectMany(v => v.Images)
-                    .OrderBy(i => i.SortOrder)
-                    .Select(i => i.RelativePath)
-                    .FirstOrDefault() ?? "/img/no-image.png"
+                    .OrderBy(v => v.Color)
+                    .Select(v => v.Images
+                        .OrderBy(i => i.SortOrder)
+                        .Select(i => i.RelativePath)
+                        .FirstOrDefault())
+                    .FirstOrDefault(path => path != null) ?? "/img/no-image.png",
+                
+                VariantsCount = includeAdminData
+                    ? p.Variants.Count
+                    : null,
+
+                TotalStock = includeAdminData
+                    ? p.Variants
+                        .SelectMany(v => v.Stocks)
+                        .Sum(s => s.Quantity)
+                    : null
             })
             .ToListAsync();
     }

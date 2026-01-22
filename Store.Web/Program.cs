@@ -75,6 +75,12 @@ builder.Services.AddScoped<IProductStockQueryService, ProductStockQueryService>(
 builder.Services.AddScoped<ICategoryQueryService, CategoryQueryService>();
 
 
+builder.Services.AddScoped<Store.Application.Interfaces.Admin.IProductRepository, Store.Persistence.Repositories.ProductRepository>();
+builder.Services.AddScoped<Store.Application.Interfaces.Admin.IProductAdminService, Store. Persistence.Services.Admin.ProductAdminService>();
+builder.Services.AddScoped<Store.Application. Interfaces.Admin.IProductImageService, Store.Persistence.Services.Admin.ProductImageService>();
+builder.Services.AddScoped<Store.Application.Interfaces.Admin.ICategoryAutocompleteService, Store.Persistence.Services.Admin. CategoryAutocompleteService>();
+
+
 
 
 

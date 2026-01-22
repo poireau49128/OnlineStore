@@ -1,0 +1,112 @@
+@model Store.Web.Areas.Admin.ViewModels.StockViewModel
+
+@{
+    ViewData["Title"] = "Остатки варианта";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <partial name="_AdminSidebar" />
+        <main class="col">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1>📦 Остатки варианта</h1>
+                    <p class="text-muted mb-0">
+                        <strong>@Model.ProductName</strong> — @Model.VariantDescription
+                    </p>
+                </div>
+                <a href="@Url.Action("Variants", "Products", new { id = Model.ProductId, area = "Admin" })" 
+                   class="btn btn-secondary">← Назад</a>
+            </div>
+
+            <!-- ТЕКУЩИЕ ОСТАТКИ -->
+            @if (Model.Stocks.Any())
+            {
+                <div class="card mb-4">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0">Текущие остатки</h6>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Склад</th>
+                                    <th>Количество</th>
+                                    <th class="text-end">Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var stock in Model.Stocks)
+                                {
+                                    <tr>
+                                        <td>
+                                            <strong>@stock.WarehouseName</strong>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-primary">@stock.Quantity шт</span>
+                                        </td>
+                                        <td class="text-end">
+                                            <form method="post" asp-action="RemoveStock" style="display: inline;">
+                                                <input type="hidden" name="stockId" value="@stock.StockId" />
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" 
+                                                        onclick="return confirm('Удалить остаток? ')">
+                                                    🗑️
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info mb-4">ℹ️ Остатки на складах ещё не добавлены</div>
+            }
+
+            <hr class="my-4" />
+
+            <!-- ФОРМА ДОБАВЛЕНИЯ / ОБНОВЛЕНИЯ ОСТАТКА -->
+            <h5 class="mb-3">➕ Добавить / Обновить остаток</h5>
+
+            <form method="post" asp-action="UpdateStock" class="card p-4">
+                <div asp-validation-summary="All" class="alert alert-danger mb-3"></div>
+
+                <input type="hidden" name="variantId" value="@Model. VariantId" />
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="UpdateForm_WarehouseId" class="form-label">Склад *</label>
+                        <select id="UpdateForm_WarehouseId" name="UpdateForm.WarehouseId" class="form-select" required>
+                            <option value="">-- Выберите склад --</option>
+                            @foreach (var warehouse in Model.Warehouses)
+                            {
+                                <option value="@warehouse.Id">@warehouse.Name</option>
+                            }
+                        </select>
+                        <span asp-validation-for="UpdateForm.WarehouseId" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="UpdateForm_Quantity" class="form-label">Количество (шт) *</label>
+                        <input type="number" id="UpdateForm_Quantity" name="UpdateForm.Quantity" 
+                               class="form-control" value="0" min="0" required />
+                        <span asp-validation-for="UpdateForm.Quantity" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 justify-content-end">
+                    <a href="@Url.Action("Variants", "Products", new { id = Model.ProductId, area = "Admin" })" 
+                       class="btn btn-secondary">Отмена</a>
+                    <button type="submit" class="btn btn-success">💾 Сохранить остаток</button>
+                </div>
+            </form>
+        </main>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

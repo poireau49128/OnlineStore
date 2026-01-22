@@ -38,4 +38,10 @@ public class ProductStock
         if (qty <= 0) throw new ArgumentException("Quantity must be positive");
         Quantity += qty;
     }
+    public void SetQuantity(int quantity)
+    {
+        if (quantity < 0)
+            throw new ArgumentException("Quantity cannot be negative");
+        Quantity = quantity;
+    }
 }

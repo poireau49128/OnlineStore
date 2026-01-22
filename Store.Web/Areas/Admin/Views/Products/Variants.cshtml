@@ -1,0 +1,123 @@
+@model Store.Web.Areas.Admin.ViewModels.VariantsViewModel
+
+@{
+    ViewData["Title"] = "Варианты товара";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <partial name="_AdminSidebar" />
+        <main class="col">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1>🎨 Варианты:  @Model.ProductName</h1>
+                    <p class="text-muted mb-0">
+                        <strong>@Model.ProductName</strong> — Базовая цена: @Model.BasePrice.ToString("0.00") BYN
+                    </p>
+                </div>
+                <a href="@Url.Action("Edit", "Products", new { id = Model.ProductId, area = "Admin" })" 
+                   class="btn btn-secondary">← Назад</a>
+            </div>
+
+            <!-- СПИСОК СУЩЕСТВУЮЩИХ ВАРИАНТОВ -->
+            @if (Model. Variants.Any())
+            {
+                <div class="table-responsive mb-4">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Цвет</th>
+                                <th>Размер</th>
+                                <th>Цена</th>
+                                <th>Остатки</th>
+                                <th>Изображения</th>
+                                <th class="text-end">Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var variant in Model. Variants)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@variant.Color</strong>
+                                    </td>
+                                    <td>@(variant.Size ??  "—")</td>
+                                    <td>
+                                        <span>@variant.ActualPrice.ToString("0.00") BYN</span>
+                                        @if (variant.OverridePrice. HasValue)
+                                        {
+                                            <small class="text-muted"> (своя)</small>
+                                        }
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">@variant.TotalStock шт</span>
+                                    </td>
+                                    <td>
+                                        <small>@variant.ImagePaths.Count изобр. </small>
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="@Url.Action("Stock", "Products", new { variantId = variant.Id, area = "Admin" })" 
+                                           class="btn btn-sm btn-outline-info" title="Остатки">
+                                            📦
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-warning">⚠️ Вариантов не найдено</div>
+            }
+
+            <hr class="my-4" />
+
+            <!-- ФОРМА ДОБАВЛЕНИЯ ВАРИАНТА -->
+            <h5 class="mb-3">➕ Добавить новый вариант</h5>
+
+            <form method="post" asp-action="CreateVariant" enctype="multipart/form-data" class="card p-4">
+                <input type="hidden" name="productId" value="@Model.ProductId" />
+
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label for="CreateForm_Color" class="form-label">Цвет *</label>
+                        <input type="text" id="CreateForm_Color" name="CreateForm. Color" class="form-control" 
+                               placeholder="Например: Красный" required />
+                    </div>
+                    <div class="col-md-4">
+                        <label for="CreateForm_Size" class="form-label">Размер</label>
+                        <input type="text" id="CreateForm_Size" name="CreateForm.Size" class="form-control" 
+                               placeholder="Например:  XL" />
+                    </div>
+                    <div class="col-md-4">
+                        <label for="CreateForm_OverridePrice" class="form-label">Цена</label>
+                        <div class="input-group">
+                            <input type="number" id="CreateForm_OverridePrice" name="CreateForm. OverridePrice" 
+                                   class="form-control" step="0.01" placeholder="Своя цена" />
+                            <span class="input-group-text">BYN</span>
+                        </div>
+                        <small class="text-muted d-block mt-1">Оставить пустым = @Model.BasePrice.ToString("0.00") BYN</small>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="CreateForm_Images" class="form-label">Изображения</label>
+                    <input type="file" id="CreateForm_Images" name="CreateForm. Images" class="form-control" 
+                           multiple accept=".jpg,.jpeg,.png,.webp" />
+                    <small class="text-muted">Форматы: JPG, PNG, WebP</small>
+                </div>
+
+                <div class="d-flex gap-2 justify-content-end">
+                    <button type="submit" class="btn btn-success">✅ Добавить вариант</button>
+                </div>
+            </form>
+        </main>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
