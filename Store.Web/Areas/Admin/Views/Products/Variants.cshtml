@@ -1,4 +1,5 @@
 @model Store.Web.Areas.Admin.ViewModels.VariantsViewModel
+@using Store.Application.Utilities
 
 @{
     ViewData["Title"] = "Варианты товара";
@@ -12,16 +13,14 @@
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
                     <h1>🎨 Варианты:  @Model.ProductName</h1>
-                    <p class="text-muted mb-0">
-                        <strong>@Model.ProductName</strong> — Базовая цена: @Model.BasePrice.ToString("0.00") BYN
-                    </p>
+                    <p class="text-muted mb-0">Базовая цена: @Model.BasePrice.ToString("0.00") @CurrencyHelper.DefaultCurrency</p>
                 </div>
                 <a href="@Url.Action("Edit", "Products", new { id = Model.ProductId, area = "Admin" })" 
                    class="btn btn-secondary">← Назад</a>
             </div>
 
-            <!-- СПИСОК СУЩЕСТВУЮЩИХ ВАРИАНТОВ -->
-            @if (Model. Variants.Any())
+            <!-- СПИСОК ВАРИАНТОВ -->
+            @if (Model.Variants.Any())
             {
                 <div class="table-responsive mb-4">
                     <table class="table table-hover align-middle">
@@ -36,26 +35,20 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var variant in Model. Variants)
+                            @foreach (var variant in Model.Variants)
                             {
                                 <tr>
-                                    <td>
-                                        <strong>@variant.Color</strong>
-                                    </td>
+                                    <td><strong>@variant.Color</strong></td>
                                     <td>@(variant.Size ??  "—")</td>
                                     <td>
-                                        <span>@variant.ActualPrice.ToString("0.00") BYN</span>
+                                        <span>@variant.ActualPrice.ToString("0.00") @CurrencyHelper.DefaultCurrency</span>
                                         @if (variant.OverridePrice. HasValue)
                                         {
-                                            <small class="text-muted"> (своя)</small>
+                                            <small class="text-muted">(своя)</small>
                                         }
                                     </td>
-                                    <td>
-                                        <span class="badge bg-info">@variant.TotalStock шт</span>
-                                    </td>
-                                    <td>
-                                        <small>@variant.ImagePaths.Count изобр. </small>
-                                    </td>
+                                    <td><span class="badge bg-info">@variant.TotalStock шт</span></td>
+                                    <td><small>@variant.ImagePaths.Count изобр. </small></td>
                                     <td class="text-end">
                                         <a href="@Url.Action("Stock", "Products", new { variantId = variant.Id, area = "Admin" })" 
                                            class="btn btn-sm btn-outline-info" title="Остатки">
@@ -78,46 +71,74 @@
             <!-- ФОРМА ДОБАВЛЕНИЯ ВАРИАНТА -->
             <h5 class="mb-3">➕ Добавить новый вариант</h5>
 
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    @TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
             <form method="post" asp-action="CreateVariant" enctype="multipart/form-data" class="card p-4">
                 <input type="hidden" name="productId" value="@Model.ProductId" />
 
                 <div class="row mb-3">
                     <div class="col-md-4">
-                        <label for="CreateForm_Color" class="form-label">Цвет *</label>
-                        <input type="text" id="CreateForm_Color" name="CreateForm. Color" class="form-control" 
-                               placeholder="Например: Красный" required />
+                        <label class="form-label">Цвет <span class="text-danger">*</span></label>
+                        <input type="text" name="form. Color" class="form-control" placeholder="Артисан" required />
                     </div>
                     <div class="col-md-4">
-                        <label for="CreateForm_Size" class="form-label">Размер</label>
-                        <input type="text" id="CreateForm_Size" name="CreateForm.Size" class="form-control" 
-                               placeholder="Например:  XL" />
+                        <label class="form-label">Размер</label>
+                        <input type="text" name="form. Size" class="form-control" placeholder="19х64" />
                     </div>
                     <div class="col-md-4">
-                        <label for="CreateForm_OverridePrice" class="form-label">Цена</label>
+                        <label class="form-label">Своя цена</label>
                         <div class="input-group">
-                            <input type="number" id="CreateForm_OverridePrice" name="CreateForm. OverridePrice" 
-                                   class="form-control" step="0.01" placeholder="Своя цена" />
-                            <span class="input-group-text">BYN</span>
+                            <input type="number" name="form.OverridePrice" class="form-control" step="0.01" min="0.01" placeholder=@Model.BasePrice.ToString("0.00") />
+                            <span class="input-group-text">@CurrencyHelper.DefaultCurrency</span>
                         </div>
-                        <small class="text-muted d-block mt-1">Оставить пустым = @Model.BasePrice.ToString("0.00") BYN</small>
                     </div>
                 </div>
 
                 <div class="mb-3">
-                    <label for="CreateForm_Images" class="form-label">Изображения</label>
-                    <input type="file" id="CreateForm_Images" name="CreateForm. Images" class="form-control" 
-                           multiple accept=".jpg,.jpeg,.png,.webp" />
-                    <small class="text-muted">Форматы: JPG, PNG, WebP</small>
+                    <label class="form-label">Изображения</label>
+                    <div id="imagePreview" class="mb-2"></div>
+                    <input type="file" name="form.Images" class="form-control" multiple accept=".jpg,.jpeg,.png,.webp" id="variantImageInput" />
+                    <small class="text-muted">JPG, PNG, WebP.  Макс. 5 МБ за файл.  Выбирайте ВСЕ сразу! </small>
                 </div>
 
-                <div class="d-flex gap-2 justify-content-end">
-                    <button type="submit" class="btn btn-success">✅ Добавить вариант</button>
-                </div>
+                <button type="submit" class="btn btn-success">✅ Добавить вариант</button>
             </form>
         </main>
     </div>
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        document.getElementById('variantImageInput')?.  addEventListener('change', function(e) {
+            const preview = document.getElementById('imagePreview');
+            preview.innerHTML = '';
+            Array.from(e.target.files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const div = document.createElement('div');
+                    div.className = 'mb-2 position-relative d-inline-block me-2';
+                    div. innerHTML = `
+                        <img src="${event.target.result}" style="max-width: 100px; max-height: 100px; border-radius: 4px;">
+                        <small class="d-block text-muted text-truncate" style="max-width: 100px;">${file.name}</small>
+                    `;
+                    preview.appendChild(div);
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+    </script>
 }

@@ -48,7 +48,7 @@ public sealed class ProductImageService :  IProductImageService
             ValidateFile(file);
 
             var sanitizedFileName = SanitizeFileName(file.FileName);
-            var fileName = $"{Guid.NewGuid():N}_{sanitizedFileName}";
+            var fileName = sanitizedFileName;
             var relativePath = $"/{ImagesFolder}/{fileName}";
             var fullPath = Path. Combine(_webHostEnv.WebRootPath, ImagesFolder, fileName);
 
@@ -123,14 +123,14 @@ public sealed class ProductImageService :  IProductImageService
     private string SanitizeFileName(string fileName)
     {
         var nameWithoutExtension = Path.GetFileNameWithoutExtension(fileName);
-        var transliterated = TransliterationHelper. Transliterate(nameWithoutExtension);
+        var transliterated = TransliterationHelper.Transliterate(nameWithoutExtension);
 
-        // Заменяем спецсимволы на дефисы
-        var sanitized = Regex.Replace(transliterated, @"[^a-z0-9_-]", "-", RegexOptions.IgnoreCase);
-        sanitized = Regex.Replace(sanitized, @"-+", "-"); // Убираем множественные дефисы
+        var sanitized = Regex.Replace(transliterated, @"[^a-z0-9]+", "-", RegexOptions.IgnoreCase);
+        sanitized = Regex.Replace(sanitized, @"-+", "-");
+        sanitized = sanitized.Trim('-');
 
         var extension = Path.GetExtension(fileName);
-        return $"{sanitized. Trim('-')}{extension}";
+        return $"{sanitized}{extension}";
     }
 
     private void EnsureFoldersExist()

@@ -11,13 +11,13 @@
             <h4>Фильтры</h4>
             <form method="get" class="mb-4">
                 <div class="input-group">
-                    <input type="text" name="searchTerm" class="form-control" placeholder="Поиск товара..." value="@ViewBag.SearchTerm">
+                    <input type="text" name="searchTerm" class="form-control" placeholder="Поиск товара..." value="@Model.SearchTerm">
                     <button class="btn btn-primary" type="submit">🔍</button>
                 </div>
             </form>
 
             <h5>Категории</h5>
-            <a href="@Url.Action("Index", "Product")" class="btn btn-outline-primary btn-sm d-block mb-2 @(ViewBag.SelectedCategoryId == null ? "active" : "")">Все товары</a>
+            <a href="@Url.Action("Index", "Product")" class="btn btn-outline-primary btn-sm d-block mb-2 @(Model.SelectedCategoryId == null ? "active" : "")">Все товары</a>
             @foreach (var category in Model.Categories)
             {
                 <a href="@Url.Action("Index", "Product", new { categoryId = category.Id, page = 1 })"
@@ -65,19 +65,19 @@
                         @if (Model.Products.HasPreviousPage)
                         {
                             <li class="page-item">
-                                <a class="page-link" href="@Url.Action("Index", "Product", new { page = Model.Products.PageNumber - 1, categoryId = ViewBag.SelectedCategoryId, searchTerm = ViewBag.SearchTerm })">← Назад</a>
+                                <a class="page-link" href="@Url.Action("Index", "Product", new { page = Model.Products.PageNumber - 1, categoryId = Model.SelectedCategoryId, searchTerm = Model.SearchTerm })">← Назад</a>
                             </li>
                         }
                         @for (int i = 1; i <= Model.Products.PageCount; i++)
                         {
                             <li class="page-item @(i == Model.Products.PageNumber ? "active" : "")">
-                                <a class="page-link" href="@Url.Action("Index", "Product", new { page = i, categoryId = ViewBag.SelectedCategoryId, searchTerm = ViewBag.SearchTerm })">@i</a>
+                                <a class="page-link" href="@Url.Action("Index", "Product", new { page = i, categoryId = Model.SelectedCategoryId, searchTerm = Model.SearchTerm })">@i</a>
                             </li>
                         }
                         @if (Model.Products.HasNextPage)
                         {
                             <li class="page-item">
-                                <a class="page-link" href="@Url.Action("Index", "Product", new { page = Model.Products.PageNumber + 1, categoryId = ViewBag.SelectedCategoryId, searchTerm = ViewBag.SearchTerm })">Вперёд →</a>
+                                <a class="page-link" href="@Url.Action("Index", "Product", new { page = Model.Products.PageNumber + 1, categoryId = Model.SelectedCategoryId, searchTerm = Model.SearchTerm })">Вперёд →</a>
                             </li>
                         }
                     </ul>

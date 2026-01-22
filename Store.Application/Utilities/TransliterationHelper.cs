@@ -15,14 +15,14 @@ public static class TransliterationHelper
 
     public static string Transliterate(string text)
     {
-        if (string. IsNullOrWhiteSpace(text))
+        if (string.IsNullOrWhiteSpace(text))
             return string.Empty;
 
         var result = new System.Text.StringBuilder();
         
-        foreach (var c in text. ToLowerInvariant())
+        foreach (var c in text.ToLowerInvariant())
         {
-            if (TranslitMap. ContainsKey(c))
+            if (TranslitMap.ContainsKey(c))
                 result.Append(TranslitMap[c]);
             else if (char.IsLetterOrDigit(c))
                 result.Append(c);

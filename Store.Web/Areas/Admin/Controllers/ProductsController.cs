@@ -261,17 +261,20 @@ public class ProductsController :  Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> CreateVariant(int productId, CreateVariantFormViewModel form)
+    public async Task<IActionResult> CreateVariant(int productId, [FromForm] CreateVariantFormViewModel form)
     {
-        if (! ModelState.IsValid)
+        if (!ModelState.IsValid)
+        {
+            TempData["Error"] = "Проверьте заполненные поля";
             return RedirectToAction(nameof(Variants), new { id = productId });
+        }
 
         try
         {
             var imageFiles = new List<ProductImageFile>();
-            if (form.Images?. Any() == true)
+            if (form.Images?.Any() == true)
             {
-                foreach (var file in form. Images)
+                foreach (var file in form.Images)
                 {
                     var imageFile = new ProductImageFile
                     {
@@ -288,18 +291,17 @@ public class ProductsController :  Controller
                 ProductId = productId,
                 Color = form.Color,
                 Size = form.Size,
-                OverridePrice = form. OverridePrice,
+                OverridePrice = form.OverridePrice,
                 Images = imageFiles
             };
 
             await _adminService.CreateVariantAsync(request);
-
-            TempData["Success"] = $"Вариант '{form.Color}' успешно добавлен";
+            TempData["Success"] = $"Вариант '{form. Color}' успешно добавлен";
             return RedirectToAction(nameof(Variants), new { id = productId });
         }
         catch (Exception ex)
         {
-            TempData["Error"] = $"Ошибка при добавлении варианта: {ex.Message}";
+            TempData["Error"] = $"Ошибка:  {ex.Message}";
             return RedirectToAction(nameof(Variants), new { id = productId });
         }
     }
