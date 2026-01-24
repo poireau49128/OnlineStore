@@ -306,6 +306,46 @@ public class ProductsController :  Controller
         }
     }
 
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateVariant(int variantId, int productId, [FromForm] CreateVariantFormViewModel form)
+    {
+        if (!ModelState.IsValid)
+        {
+            TempData["Error"] = "Ошибка валидации. Проверьте введенные данные.";
+            return RedirectToAction(nameof(Variants), new { id = productId });
+        }
+        try
+        {
+            var imageFiles = form.Images?.Select(file => new ProductImageFile
+            {
+                FileName = file.FileName,
+                Content = file.OpenReadStream(),
+                Size = file.Length
+            }).ToList() ?? new List<ProductImageFile>();
+
+            var request = new CreateVariantRequest
+            {
+                ProductId = productId,
+                Color = form.Color,
+                Size = form.Size,
+                OverridePrice = form.OverridePrice,
+                Images = imageFiles
+            };
+
+            await _adminService.UpdateVariantAsync(variantId, request, form.ImagesToDelete);
+
+            TempData["Success"] = $"Вариант {variantId} успешно обновлен";
+
+        }
+        catch (Exception ex)
+        {
+            TempData["Error"] = $"Ошибка при обновлении: {ex.Message}";
+        }
+
+        return RedirectToAction(nameof(Variants), new { id = productId });
+    }
+
     // ============ STOCK ============
 
     [HttpGet]
@@ -352,8 +392,19 @@ public class ProductsController :  Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateStock(int variantId, UpdateStockFormViewModel form)
     {
-        if (!ModelState.IsValid)
+        if (form.Quantity <= 0)
+        {
+            TempData["Error"] = "Количество должно быть больше 0";
             return RedirectToAction(nameof(Stock), new { variantId });
+        }
+
+        if (!ModelState.IsValid)
+        {
+            var errors = ModelState.Values.SelectMany(v => v.Errors);
+            var errorMessage = string.Join("; ", errors.Select(e => e.ErrorMessage));
+            TempData["Error"] = $"Ошибка: {errorMessage}";
+            return RedirectToAction(nameof(Stock), new { variantId });
+        }
 
         try
         {
@@ -373,6 +424,35 @@ public class ProductsController :  Controller
         {
             TempData["Error"] = $"Ошибка при обновлении остатка:  {ex.Message}";
             return RedirectToAction(nameof(Stock), new { variantId });
+        }
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RemoveStock(int stockId)
+    {
+        try
+        {
+            var stock = await _db.ProductStocks
+                .FirstOrDefaultAsync(s => s.Id == stockId);
+
+            if (stock == null)
+            {
+                TempData["Error"] = "Остаток не найден";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var variantId = stock.ProductVariantId;
+
+            await _adminService.RemoveStockAsync(stockId);
+
+            TempData["Success"] = "Остаток удалён";
+            return RedirectToAction(nameof(Stock), new { variantId });
+        }
+        catch (Exception ex)
+        {
+            TempData["Error"] = $"Ошибка при удалении: {ex.Message}";
+            return RedirectToAction(nameof(Index));
         }
     }
 

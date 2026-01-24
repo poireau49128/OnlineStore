@@ -42,7 +42,7 @@
                                     <td>@(variant.Size ??  "—")</td>
                                     <td>
                                         <span>@variant.ActualPrice.ToString("0.00") @CurrencyHelper.DefaultCurrency</span>
-                                        @if (variant.OverridePrice. HasValue)
+                                        @if (variant.OverridePrice.HasValue)
                                         {
                                             <small class="text-muted">(своя)</small>
                                         }
@@ -50,6 +50,18 @@
                                     <td><span class="badge bg-info">@variant.TotalStock шт</span></td>
                                     <td><small>@variant.ImagePaths.Count изобр. </small></td>
                                     <td class="text-end">
+                                        <button type="button" 
+                                                class="btn btn-sm btn-outline-primary me-1" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#editVariantModal"
+                                                data-variant-id="@variant.Id"
+                                                data-variant-color="@variant.Color"
+                                                data-variant-size="@variant.Size"
+                                                data-variant-price="@(variant.OverridePrice?.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture))"
+                                                title="Редактировать">
+                                            ✏️ 
+                                        </button>
+
                                         <a href="@Url.Action("Stock", "Products", new { variantId = variant.Id, area = "Admin" })" 
                                            class="btn btn-sm btn-outline-info" title="Остатки">
                                             📦
@@ -93,11 +105,11 @@
                 <div class="row mb-3">
                     <div class="col-md-4">
                         <label class="form-label">Цвет <span class="text-danger">*</span></label>
-                        <input type="text" name="form. Color" class="form-control" placeholder="Артисан" required />
+                        <input type="text" name="form.Color" class="form-control" placeholder="Артисан" required />
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Размер</label>
-                        <input type="text" name="form. Size" class="form-control" placeholder="19х64" />
+                        <input type="text" name="form.Size" class="form-control" placeholder="19х64" />
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Своя цена</label>
@@ -121,24 +133,158 @@
     </div>
 </div>
 
+
+
+
+
+
+
+
+
+
+<!-- Modal Structure -->
+<div class="modal fade" id="editVariantModal" tabindex="-1" aria-labelledby="editVariantModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" asp-action="UpdateVariant" enctype="multipart/form-data">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editVariantModalLabel">Редактировать вариант</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Скрытые поля для ID -->
+                    <input type="hidden" name="variantId" id="modalVariantId" />
+                    <input type="hidden" name="productId" value="@Model.ProductId" />
+                    
+                    <!-- Контейнер для ID удаляемых картинок -->
+                    <div id="deleteImagesHiddenInputs"></div>
+
+                    <!-- Поля формы -->
+                    <div class="mb-3">
+                        <label for="modalColor" class="form-label">Цвет <span class="text-danger">*</span></label>
+                        <input type="text" name="form.Color" id="modalColor" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label for="modalSize" class="form-label">Размер</label>
+                        <input type="text" name="form.Size" id="modalSize" class="form-control" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="modalPrice" class="form-label">Своя цена</label>
+                        <div class="input-group">
+                            <input type="number" name="form.OverridePrice" id="modalPrice" class="form-control" step="0.01" placeholder="Оставить пустым" />
+                            <span class="input-group-text">@Store.Application.Utilities.CurrencyHelper.DefaultCurrency</span>
+                        </div>
+                    </div>
+
+                    <!-- Текущие изображения -->
+                    <div class="mb-3">
+                        <label class="form-label">Текущие изображения</label>
+                        <div id="existingImagesContainer" class="d-flex flex-wrap gap-2 mb-2">
+                            <!-- Генерируется через JS -->
+                        </div>
+                    </div>
+
+                    <!-- Добавление новых изображений -->
+                    <div class="mb-3">
+                        <label class="form-label">Добавить новые фото</label>
+                        <div id="modalImagePreview" class="mb-2 d-flex flex-wrap gap-2"></div>
+                        <input type="file" name="form.Images" class="form-control" multiple accept=".jpg,.jpeg,.png,.webp" id="modalVariantImageInput" />
+                        <small class="text-muted">Новые фото добавятся к текущим.</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">✅ Сохранить изменения</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
-        document.getElementById('variantImageInput')?.  addEventListener('change', function(e) {
-            const preview = document.getElementById('imagePreview');
-            preview.innerHTML = '';
-            Array.from(e.target.files).forEach(file => {
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    const div = document.createElement('div');
-                    div.className = 'mb-2 position-relative d-inline-block me-2';
-                    div. innerHTML = `
-                        <img src="${event.target.result}" style="max-width: 100px; max-height: 100px; border-radius: 4px;">
-                        <small class="d-block text-muted text-truncate" style="max-width: 100px;">${file.name}</small>
-                    `;
-                    preview.appendChild(div);
-                };
-                reader.readAsDataURL(file);
+        /**
+         * 1. ФУНКЦИИ ПРЕДПРОСМОТРА
+         */
+        function setupPreview(inputElement, previewElement) {
+            inputElement?.addEventListener('change', function (e) {
+                previewElement.innerHTML = '';
+                Array.from(e.target.files).forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = function (event) {
+                        const div = document.createElement('div');
+                        div.className = 'position-relative d-inline-block me-2 mb-2';
+                        div.innerHTML = `
+                            <img src="${event.target.result}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 4px; border: 1px solid #dee2e6;">
+                            <small class="d-block text-muted text-truncate" style="max-width: 80px;">${file.name}</small>`;
+                        previewElement.appendChild(div);
+                    };
+                    reader.readAsDataURL(file);
+                });
             });
+        }
+
+        // Инициализация предпросмотра для обеих форм
+        setupPreview(document.getElementById('variantImageInput'), document.getElementById('imagePreview'));
+        setupPreview(document.getElementById('modalVariantImageInput'), document.getElementById('modalImagePreview'));
+
+        /**
+         * 2. ЛОГИКА УДАЛЕНИЯ (МАРКИРОВКА)
+         */
+        function markImageForDeletion(imageId) {
+            // Скрываем элемент в модалке
+            const wrapper = document.getElementById(`img-wrapper-${imageId}`);
+            if (wrapper) wrapper.remove();
+
+            // Создаем скрытый input для отправки на сервер
+            const container = document.getElementById('deleteImagesHiddenInputs');
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'form.ImagesToDelete'; // Должно совпадать с именем в ViewModel
+            input.value = imageId;
+            container.appendChild(input);
+        }
+
+        /**
+         * 3. ЗАПОЛНЕНИЕ МОДАЛЬНОГО ОКНА ПРИ ОТКРЫТИИ
+         */
+        const editVariantModal = document.getElementById('editVariantModal');
+        editVariantModal?.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            
+            // Чистим старые данные
+            document.getElementById('deleteImagesHiddenInputs').innerHTML = '';
+            document.getElementById('modalImagePreview').innerHTML = '';
+            document.getElementById('modalVariantImageInput').value = '';
+
+            // Основные поля
+            document.getElementById('modalVariantId').value = button.getAttribute('data-variant-id');
+            document.getElementById('modalColor').value = button.getAttribute('data-variant-color');
+            const size = button.getAttribute('data-variant-size');
+            document.getElementById('modalSize').value = (size && size !== '—') ? size : '';
+            document.getElementById('modalPrice').value = button.getAttribute('data-variant-price');
+
+            // Отрисовка текущих изображений
+            const imagesJson = button.getAttribute('data-variant-images');
+            const container = document.getElementById('existingImagesContainer');
+            container.innerHTML = '';
+
+            if (imagesJson) {
+                const images = JSON.parse(imagesJson);
+                images.forEach(img => {
+                    const div = document.createElement('div');
+                    div.className = 'position-relative d-inline-block';
+                    div.id = `img-wrapper-${img.Id}`;
+                    div.innerHTML = `
+                        <img src="${img.Path}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 4px; border: 1px solid #dee2e6;">
+                        <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 p-0" 
+                                style="width: 20px; height: 20px; font-size: 14px; line-height: 1;"
+                                onclick="markImageForDeletion(${img.Id})">
+                            &times;
+                        </button>`;
+                    container.appendChild(div);
+                });
+            }
         });
     </script>
 }

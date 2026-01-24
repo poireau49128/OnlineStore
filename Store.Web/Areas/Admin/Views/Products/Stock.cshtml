@@ -87,12 +87,13 @@
             <h5 class="mb-3">➕ Добавить / Обновить остаток</h5>
 
             <form method="post" asp-action="UpdateStock" class="card p-4">
-                <input type="hidden" name="variantId" value="@Model.VariantId" /> <!-- ✅ FIX -->
+                <input type="hidden" name="variantId" value="@Model.VariantId" />
 
+                <!-- ✅ ИСПРАВЛЕНИЕ: Убрали "UpdateForm." префикс -->
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <label for="warehouseSelect" class="form-label">Склад <span class="text-danger">*</span></label>
-                        <select id="warehouseSelect" name="UpdateForm.WarehouseId" class="form-select" required>
+                        <select id="warehouseSelect" name="WarehouseId" class="form-select" required>
                             <option value="">-- Выберите склад --</option>
                             @foreach (var warehouse in Model.Warehouses)
                             {
@@ -105,7 +106,7 @@
                     </div>
                     <div class="col-md-6">
                         <label for="quantityInput" class="form-label">Количество (шт) <span class="text-danger">*</span></label>
-                        <input type="number" id="quantityInput" name="UpdateForm.Quantity" 
+                        <input type="number" id="quantityInput" name="Quantity" 
                                class="form-control" value="0" min="0" required />
                         <small class="text-muted" id="currentStockInfo"></small>
                     </div>

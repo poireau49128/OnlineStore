@@ -7,7 +7,7 @@ public interface IProductAdminService
     Task<AdminProductDetailsDto? > GetForEditAsync(int productId);
     Task UpdateProductAsync(UpdateProductRequest request);
     Task<int> CreateVariantAsync(CreateVariantRequest request);
-    Task UpdateVariantAsync(UpdateVariantRequest request);
+    Task UpdateVariantAsync(int vatiantid, CreateVariantRequest request, List<int>? imagesToDelete);
     Task DeactivateVariantAsync(int variantId);
     Task UpdateStockAsync(UpdateStockRequest request);
     Task RemoveStockAsync(int stockId);

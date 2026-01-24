@@ -12,27 +12,37 @@
         <main class="col">
             <h1 class="mb-4">✨ Добавить новый товар</h1>
 
-            <form method="post" enctype="multipart/form-data" class="card p-4">
+            <form method="post" enctype="multipart/form-data" class="card p-4" novalidate>
                 <!-- VALIDATION SUMMARY (только одно место) -->
-                @if (!ViewData.ModelState.IsValid)
+                @{
+                    var hasErrors = !ViewData.ModelState.IsValid && ViewData.ModelState.Values.Any(v => v.Errors.Any());
+                }
+
+                @if (hasErrors)
                 {
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
                         <strong>❌ Ошибки при заполнении:</strong>
                         <ul class="mb-0 mt-2">
-                            @foreach (var modelState in ViewData.ModelState.Values)
+                            @foreach (var state in ViewData.ModelState)
                             {
-                                @foreach (var error in modelState.Errors)
+                                @foreach (var error in state.Value.Errors)
                                 {
-                                    <li>
-                                        @if (error.ErrorMessage.Contains("value"))
+                                    var message = error.ErrorMessage;
+                                    var fieldName = state.Key;
+
+                                    if (message.Contains("is invalid", StringComparison.OrdinalIgnoreCase) || 
+                                        message.Contains("is required", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        message = fieldName switch
                                         {
-                                            <span>Категория не выбрана</span>
-                                        }
-                                        else
-                                        {
-                                            @error.ErrorMessage
-                                        }
-                                    </li>
+                                            "CategoryId" => "Категория не выбрана",
+                                            "BasePrice" => "Укажите корректную цену",
+                                            "Name" => "Название обязательно",
+                                            _ => $"Ошибка в поле {fieldName}"
+                                        };
+                                    }
+                                    
+                                    <li>@message</li>
                                 }
                             }
                         </ul>
@@ -133,6 +143,22 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        $(document).ready(function () {
+            var form = $('form');
+            var validator = form.data('validator');
+
+            if (validator) {
+                validator.settings.showErrors = function (errorMap, errorList) {
+                    this.defaultShowErrors();
+                    $('.field-validation-valid, .field-validation-error').hide();
+                };
+                form.on('invalid-form.validate', function(event, validator) {
+                    console.log("Ошибок найдено: " + validator.numberOfInvalids());
+                });
+            }
+        });
+    </script>
     <script>
         // Предпросмотр изображений
         document.getElementById('imageInput')?. addEventListener('change', function(e) {

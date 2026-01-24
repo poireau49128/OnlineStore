@@ -192,7 +192,7 @@ public sealed class ProductAdminService : IProductAdminService
         await _db.SaveChangesAsync();
 
         // Загрузка изображений
-        if (request.Images?. Any() == true)
+        if (request.Images?.Any() == true)
         {
             await _imageService. UploadVariantImagesAsync(variant.Id, request.Images);
         }
@@ -200,23 +200,52 @@ public sealed class ProductAdminService : IProductAdminService
         return variant.Id;
     }
 
-    public async Task UpdateVariantAsync(UpdateVariantRequest request)
+    public async Task UpdateVariantAsync(int variantId, CreateVariantRequest request, List<int>? imagesToDelete)
     {
         var variant = await _db.ProductVariants
-            .FirstOrDefaultAsync(v => v. Id == request.VariantId);
+            .Include(v => v.Product)
+                .ThenInclude(p => p.Variants)
+            .FirstOrDefaultAsync(v => v.Id == variantId);
 
         if (variant == null)
             throw new InvalidOperationException("Вариант не найден");
 
-        if (request. OverridePrice.HasValue)
+        var variantExists = variant.Product.Variants.Any(v => 
+            v.Id != variantId && 
+            v.Color.Equals(request.Color, StringComparison.OrdinalIgnoreCase) && 
+            v.Size == request.Size);
+
+        if (variantExists)
+            throw new InvalidOperationException($"Другой вариант с цветом '{request.Color}' и размером '{request.Size}' уже существует");
+
+
+
+        if (imagesToDelete != null && imagesToDelete.Any())
         {
-            variant.SetOverridePrice(Money.From(request.OverridePrice.Value, "BYN"));
-        }
-        else
-        {
-            variant.SetOverridePrice(null);
+            var imagesToRemove = variant.Images
+                .Where(img => imagesToDelete.Contains(img.Id))
+                .ToList();
+
+            foreach (var img in imagesToRemove)
+            {
+                // Используем ваш ProductImageService для физического удаления файлов
+                await _imageService.DeleteImageAsync(img.Id);
+            }
         }
 
+        variant.UpdateColor(request.Color);
+        variant.UpdateSize(request.Size);
+        variant.SetOverridePrice(
+            request.OverridePrice.HasValue
+            ? Money.From(request.OverridePrice.Value, "BYN")
+            : null
+        );
+        if (request.Images?.Any() == true)
+        {
+            int nextOrder = variant.Images.Any() ? variant.Images.Max(i => i.SortOrder) + 1 : 0;
+            await _imageService.UploadVariantImagesAsync(variant.Id, request.Images, nextOrder);
+        }
+        
         _db.ProductVariants.Update(variant);
         await _db.SaveChangesAsync();
     }

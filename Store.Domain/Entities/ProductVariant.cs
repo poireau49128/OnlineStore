@@ -59,4 +59,23 @@ public class ProductVariant
         return image;
     }
 
+     public void UpdateColor(string color)
+    {
+        if (string.IsNullOrWhiteSpace(color))
+            throw new ArgumentException("Цвет обязателен", nameof(color));
+        Color = color;
+    }
+
+    public void UpdateSize(string?  size)
+    {
+        Size = size;
+    }
+
+    // public void UpdateImage(string relativePath, int sortOrder = 0)
+    // {
+    //     if (categoryId <= 0)
+    //         throw new ArgumentException("Invalid category", nameof(categoryId));
+    //     CategoryId = categoryId;
+    // }
+
 }

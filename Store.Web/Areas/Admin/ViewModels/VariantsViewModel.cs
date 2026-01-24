@@ -39,4 +39,6 @@ public sealed class CreateVariantFormViewModel
     public decimal? OverridePrice { get; set; }
 
     public List<IFormFile>? Images { get; set; }
+    // if using to update
+    public List<int>? ImagesToDelete { get; set; } 
 }
