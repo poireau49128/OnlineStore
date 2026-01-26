@@ -10,6 +10,8 @@ public class ProductVariant
     public int ProductId { get; private set; }
     public Product Product { get; private set; } = null!;
 
+    public bool IsActive { get; private set; } = true;
+
     public string Color { get; private set; } = null!;
     public string? Size { get; private set; }
 
@@ -35,6 +37,11 @@ public class ProductVariant
         OverridePrice = overridePrice;
     }
 
+    public void SetStatus(bool isActive)
+    {
+        IsActive = isActive;
+    }
+
     public ProductStock AddStock(int warehouseId, int quantity)
     {
         var stock = new ProductStock(Id, warehouseId, quantity);
@@ -58,6 +65,15 @@ public class ProductVariant
         _images.Add(image);
         return image;
     }
+    public IReadOnlyCollection<ProductImage> RemoveImages(IEnumerable<int> imageIds)
+    {
+        var removed = _images.Where(i => imageIds.Contains(i.Id)).ToList();
+        foreach (var img in removed)
+            _images.Remove(img);
+
+        return removed;
+    }
+
 
      public void UpdateColor(string color)
     {
@@ -70,12 +86,4 @@ public class ProductVariant
     {
         Size = size;
     }
-
-    // public void UpdateImage(string relativePath, int sortOrder = 0)
-    // {
-    //     if (categoryId <= 0)
-    //         throw new ArgumentException("Invalid category", nameof(categoryId));
-    //     CategoryId = categoryId;
-    // }
-
 }

@@ -13,6 +13,7 @@ public class Product
     
     [Timestamp]
     public byte[]? RowVersion { get; private set; }
+    public bool IsActive { get; private set; } = true;
 
     public Money BasePrice { get; private set; } = null!;
 
@@ -86,6 +87,10 @@ public class Product
     public void SetSku()
     {
         Sku = $"{Transliterate(Name)}-{Id}";
+    }
+    public void SetActive(bool isActive)
+    {
+        IsActive = isActive;
     }
 
     public void UpdateName(string name)

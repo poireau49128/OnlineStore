@@ -43,13 +43,30 @@
                 </div>
 
                 <div class="row mb-3">
-                    <div class="col-md-6">
+                    <div class="col-md-3">
                         <label asp-for="BasePrice" class="form-label">Цена <span class="text-danger">*</span></label>
                         <div class="input-group">
                             <input asp-for="BasePrice" class="form-control" type="number" step="0.01" />
                             <span class="input-group-text">@CurrencyHelper.DefaultCurrency</span>
                         </div>
                     </div>
+                    <div class="col-mb-3">
+                        <label class="form-label d-block">Статус</label>
+
+                        <div class="form-check form-switch">
+                            <input class="form-check-input"
+                                type="checkbox"
+                                asp-for="IsActive"
+                                id="productIsActive" />
+
+                            <label class="form-check-label" for="productIsActive" id="productIsActiveLabel">
+                                @(Model.IsActive ? "Активен" : "Скрыт")
+                            </label>
+                        </div>
+
+                        <input type="hidden" asp-for="IsActive" value="false" />
+                    </div>
+
                     <div class="col-md-6">
                         <label asp-for="CategoryId" class="form-label">Категория <span class="text-danger">*</span></label>
                         <select asp-for="CategoryId" class="form-select">
@@ -65,6 +82,7 @@
                             }
                         </select>
                     </div>
+                    
                 </div>
 
                 <div class="mb-3">
@@ -90,4 +108,19 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script>
+        const checkbox = document.getElementById('productIsActive');
+        const label = document.getElementById('productIsActiveLabel');
+
+        if (checkbox && label) {
+            const updateLabel = () => {
+                label.textContent = checkbox.checked ? 'Активен' : 'Скрыт';
+            };
+
+            updateLabel();
+            checkbox.addEventListener('change', updateLabel);
+        }
+    </script>
+
 }

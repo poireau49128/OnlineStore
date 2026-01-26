@@ -47,7 +47,7 @@ public class ProductsController :  Controller
             Price = p.Price. Amount,
             VariantsCount = p. VariantsCount ??  0,
             TotalStock = p.TotalStock ??  0,
-            IsActive = p.TotalStock > 0
+            IsActive = p.isActive
         }).ToList();
 
         return View(model);
@@ -169,7 +169,8 @@ public class ProductsController :  Controller
                 Name = c.Name,
                 ProductTypeId = c.ProductTypeId,
                 ProductTypeName = c.ProductTypeName
-            }).ToList()
+            }).ToList(),
+            IsActive = product.IsActive
         };
 
         return View(model);
@@ -205,7 +206,8 @@ public class ProductsController :  Controller
                 Description = model.Description,
                 BasePrice = model.BasePrice,
                 Sku = model.Sku,
-                CategoryId = model.CategoryId
+                CategoryId = model.CategoryId,
+                isActive = model.IsActive
             };
 
             await _adminService.UpdateProductAsync(request);
@@ -250,7 +252,16 @@ public class ProductsController :  Controller
                 Size = v.Size,
                 OverridePrice = v.OverridePrice?. Amount,
                 ActualPrice = v.ActualPrice. Amount,
-                ImagePaths = v.ImagePaths,
+                isActive = v.IsActive,
+                Images = v.Images
+                    .OrderBy(i => i.SortOrder)
+                    .Select(i => new VariantImageViewModel
+                    {
+                        Id = i.Id,
+                        RelativePath = i.RelativePath
+                    })
+                    .ToList(),
+
                 TotalStock = v. Stocks.Sum(s => s. Quantity)
             }).ToList(),
             CreateForm = new()
@@ -310,6 +321,15 @@ public class ProductsController :  Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateVariant(int variantId, int productId, [FromForm] CreateVariantFormViewModel form)
     {
+        var errors = ModelState
+        .Where(x => x.Value.Errors.Count > 0)
+        .Select(x => new
+        {
+            Field = x.Key,
+            Errors = x.Value.Errors.Select(e => e.ErrorMessage).ToList(),
+            Raw = x.Value.RawValue
+        })
+        .ToList();
         if (!ModelState.IsValid)
         {
             TempData["Error"] = "Ошибка валидации. Проверьте введенные данные.";
@@ -330,7 +350,8 @@ public class ProductsController :  Controller
                 Color = form.Color,
                 Size = form.Size,
                 OverridePrice = form.OverridePrice,
-                Images = imageFiles
+                Images = imageFiles,
+                isActive = form.IsActive
             };
 
             await _adminService.UpdateVariantAsync(variantId, request, form.ImagesToDelete);

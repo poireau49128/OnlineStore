@@ -22,9 +22,17 @@ public sealed class VariantItemViewModel
     public string?  Size { get; set; }
     public decimal?  OverridePrice { get; set; }
     public decimal ActualPrice { get; set; }
-    public List<string> ImagePaths { get; set; } = new();
+    public List<VariantImageViewModel> Images { get; set; } = new();
     public int TotalStock { get; set; }
+    public bool isActive { get; set; }
 }
+
+public sealed class VariantImageViewModel
+{
+    public int Id { get; set; }
+    public string RelativePath { get; set; } = null!;
+}
+
 
 public sealed class CreateVariantFormViewModel
 {
@@ -41,4 +49,6 @@ public sealed class CreateVariantFormViewModel
     public List<IFormFile>? Images { get; set; }
     // if using to update
     public List<int>? ImagesToDelete { get; set; } 
+
+    public bool IsActive { get; set; }
 }

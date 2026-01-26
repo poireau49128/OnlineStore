@@ -2,6 +2,13 @@
 
 @{
     ViewData["Title"] = "Товары";
+    (string Text, string Class) GetStatusDisplay(bool IsActive, int stock) => (IsActive, stock) switch
+    {
+        (false, _) => ("Скрыт", "bg-danger"),
+        (true, 0) => ("Нет в наличии", "bg-warning text-dark"),
+        (true, > 0) => ("Активен", "bg-success"),
+        _ => ("Неизвестно", "bg-secondary")
+    };
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -50,14 +57,10 @@
                     @item.Price.ToString("0.00")
                 </td>
                 <td>
-                    @if (item.IsActive)
-                    {
-                        <span class="badge bg-success">Активен</span>
+                    @{
+                        var status = GetStatusDisplay(item.IsActive, item.TotalStock);
                     }
-                    else
-                    {
-                        <span class="badge bg-secondary">Неактивен</span>
-                    }
+                    <span class="badge @status.Class">@status.Text</span>
                 </td>
                 <td class="text-end">
                     <div class="btn-group btn-group-sm">

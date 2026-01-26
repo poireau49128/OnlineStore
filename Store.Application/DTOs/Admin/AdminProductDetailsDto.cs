@@ -26,9 +26,17 @@ public sealed class AdminVariantDetailsDto
     public Money? OverridePrice { get; init; }
     public Money ActualPrice { get; init; } = null!;
     public bool IsActive { get; init; }
-    public List<string> ImagePaths { get; init; } = new();
+    public List<AdminVariantImageDto> Images { get; init; } = new();
     public List<AdminVariantStockDto> Stocks { get; init; } = new();
 }
+
+public sealed class AdminVariantImageDto
+{
+    public int Id { get; init; }
+    public string RelativePath { get; init; } = null!;
+    public int SortOrder { get; init; }
+}
+
 
 public sealed class AdminVariantStockDto
 {

@@ -20,9 +20,11 @@ public sealed class ProductCatalogQueryService : IProductCatalogQueryService
         int? take = null,
         bool includeAdminData = false)
     {
-        var query = _db.Products
-            .AsNoTracking()
-            .AsQueryable();
+        var query = _db.Products.AsQueryable();
+        if (!includeAdminData)
+            query = query.Where(p => p.IsActive);
+        query = query.AsNoTracking();
+            
 
         if (categoryId.HasValue)
             query = query.Where(p => p.CategoryId == categoryId);
@@ -45,8 +47,10 @@ public sealed class ProductCatalogQueryService : IProductCatalogQueryService
                 CategoryName = p.Category.Name ?? "Без категории",
                 ProductTypeName = p.Category.ProductType.Name ?? "Без типа",
                 Price = p.BasePrice,
-
-                ImagePath = p.Variants
+                isActive = p.IsActive,
+                ImagePath = (includeAdminData
+                        ? p.Variants
+                        : p.Variants.Where(v => v.IsActive))
                     .OrderBy(v => v.Color)
                     .Select(v => v.Images
                         .OrderBy(i => i.SortOrder)
@@ -100,7 +104,9 @@ public sealed class ProductCatalogQueryService : IProductCatalogQueryService
                 ProductTypeName = p.Category.ProductType.Name,
                 Sku = p.Sku,
                 BasePrice = p.BasePrice,
-                Variants = p.Variants.OrderBy(v => v.Color)
+                Variants = p.Variants
+                    .Where(v => v.IsActive)
+                    .OrderBy(v => v.Color)
                     .Select(v => new ProductVariantDto
                     {
                         Id = v.Id,

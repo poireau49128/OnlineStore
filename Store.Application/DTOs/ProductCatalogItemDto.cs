@@ -13,4 +13,5 @@ public sealed class ProductCatalogItemDto
 
     public int? VariantsCount { get; init; }
     public int? TotalStock { get; init; }
+    public bool isActive { get; init; }
 }

@@ -4,6 +4,14 @@
 @{
     ViewData["Title"] = "Варианты товара";
     Layout = "~/Views/Shared/_Layout.cshtml";
+
+    (string Text, string Class) GetStatusDisplay(bool isActive, int stock) => (isActive, stock) switch
+    {
+        (false, _) => ("Скрыт", "bg-danger"),
+        (true, 0) => ("Нет в наличии", "bg-warning text-dark"),
+        (true, > 0) => ("Активен", "bg-success"),
+        _ => ("Неизвестно", "bg-secondary")
+    };
 }
 
 <div class="container-fluid">
@@ -31,6 +39,7 @@
                                 <th>Цена</th>
                                 <th>Остатки</th>
                                 <th>Изображения</th>
+                                <th>Статус</th>
                                 <th class="text-end">Действия</th>
                             </tr>
                         </thead>
@@ -48,7 +57,13 @@
                                         }
                                     </td>
                                     <td><span class="badge bg-info">@variant.TotalStock шт</span></td>
-                                    <td><small>@variant.ImagePaths.Count изобр. </small></td>
+                                    <td><small>@variant.Images.Count изобр. </small></td>
+                                    <td>
+                                        @{
+                                            var status = GetStatusDisplay(variant.isActive, variant.TotalStock);
+                                        }
+                                        <span class="badge @status.Class">@status.Text</span>
+                                    </td>
                                     <td class="text-end">
                                         <button type="button" 
                                                 class="btn btn-sm btn-outline-primary me-1" 
@@ -57,6 +72,12 @@
                                                 data-variant-id="@variant.Id"
                                                 data-variant-color="@variant.Color"
                                                 data-variant-size="@variant.Size"
+                                                data-variant-status="@variant.isActive"
+                                                data-variant-images='@Html.Raw(
+                                                    Json.Serialize(
+                                                        variant.Images.Select(img => new { img.Id, img.RelativePath })
+                                                    )
+                                                )'
                                                 data-variant-price="@(variant.OverridePrice?.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture))"
                                                 title="Редактировать">
                                             ✏️ 
@@ -175,6 +196,26 @@
                             <span class="input-group-text">@Store.Application.Utilities.CurrencyHelper.DefaultCurrency</span>
                         </div>
                     </div>
+                    <div class="mb-3">
+                        <label class="form-label d-block">Статус</label>
+
+                        
+
+                        <div class="form-check form-switch">
+                            <input class="form-check-input"
+                                type="checkbox"
+                                id="modalIsActive"
+                                name="form.IsActive"
+                                value="true" />
+
+                            <label class="form-check-label" for="modalIsActive" id="modalIsActiveLabel">
+                                Активен
+                            </label>
+                        </div>
+
+                        <input type="hidden" name="form.IsActive" value="false" />
+                    </div>
+
 
                     <!-- Текущие изображения -->
                     <div class="mb-3">
@@ -264,6 +305,34 @@
             document.getElementById('modalSize').value = (size && size !== '—') ? size : '';
             document.getElementById('modalPrice').value = button.getAttribute('data-variant-price');
 
+            
+            
+
+
+
+
+            const isActive = button.getAttribute('data-variant-status') === 'True'
+              || button.getAttribute('data-variant-status') === 'true';
+
+            const checkbox = document.getElementById('modalIsActive');
+            checkbox.checked = isActive;
+
+
+
+            const label = document.getElementById('modalIsActiveLabel');
+            label.textContent = isActive ? 'Активен' : 'Скрыт';
+
+            // обновление текста при клике
+            checkbox.onchange = () => {
+                label.textContent = checkbox.checked ? 'Активен' : 'Скрыт';
+            };
+
+
+
+
+
+
+
             // Отрисовка текущих изображений
             const imagesJson = button.getAttribute('data-variant-images');
             const container = document.getElementById('existingImagesContainer');
@@ -274,12 +343,12 @@
                 images.forEach(img => {
                     const div = document.createElement('div');
                     div.className = 'position-relative d-inline-block';
-                    div.id = `img-wrapper-${img.Id}`;
+                    div.id = `img-wrapper-${img.id}`;
                     div.innerHTML = `
-                        <img src="${img.Path}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 4px; border: 1px solid #dee2e6;">
+                        <img src="${img.relativePath}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 4px; border: 1px solid #dee2e6;">
                         <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 p-0" 
                                 style="width: 20px; height: 20px; font-size: 14px; line-height: 1;"
-                                onclick="markImageForDeletion(${img.Id})">
+                                onclick="markImageForDeletion(${img.id})">
                             &times;
                         </button>`;
                     container.appendChild(div);

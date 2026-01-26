@@ -99,7 +99,7 @@ public sealed class ProductAdminService : IProductAdminService
             CategoryId = product.CategoryId,
             CategoryName = product.Category. Name,
             ProductTypeName = product.Category.ProductType.Name,
-            IsActive = true, // TODO: Добавить IsActive в Product (soft delete)
+            IsActive = product.IsActive,
             Variants = product.Variants
                 .OrderBy(v => v.Color)
                 .ThenBy(v => v.Size)
@@ -110,11 +110,17 @@ public sealed class ProductAdminService : IProductAdminService
                     Size = v.Size,
                     OverridePrice = v. OverridePrice,
                     ActualPrice = v.GetPrice(product.BasePrice),
-                    IsActive = true, // TODO: Добавить IsActive в ProductVariant (soft delete)
-                    ImagePaths = v.Images
+                    IsActive = v.IsActive,
+                    Images = v.Images
                         .OrderBy(i => i.SortOrder)
-                        .Select(i => i.RelativePath)
+                        .Select(i => new AdminVariantImageDto
+                        {
+                            Id = i.Id,
+                            RelativePath = i.RelativePath,
+                            SortOrder = i.SortOrder
+                        })
                         .ToList(),
+
                     Stocks = v.Stocks
                         .OrderBy(s => s. Warehouse.Name)
                         . Select(s => new AdminVariantStockDto
@@ -143,6 +149,7 @@ public sealed class ProductAdminService : IProductAdminService
         product.UpdateName(request.Name);
         product.UpdateDescription(request.Description);
         product.UpdateBasePrice(Money.From(request.BasePrice, "BYN"));
+        product.SetActive(request.isActive);
 
         // Обновление SKU если указан
         if (!string.IsNullOrWhiteSpace(request. Sku) && request.Sku != product.Sku)
@@ -203,6 +210,7 @@ public sealed class ProductAdminService : IProductAdminService
     public async Task UpdateVariantAsync(int variantId, CreateVariantRequest request, List<int>? imagesToDelete)
     {
         var variant = await _db.ProductVariants
+            .Include(v => v.Images)
             .Include(v => v.Product)
                 .ThenInclude(p => p.Variants)
             .FirstOrDefaultAsync(v => v.Id == variantId);
@@ -218,23 +226,18 @@ public sealed class ProductAdminService : IProductAdminService
         if (variantExists)
             throw new InvalidOperationException($"Другой вариант с цветом '{request.Color}' и размером '{request.Size}' уже существует");
 
-
-
-        if (imagesToDelete != null && imagesToDelete.Any())
+        if (imagesToDelete?.Any() == true)
         {
-            var imagesToRemove = variant.Images
-                .Where(img => imagesToDelete.Contains(img.Id))
-                .ToList();
+            var removedImages = variant.RemoveImages(imagesToDelete);
 
-            foreach (var img in imagesToRemove)
-            {
-                // Используем ваш ProductImageService для физического удаления файлов
+            foreach (var img in removedImages)
                 await _imageService.DeleteImageAsync(img.Id);
-            }
         }
+
 
         variant.UpdateColor(request.Color);
         variant.UpdateSize(request.Size);
+        variant.SetStatus(request.isActive);
         variant.SetOverridePrice(
             request.OverridePrice.HasValue
             ? Money.From(request.OverridePrice.Value, "BYN")

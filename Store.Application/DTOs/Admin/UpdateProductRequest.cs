@@ -26,4 +26,5 @@ public class UpdateProductRequest
     [Required(ErrorMessage = "Категория обязательна")]
     [Range(1, int.MaxValue, ErrorMessage = "Выберите категорию")]
     public int CategoryId { get; set; }
+    public bool isActive { get; set; }
 }

@@ -19,4 +19,5 @@ public class CreateVariantRequest
     public decimal?  OverridePrice { get; set; } // null = base product price
 
     public List<ProductImageFile>? Images { get; set; }
+    public bool isActive { get; set; }
 }
