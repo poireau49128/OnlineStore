@@ -73,7 +73,7 @@
                             <span class="input-group-text">@CurrencyHelper.DefaultCurrency</span>
                         </div>
                     </div>
-                    <div class="col-md-6">
+                    @* <div class="col-md-6">
                         <label asp-for="CategoryId" class="form-label">Категория <span class="text-danger">*</span></label>
                         <select asp-for="CategoryId" class="form-select">
                             <option value="">-- Выберите категорию --</option>
@@ -92,6 +92,35 @@
                                 ℹ️ Как создать новую категорию? 
                             </a>
                         </small>
+                    </div> *@
+                    <div class="col-md-6">
+                        <label class="form-label">
+                            Категория <span class="text-danger">*</span>
+                        </label>
+
+                        <div class="d-flex gap-2">
+                            <select asp-for="CategoryId" class="form-select" id="categorySelect">
+                                <option value="">-- Выберите категорию --</option>
+                                @foreach (var group in Model.Categories
+                                    .GroupBy(c => c.ProductTypeName)
+                                    .OrderBy(g => g.Key))
+                                {
+                                    <optgroup label="@group.Key">
+                                        @foreach (var cat in group.OrderBy(c => c.Name))
+                                        {
+                                            <option value="@cat.Id">@cat.Name</option>
+                                        }
+                                    </optgroup>
+                                }
+                            </select>
+
+                            <button type="button"
+                                    class="btn btn-outline-primary"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#createCategoryModal">
+                                ＋
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -141,6 +170,57 @@
     </div>
 </div>
 
+
+<div class="modal fade" id="createCategoryModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">➕ Новая категория</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Название категории</label>
+                    <input id="newCategoryName" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Тип товара</label>
+                    <select id="productTypeSelect"
+                            class="form-select"
+                            asp-items="Model.ProductTypes">
+                    </select>
+
+                    <small class="text-muted d-block mt-1">
+                        Нет нужного типа? Введите новый ниже
+                    </small>
+                </div>
+
+                <div class="mb-3">
+                    <input id="newProductTypeName"
+                           class="form-control"
+                           placeholder="Новый тип товара (необязательно)" />
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">
+                    Отмена
+                </button>
+                <button class="btn btn-primary" onclick="createCategory()">
+                    Создать
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+
+
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
     <script>
@@ -158,8 +238,7 @@
                 });
             }
         });
-    </script>
-    <script>
+
         // Предпросмотр изображений
         document.getElementById('imageInput')?. addEventListener('change', function(e) {
             const preview = document.getElementById('imagePreview');
@@ -179,5 +258,57 @@
                 reader.readAsDataURL(file);
             });
         });
+
+
+        async function createCategory() {
+            const name = document.getElementById('newCategoryName').value.trim();
+            const typeId = document.getElementById('productTypeSelect').value;
+            const newTypeName = document.getElementById('newProductTypeName').value.trim();
+
+            if (!name) {
+                alert('Введите название категории');
+                return;
+            }
+
+            const response = await fetch('/Admin/Categories/CreateAjax', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name,
+                    productTypeId: newTypeName ? null : typeId,
+                    newProductTypeName: newTypeName || null
+                })
+            });
+
+            if (!response.ok) {
+                alert('Ошибка при создании категории');
+                return;
+            }
+
+            const result = await response.json();
+
+            // Добавляем option в select
+            const select = document.getElementById('categorySelect');
+
+            let group = [...select.querySelectorAll('optgroup')]
+                .find(g => g.label === result.productTypeName);
+
+            if (!group) {
+                group = document.createElement('optgroup');
+                group.label = result.productTypeName;
+                select.appendChild(group);
+            }
+
+            const option = document.createElement('option');
+            option.value = result.id;
+            option.textContent = result.name;
+            option.selected = true;
+
+            group.appendChild(option);
+
+            bootstrap.Modal.getInstance(
+                document.getElementById('createCategoryModal')
+            ).hide();
+        }
     </script>
 }

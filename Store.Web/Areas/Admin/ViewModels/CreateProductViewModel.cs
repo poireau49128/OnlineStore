@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace Store.Web.Areas.Admin.ViewModels;
 
@@ -38,6 +39,7 @@ public sealed class CreateProductViewModel
 
     // Для выпадающих списков в view
     public List<CategoryListItemViewModel> Categories { get; set; } = new();
+    public List<SelectListItem> ProductTypes { get; set; } = new();
 }
 
 public sealed class CategoryListItemViewModel

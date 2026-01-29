@@ -45,7 +45,7 @@ namespace Store.Web.Controllers
             var model = new ProductCatalogViewModel
             {
                 Products = pagedList,
-                Categories = await _categories.GetAllAsync(),
+                CategoryGroups = await _categories.GetCategoryFilterAsync(),
                 SelectedCategoryId = categoryId,
                 SearchTerm = searchTerm
             };
@@ -129,7 +129,6 @@ namespace Store.Web.Controllers
                 });
             }
         }
-
     }
 
     public class AddToCartRequest

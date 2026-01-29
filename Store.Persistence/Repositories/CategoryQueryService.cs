@@ -51,5 +51,29 @@ namespace Store.Persistence.Repositories
                 })
                 .FirstOrDefaultAsync();
         }
+
+        public async Task<List<CategoryFilterGroupDto>> GetCategoryFilterAsync()
+        {
+            return await _db.ProductTypes
+                .AsNoTracking()
+                .OrderBy(pt => pt.SortOrder)
+                .Select(pt => new CategoryFilterGroupDto
+                {
+                    ProductTypeId = pt.Id,
+                    ProductTypeName = pt.Name,
+
+                    Categories = pt.Categories
+                        .Where(c => c.Products.Any(p => p.IsActive))
+                        .OrderBy(c => c.Name)
+                        .Select(c => new CategoryFilterItemDto
+                        {
+                            Id = c.Id,
+                            Name = c.Name
+                        })
+                        .ToList()
+                })
+                .Where(g => g.Categories.Any())
+                .ToListAsync();
+        }
     }
 }

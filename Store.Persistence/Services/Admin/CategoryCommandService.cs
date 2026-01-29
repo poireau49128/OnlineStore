@@ -71,4 +71,74 @@ public sealed class CategoryCommandService : ICategoryCommandService
             ProductTypeName = productType.Name
         };
     }
+
+    public async Task UpdateCategoryAsync(UpdateCategoryDto dto)
+    {
+        var category = await _db.Categories
+            .FirstOrDefaultAsync(c => c.Id == dto.Id)
+            ?? throw new InvalidOperationException("Категория не найдена");
+
+        var exists = await _db.Categories.AnyAsync(c =>
+            c.Id != dto.Id &&
+            c.ProductTypeId == category.ProductTypeId &&
+            c.Name == dto.Name
+        );
+
+        if (exists)
+            throw new InvalidOperationException("Категория с таким именем уже существует");
+
+        category.SetName(dto.Name);
+        category.SetSlug();
+
+        await _db.SaveChangesAsync();
+    }
+
+    public async Task DeleteCategoryAsync(int categoryId)
+    {
+        var category = await _db.Categories
+            .Include(c => c.Products)
+            .FirstOrDefaultAsync(c => c.Id == categoryId)
+            ?? throw new InvalidOperationException("Категория не найдена");
+
+        if (category.Products.Any())
+            throw new InvalidOperationException("Нельзя удалить категорию с товарами");
+
+        _db.Categories.Remove(category);
+        await _db.SaveChangesAsync();
+    }
+
+    public async Task UpdateProductTypeAsync(int id, string name)
+    {
+        var type = await _db.ProductTypes
+            .FirstOrDefaultAsync(t => t.Id == id)
+            ?? throw new InvalidOperationException("Тип товара не найден");
+
+        var exists = await _db.ProductTypes.AnyAsync(t =>
+            t.Id != id && t.Name == name
+        );
+
+        if (exists)
+            throw new InvalidOperationException("Тип товара с таким именем уже существует");
+
+        type.SetName(name);
+        type.SetSlug();
+
+        await _db.SaveChangesAsync();
+    }
+
+    public async Task DeleteProductTypeAsync(int id)
+    {
+        var type = await _db.ProductTypes
+            .Include(t => t.Categories)
+            .FirstOrDefaultAsync(t => t.Id == id)
+            ?? throw new InvalidOperationException("Тип товара не найден");
+
+        if (type.Categories.Any())
+            throw new InvalidOperationException("Нельзя удалить тип с категориями");
+
+        _db.ProductTypes.Remove(type);
+        await _db.SaveChangesAsync();
+    }
+
+
 }

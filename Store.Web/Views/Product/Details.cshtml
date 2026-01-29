@@ -14,6 +14,72 @@
     }
 
 <style>
+    .carousel-control-prev-icon,
+    .carousel-control-next-icon {
+        filter: drop-shadow(0 0 2px rgba(0,0,0,0.5));
+        background-color: rgba(0, 0, 0, 0.2);
+        border-radius: 50%;
+        background-size: 60%;
+        padding: 20px;
+    }
+    .carousel-control-prev:hover .carousel-control-prev-icon,
+    .carousel-control-next:hover .carousel-control-next-icon {
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+    #productGallery .carousel-inner {
+        height: 500px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+    }
+    #productGallery .carousel-item {
+        height: 100%;
+    }
+
+    #modalCarousel .carousel-inner {
+        height: 90vh;
+        background-color: transparent;
+        display: flex;
+        align-items: center;
+    }
+
+    #modalCarousel .carousel-item {
+        height: 100%;
+        text-align: center;
+    }
+
+    #modalCarousel .carousel-item img {
+        max-height: 100%;
+        width: auto;
+        margin: 0 auto;
+        position: relative;
+        top: 50%;
+        transform: translateY(-50%);
+        object-fit: contain;
+    }
+
+    #productGallery .carousel-item img {
+        height: 100%;
+        width: 100%;
+        object-fit: contain;
+    }
+
+    #modalImage {
+        max-height: 90vh; 
+        width: auto;
+        object-fit: contain;
+        border-radius: 4px;
+    }
+
+    #imageModal .modal-body {
+        padding: 0.5rem;
+    }
+
+    #imageModal {
+        overflow: hidden;
+    }
+
+
+
     input[type=number]: :-webkit-inner-spin-button,
     input[type=number]: :-webkit-outer-spin-button {
         -webkit-appearance:  none;
@@ -78,6 +144,27 @@
         box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
         font-weight: 600;
     }
+
+    #imageModal .modal-backdrop.show {
+        opacity: 0.9;
+    }
+
+    #modalCarousel .carousel-control-prev-icon,
+    #modalCarousel .carousel-control-next-icon {
+        width: 3rem;
+        height: 3rem;
+        background-color: rgba(0, 0, 0, 0.3);
+        border-radius: 50%;
+        background-size: 50%;
+    }
+
+    #imageModal .modal-dialog {
+        pointer-events: none;
+    }
+    #imageModal .modal-content {
+        pointer-events: auto;
+    }
+
 </style>
 }
 
@@ -170,15 +257,30 @@
     </div>
 </div>
 
-<div class="modal fade" id="imageModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered modal-xl">
-    <div class="modal-content">
-      <div class="modal-body text-center">
-        <img id="modalImage" class="img-fluid" loading="lazy"/>
-      </div>
+
+<div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content" style="background: transparent; border: none;">
+            <div class="modal-body p-0 position-relative">
+                <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" 
+                        data-bs-dismiss="modal" style="z-index: 1060;"></button>
+
+                <div id="modalCarousel" class="carousel slide" data-bs-ride="false">
+                    <div class="carousel-inner" id="modalCarouselInner">
+                    </div>
+
+                    <button class="carousel-control-prev" type="button" data-bs-target="#modalCarousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon shadow-sm"></span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#modalCarousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon shadow-sm"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
 </div>
+
 
 
 @{
@@ -446,7 +548,7 @@
                 <img id="mainProductImage"
                     src="/img/no-image.png"
                     class="img-fluid rounded shadow"
-                    style="max-height:600px;object-fit:cover;" />
+                    style="height:500px; width:100%; object-fit:contain; background-color:#f8f9fa; cursor:pointer;" />
             `;
             return;
         }
@@ -454,13 +556,15 @@
         // Если одно изображение
         if (images.length === 1) {
             container.innerHTML = `
-                <img id="mainProductImage"
-                    src="${toThumb(images[0])}"
-                    class="img-fluid rounded shadow fade-img"
-                    style="max-height:600px;object-fit:cover;cursor:pointer"
-                    onclick="openImageModal('${images[0]}')" />
+                <div style="height:500px; background-color:#f8f9fa;" class="rounded shadow">
+                    <img id="mainProductImage"
+                        src="${toThumb(images[0])}"
+                        class="img-fluid w-100 h-100 fade-img"
+                        onload="this.classList.add('loaded')"
+                        style="object-fit:contain; cursor:pointer"
+                        onclick="openImageModal('${images[0]}')" />
+                </div>
             `;
-
             return;
         }
 
@@ -484,7 +588,7 @@
                         ${isFirst ? '' : 'loading="lazy"'}
                         ${isFirst ? 'fetchpriority="high"' : ''}
                         class="d-block w-100 rounded shadow fade-img"
-                        style="max-height:600px;object-fit:cover;cursor:pointer"
+                        style="height:500px; width:100%; object-fit:contain; background-color:#f8f9fa; cursor:pointer;"
                         onload="this.classList.add('loaded')"
                         onclick="openImageModal('${img}')"
                         ${i === 0 ? 'id="mainProductImage"' : ''}>
@@ -531,15 +635,33 @@
     let modalImages = [];
     let modalIndex = 0;
 
-    function openImageModal(src) {
-        modalImages = variantsData
-            .find(v => v.id === selectedVariantId)?.images || [];
+    function openImageModal(clickedSrc) {
+        const variant = variantsData.find(v => v.id === selectedVariantId);
+        const images = variant ? variant.images : [clickedSrc];
+        
+        const carouselInner = document.getElementById('modalCarouselInner');
+        const prevBtn = document.querySelector('#modalCarousel .carousel-control-prev');
+        const nextBtn = document.querySelector('#modalCarousel .carousel-control-next');
 
-        modalIndex = modalImages.indexOf(src);
+        carouselInner.innerHTML = images.map((img, i) => `
+            <div class="carousel-item ${img === clickedSrc ? 'active' : ''}">
+                <img src="${img}" class="d-block mx-auto img-fluid" >
+            </div>
+        `).join('');
 
-        updateModalImage();
-        new bootstrap.Modal('#imageModal').show();
+        if (images.length <= 1) {
+            prevBtn.classList.add('d-none');
+            nextBtn.classList.add('d-none');
+        } else {
+            prevBtn.classList.remove('d-none');
+            nextBtn.classList.remove('d-none');
+        }
+
+        const modalElement = document.getElementById('imageModal');
+        const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+        modal.show();
     }
+
 
     function updateModalImage() {
         document.getElementById('modalImage').src = modalImages[modalIndex];

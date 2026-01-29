@@ -6,26 +6,74 @@
 
 <div class="container mt-5">
     <div class="row">
-        <!-- Фильтры -->
         <div class="col-md-3">
             <h4>Фильтры</h4>
+
             <form method="get" class="mb-4">
                 <div class="input-group">
-                    <input type="text" name="searchTerm" class="form-control" placeholder="Поиск товара..." value="@Model.SearchTerm">
+                    <input type="text"
+                        name="searchTerm"
+                        class="form-control"
+                        placeholder="Поиск товара..."
+                        value="@Model.SearchTerm" />
                     <button class="btn btn-primary" type="submit">🔍</button>
                 </div>
             </form>
 
-            <h5>Категории</h5>
-            <a href="@Url.Action("Index", "Product")" class="btn btn-outline-primary btn-sm d-block mb-2 @(Model.SelectedCategoryId == null ? "active" : "")">Все товары</a>
-            @foreach (var category in Model.Categories)
-            {
-                <a href="@Url.Action("Index", "Product", new { categoryId = category.Id, page = 1 })"
-                   class="btn btn-outline-primary btn-sm d-block mb-2 @(Model.SelectedCategoryId== category.Id ? "active" : "")">
-                    @category.Name
-                </a>
-            }
+            <h5 class="mb-3">Категории</h5>
+
+            <a href="@Url.Action("Index", "Product")"
+            class="btn btn-outline-primary btn-sm d-block mb-2
+            @(Model.SelectedCategoryId == null ? "active" : "")">
+                Все товары
+            </a>
+
+            <div class="accordion" id="categoryFilter">
+                @foreach (var group in Model.CategoryGroups)
+                {
+                    var collapseId = $"type-{group.ProductTypeId}";
+                    var isExpanded = group.Categories.Any(c => c.Id == Model.SelectedCategoryId);
+
+                    <div class="accordion-item mb-2">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button py-2 @(isExpanded ? "" : "collapsed")"
+                                    type="button"
+                                    data-bs-toggle="collapse"
+                                    data-bs-target="#@collapseId"
+                                    aria-expanded="@(isExpanded.ToString().ToLower())">
+                                @group.ProductTypeName
+                            </button>
+                        </h2>
+
+                        <div id="@collapseId"
+                            class="accordion-collapse collapse @(isExpanded ? "show" : "")"
+                            data-bs-parent="#categoryFilter">
+                            <div class="accordion-body p-2">
+                                @foreach (var category in group.Categories)
+                                {
+                                    <a href="@Url.Action("Index", "Product", new { categoryId = category.Id, page = 1 })"
+                                    class="btn btn-outline-primary btn-sm d-block mb-1
+                                    @(Model.SelectedCategoryId == category.Id ? "active" : "")">
+                                        @category.Name
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
         </div>
+
+
+
+
+
+
+
+
+
+
+
 
         <!-- Основной контент -->
         <div class="col-md-9">
@@ -42,12 +90,12 @@
                     {
                         <div class="col-md-6 col-lg-4 mb-4">
                             <div class="card h-100 shadow-sm product-card">
-                                <img src="@Url.Content(product.ImagePath)"
+                                <img src="@ToThumb(Url.Content(product.ImagePath))"
                                     class="card-img-top fade-img"
                                     loading="lazy"
                                     onload="this.classList.add('loaded')"
                                     alt="@product.Name"
-                                    style="height:250px;object-fit:cover;">
+                                    style="height:250px;object-fit:contain;">
 
                                 <div class="card-body">
                                     <h5 class="card-title">@product.Name</h5>
@@ -100,4 +148,12 @@
         .product-card:hover { transform: translateY(-5px); box-shadow: 0 8px 16px rgba(0,0,0,0.2) !important; }
         .btn-outline-primary.active { background-color: #0d6efd; color: white; }
     </style>
+}
+
+@functions {
+    public string ToThumb(string path)
+    {
+        if (string.IsNullOrEmpty(path)) return "/img/no-image.png";
+        return path.Replace("/variant/", "/thumb/");
+    }
 }

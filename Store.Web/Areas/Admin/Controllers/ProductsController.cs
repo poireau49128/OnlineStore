@@ -60,6 +60,7 @@ public class ProductsController :  Controller
     public async Task<IActionResult> Create()
     {
         var categories = await _categoryService.SearchCategoriesAsync("");
+        var types = await _categoryService.GetAllProductTypesAsync();
         
         var model = new CreateProductViewModel
         {
@@ -69,7 +70,16 @@ public class ProductsController :  Controller
                 Name = c.Name,
                 ProductTypeId = c.ProductTypeId,
                 ProductTypeName = c.ProductTypeName
-            }).ToList()
+            }).ToList(),
+
+            ProductTypes = types
+            .OrderBy(t => t.Name)
+            .Select(t => new SelectListItem
+            {
+                Value = t.Id.ToString(),
+                Text = t.Name
+            })
+            .ToList()
         };
 
         return View(model);
@@ -85,10 +95,18 @@ public class ProductsController :  Controller
                 .Select(c => new CategoryListItemViewModel
                 {
                     Id = c.Id,
-                    Name = c.Name,
+                    Name = c. Name,
                     ProductTypeId = c.ProductTypeId,
-                    ProductTypeName = c.ProductTypeName
+                    ProductTypeName = c. ProductTypeName
                 }).ToList();
+            
+            model.ProductTypes = (await _categoryService.GetAllProductTypesAsync())
+                .Select(t => new SelectListItem
+                {
+                    Value = t.Id.ToString(),
+                    Text = t.Name
+                })
+                .ToList();
 
             return View(model);
         }
@@ -140,6 +158,14 @@ public class ProductsController :  Controller
                     ProductTypeId = c.ProductTypeId,
                     ProductTypeName = c.ProductTypeName
                 }).ToList();
+            
+            model.ProductTypes = (await _categoryService.GetAllProductTypesAsync())
+                .Select(t => new SelectListItem
+                {
+                    Value = t.Id.ToString(),
+                    Text = t.Name
+                })
+                .ToList();
 
             return View(model);
         }
@@ -167,7 +193,7 @@ public class ProductsController :  Controller
             CategoryId = product.CategoryId,
             IsActive = product.IsActive,
 
-            Categories = categories.Select(c => new ViewModels.CategoryListItemViewModel
+            Categories = categories.Select(c => new CategoryListItemViewModel
             {
                 Id = c.Id,
                 Name = c.Name,
