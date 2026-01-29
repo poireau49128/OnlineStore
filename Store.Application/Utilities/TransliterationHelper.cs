@@ -24,7 +24,7 @@ public static class TransliterationHelper
         {
             if (TranslitMap.ContainsKey(c))
                 result.Append(TranslitMap[c]);
-            else if (char.IsLetterOrDigit(c))
+            else
                 result.Append(c);
         }
         

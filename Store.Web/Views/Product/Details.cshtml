@@ -5,6 +5,14 @@
     ViewData["Title"] = Model.Name;
 }
 
+@section Styles {
+    @if (Model.Variants.Any() && Model.Variants.First().Images.Any())
+    {
+        <link rel="preload"
+            as="image"
+            href="@Url.Content(Model.Variants.First().Images.First().Replace("/variant/", "/thumb/"))">
+    }
+
 <style>
     input[type=number]: :-webkit-inner-spin-button,
     input[type=number]: :-webkit-outer-spin-button {
@@ -71,6 +79,7 @@
         font-weight: 600;
     }
 </style>
+}
 
 <div class="container mt-5">
     <nav aria-label="breadcrumb">
@@ -161,6 +170,17 @@
     </div>
 </div>
 
+<div class="modal fade" id="imageModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-xl">
+    <div class="modal-content">
+      <div class="modal-body text-center">
+        <img id="modalImage" class="img-fluid" loading="lazy"/>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 @{
     var orderedVariants = Model.Variants
         .ToList();
@@ -182,6 +202,10 @@
 
 @section Scripts {
 <script>
+    function toThumb(path) {
+        return path.replace('/variant/', '/thumb/');
+    }
+
     function getCsrfToken() {
         return document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
     }
@@ -427,18 +451,19 @@
             return;
         }
 
-        // Если только 1 изображение — без карусели
+        // Если одно изображение
         if (images.length === 1) {
             container.innerHTML = `
                 <img id="mainProductImage"
-                    src="${images[0]}"
-                    class="img-fluid rounded shadow"
-                    style="max-height:600px;object-fit:cover;" />
+                    src="${toThumb(images[0])}"
+                    class="img-fluid rounded shadow fade-img"
+                    style="max-height:600px;object-fit:cover;cursor:pointer"
+                    onclick="openImageModal('${images[0]}')" />
             `;
+
             return;
         }
 
-        // Карусель + миниатюры
         let indicators = '';
         let slides = '';
         let thumbs = '';
@@ -452,20 +477,30 @@
                 </button>
             `;
 
+            const isFirst = i === 0;
             slides += `
                 <div class="carousel-item ${i === 0 ? 'active' : ''}">
-                    <img src="${img}"
-                        class="d-block w-100 rounded shadow"
-                        id="${i === 0 ? 'mainProductImage' : ''}"
-                        style="max-height:600px;object-fit:cover;">
+                    <img src="${toThumb(img)}"
+                        ${isFirst ? '' : 'loading="lazy"'}
+                        ${isFirst ? 'fetchpriority="high"' : ''}
+                        class="d-block w-100 rounded shadow fade-img"
+                        style="max-height:600px;object-fit:cover;cursor:pointer"
+                        onload="this.classList.add('loaded')"
+                        onclick="openImageModal('${img}')"
+                        ${i === 0 ? 'id="mainProductImage"' : ''}>
                 </div>
             `;
 
             thumbs += `
-                <img src="${img}"
-                    class="img-thumbnail m-1"
+                <img src="${toThumb(img)}"
+                    class="img-thumbnail m-1 fade-img"
+                    loading="lazy"
+                    onload="this.classList.add('loaded')"
                     style="width:70px;height:70px;object-fit:cover;cursor:pointer"
-                    onclick="bootstrap.Carousel.getInstance(document.getElementById('productCarousel')).to(${i})">
+                    onclick="bootstrap.Carousel
+                        .getOrCreateInstance(
+                            document.getElementById('productCarousel')
+                        ).to(${i})">
             `;
         });
 
@@ -492,6 +527,63 @@
             </div>
         `;
     }
+
+    let modalImages = [];
+    let modalIndex = 0;
+
+    function openImageModal(src) {
+        modalImages = variantsData
+            .find(v => v.id === selectedVariantId)?.images || [];
+
+        modalIndex = modalImages.indexOf(src);
+
+        updateModalImage();
+        new bootstrap.Modal('#imageModal').show();
+    }
+
+    function updateModalImage() {
+        document.getElementById('modalImage').src = modalImages[modalIndex];
+    }
+
+    document.addEventListener('keydown', e => {
+        if (!document.getElementById('imageModal').classList.contains('show')) return;
+
+        if (e.key === 'ArrowRight') {
+            modalIndex = (modalIndex + 1) % modalImages.length;
+            updateModalImage();
+        }
+        if (e.key === 'ArrowLeft') {
+            modalIndex =
+                (modalIndex - 1 + modalImages.length) % modalImages.length;
+            updateModalImage();
+        }
+    });
+
+    let startX = 0;
+
+    document.getElementById('modalImage').addEventListener('touchstart', e => {
+        startX = e.touches[0].clientX;
+    });
+
+    document.getElementById('modalImage').addEventListener('touchend', e => {
+        const diff = e.changedTouches[0].clientX - startX;
+        if (Math.abs(diff) < 50) return;
+
+        if (diff < 0) modalIndex++;
+        else modalIndex--;
+
+        modalIndex = (modalIndex + modalImages.length) % modalImages.length;
+        updateModalImage();
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        variantsData.forEach(v => {
+            v.images.forEach(src => {
+                const img = new Image();
+                img.src = src;
+            });
+        });
+    });
 
 </script>
 }

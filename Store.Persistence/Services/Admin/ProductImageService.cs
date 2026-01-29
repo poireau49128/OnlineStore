@@ -5,6 +5,9 @@ using Store.Application.Utilities;
 using Store. Domain.Entities;
 using System. Text.RegularExpressions;
 using Microsoft.AspNetCore.Hosting;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Formats.Webp;
 
 namespace Store.Persistence.Services.Admin;
 
@@ -13,8 +16,9 @@ public sealed class ProductImageService :  IProductImageService
     private readonly AppDbContext _db;
     private readonly IWebHostEnvironment _webHostEnv;
 
-    private const string ImagesFolder = "img/products";
+    private const string OriginalFolder = "img/products/variant";
     private const string ThumbFolder = "img/products/thumb";
+    private const int ThumbSize = 400;
     private const long MaxFileSize = 5 * 1024 * 1024; // 5 MB
     private static readonly string[] AllowedExtensions = { ".jpg", ".jpeg", ".png", ".webp" };
 
@@ -29,7 +33,7 @@ public sealed class ProductImageService :  IProductImageService
         List<ProductImageFile> files,
         int startingSortOrder = 0)
     {
-        if (! files.Any())
+        if (!files.Any())
             return new();
 
         var variant = await _db.ProductVariants
@@ -47,22 +51,49 @@ public sealed class ProductImageService :  IProductImageService
         {
             ValidateFile(file);
 
-            var sanitizedFileName = SanitizeFileName(file.FileName);
-            var fileName = sanitizedFileName;
-            var relativePath = $"/{ImagesFolder}/{fileName}";
-            var fullPath = Path. Combine(_webHostEnv.WebRootPath, ImagesFolder, fileName);
+            var baseName = SanitizeFileName(
+                Path.GetFileNameWithoutExtension(file.FileName)
+            );
 
-            // Сохранение оригинального изображения
-            await using (var stream = new FileStream(fullPath, FileMode.Create))
+            var fileName = baseName + ".webp";
+
+            var originalFullPath = Path.Combine(
+                _webHostEnv.WebRootPath,
+                OriginalFolder,
+                fileName
+            );
+            if (File.Exists(originalFullPath))
             {
-                await file.Content.CopyToAsync(stream);
+                fileName = $"{baseName}-{productVariantId}.webp";
+                originalFullPath = Path.Combine(
+                    _webHostEnv.WebRootPath,
+                    OriginalFolder,
+                    fileName
+                );
             }
+            var thumbFullPath = Path.Combine(
+                _webHostEnv.WebRootPath,
+                ThumbFolder,
+                fileName
+            );
 
-            // TODO: Создание миниатюры (требует ImageSharp или подобной библиотеки)
+            using var image = await Image.LoadAsync(file.Content);
+            await image.SaveAsync(
+                originalFullPath,
+                new WebpEncoder
+                {
+                    Quality = 90,
+                    Method = WebpEncodingMethod.BestQuality
+                }
+            );
 
-            // Добавление в БД
-            variant.AddImage(relativePath, sortOrder);
-            uploadedPaths.Add(relativePath);
+            var relativeOriginalPath = $"/{OriginalFolder}/{fileName}";
+
+            await CreateThumbnailAsync(originalFullPath, thumbFullPath);
+
+            variant.AddImage(relativeOriginalPath, sortOrder);
+            uploadedPaths.Add(relativeOriginalPath);
+
             sortOrder++;
         }
 
@@ -76,12 +107,17 @@ public sealed class ProductImageService :  IProductImageService
         if (image == null)
             throw new InvalidOperationException("Изображение не найдено");
 
-        // Удаление файла с диска
-        var originalPath = Path.Combine(_webHostEnv.WebRootPath, image.RelativePath. TrimStart('/'));
+        var originalPath = Path.Combine(_webHostEnv.WebRootPath, image.RelativePath.TrimStart('/'));
+
+        var thumbPath = originalPath
+            .Replace("/variant/", "/thumb/")
+            .Replace("\\variant\\", "\\thumb\\");
+
         if (File.Exists(originalPath))
             File.Delete(originalPath);
 
-        // TODO: Удаление миниатюры
+        if (File.Exists(thumbPath))
+            File.Delete(thumbPath);
 
         _db.ProductImages.Remove(image);
         await _db.SaveChangesAsync();
@@ -97,10 +133,7 @@ public sealed class ProductImageService :  IProductImageService
         foreach (var (imageId, newSortOrder) in orders)
         {
             var image = images.FirstOrDefault(i => i.Id == imageId);
-            if (image != null)
-            {
-                // TODO: Добавить SetSortOrder метод в ProductImage и реализовать через reflection если нужно
-            }
+            image?.SetSortOrder(newSortOrder);
         }
 
         await _db.SaveChangesAsync();
@@ -135,7 +168,7 @@ public sealed class ProductImageService :  IProductImageService
 
     private void EnsureFoldersExist()
     {
-        var imagesFolderPath = Path. Combine(_webHostEnv.WebRootPath, ImagesFolder);
+        var imagesFolderPath = Path. Combine(_webHostEnv.WebRootPath, OriginalFolder);
         var thumbFolderPath = Path.Combine(_webHostEnv.WebRootPath, ThumbFolder);
 
         if (!Directory.Exists(imagesFolderPath))
@@ -144,4 +177,24 @@ public sealed class ProductImageService :  IProductImageService
         if (!Directory.Exists(thumbFolderPath))
             Directory.CreateDirectory(thumbFolderPath);
     }
+
+    private async Task CreateThumbnailAsync(
+        string originalFullPath,
+        string thumbFullPath)
+    {
+        using var image = await Image.LoadAsync(originalFullPath);
+
+        image.Mutate(x => x.Resize(new ResizeOptions
+        {
+            Size = new Size(ThumbSize, ThumbSize),
+            Mode = ResizeMode.Max,
+            Position = AnchorPositionMode.Center
+        }));
+
+        await image.SaveAsync(
+            thumbFullPath,
+            new WebpEncoder { Quality = 80 }
+        );
+    }
+
 }

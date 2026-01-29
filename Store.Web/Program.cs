@@ -83,7 +83,6 @@ builder.Services.AddScoped<Store.Application.Interfaces.Admin.ICategoryAutocompl
 
 
 
-
 var mvcBuilder = builder.Services.AddControllersWithViews();
 if (builder.Environment.IsDevelopment())
 {
@@ -115,8 +114,16 @@ using (var scope = app.Services.CreateScope())
 }
 
 
+
 app.UseHttpsRedirection();
-app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = ctx =>
+    {
+        ctx.Context.Response.Headers["Cache-Control"] =
+            "public,max-age=31536000,immutable";
+    }
+});
 
 app.UseRouting();
 

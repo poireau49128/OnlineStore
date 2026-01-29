@@ -25,4 +25,12 @@ public class ProductImage
         ProductVariantId = variantId;
         return this;
     }
+    public void SetSortOrder(int sortOrder)
+    {
+        if (sortOrder < 0)
+            throw new ArgumentOutOfRangeException(nameof(sortOrder));
+
+        SortOrder = sortOrder;
+    }
+
 }

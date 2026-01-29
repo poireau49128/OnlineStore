@@ -42,8 +42,12 @@
                     {
                         <div class="col-md-6 col-lg-4 mb-4">
                             <div class="card h-100 shadow-sm product-card">
-                                @* <img src="@Url.Content(product.GetMainImagePath())" class="card-img-top" alt="@product.Name" style="height:250px;object-fit:cover;"> *@
-                                <img src="@Url.Content(product.ImagePath)" class="card-img-top" alt="@product.Name" style="height:250px;object-fit:cover;">
+                                <img src="@Url.Content(product.ImagePath)"
+                                    class="card-img-top fade-img"
+                                    loading="lazy"
+                                    onload="this.classList.add('loaded')"
+                                    alt="@product.Name"
+                                    style="height:250px;object-fit:cover;">
 
                                 <div class="card-body">
                                     <h5 class="card-title">@product.Name</h5>

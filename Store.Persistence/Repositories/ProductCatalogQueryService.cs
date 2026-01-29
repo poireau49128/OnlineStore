@@ -75,7 +75,7 @@ public sealed class ProductCatalogQueryService : IProductCatalogQueryService
         int? categoryId,
         string? searchTerm)
     {
-        var query = _db.Products.AsQueryable();
+        var query = _db.Products.AsQueryable().Where(p => p.IsActive);
 
         if (categoryId.HasValue)
             query = query.Where(p => p.CategoryId == categoryId);
