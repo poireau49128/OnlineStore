@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Store.Persistence.Identity;
 using Store.Application.Interfaces;
 using Store.Persistence.Repositories;
+using Store.Application.Interfaces.Admin;
+using Store.Persistence.Services.Admin;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -75,12 +77,13 @@ builder.Services.AddScoped<IProductStockQueryService, ProductStockQueryService>(
 builder.Services.AddScoped<ICategoryQueryService, CategoryQueryService>();
 
 
-builder.Services.AddScoped<Store.Application.Interfaces.Admin.IProductRepository, Store.Persistence.Repositories.ProductRepository>();
-builder.Services.AddScoped<Store.Application.Interfaces.Admin.IProductAdminService, Store. Persistence.Services.Admin.ProductAdminService>();
-builder.Services.AddScoped<Store.Application. Interfaces.Admin.IProductImageService, Store.Persistence.Services.Admin.ProductImageService>();
-builder.Services.AddScoped<Store.Application.Interfaces.Admin.ICategoryAutocompleteService, Store.Persistence.Services.Admin. CategoryAutocompleteService>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IProductAdminService, ProductAdminService>();
+builder.Services.AddScoped<IProductImageService, ProductImageService>();
+builder.Services.AddScoped<ICategoryAutocompleteService, CategoryAutocompleteService>();
 
-
+builder.Services.AddScoped<ICategoryCommandService, CategoryCommandService>();
+builder.Services.AddScoped<ICategoryAutocompleteService, CategoryAutocompleteService>();
 
 
 var mvcBuilder = builder.Services.AddControllersWithViews();

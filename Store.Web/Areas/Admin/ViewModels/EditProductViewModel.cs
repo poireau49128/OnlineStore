@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace Store.Web. Areas.Admin.ViewModels;
 
@@ -26,7 +27,8 @@ public sealed class EditProductViewModel
     [Range(1, int.MaxValue, ErrorMessage = "Выберите категорию")]
     public int CategoryId { get; set; }
 
-    public List<SelectListItem> Categories { get; set; } = new();
+    public List<CategoryListItemViewModel> Categories { get; set; } = new();
+    public List<SelectListItem> ProductTypes { get; set; } = new();
 
     public bool IsActive { get; set; } 
 }

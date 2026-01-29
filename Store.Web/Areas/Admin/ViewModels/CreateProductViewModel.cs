@@ -37,10 +37,10 @@ public sealed class CreateProductViewModel
     public List<IFormFile>? FirstVariantImages { get; set; }
 
     // Для выпадающих списков в view
-    public List<SelectListItem> Categories { get; set; } = new();
+    public List<CategoryListItemViewModel> Categories { get; set; } = new();
 }
 
-public sealed class SelectListItem
+public sealed class CategoryListItemViewModel
 {
     public int Id { get; set; }
     public string Name { get; set; } = null!;

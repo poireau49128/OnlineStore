@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore. Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Store.Application.DTOs;
 using Store.Application.DTOs.Admin;
@@ -62,7 +63,7 @@ public class ProductsController :  Controller
         
         var model = new CreateProductViewModel
         {
-            Categories = categories.Select(c => new SelectListItem
+            Categories = categories.Select(c => new CategoryListItemViewModel
             {
                 Id = c.Id,
                 Name = c.Name,
@@ -81,7 +82,7 @@ public class ProductsController :  Controller
         if (!ModelState.IsValid)
         {
             model.Categories = (await _categoryService.SearchCategoriesAsync(""))
-                .Select(c => new SelectListItem
+                .Select(c => new CategoryListItemViewModel
                 {
                     Id = c.Id,
                     Name = c.Name,
@@ -132,7 +133,7 @@ public class ProductsController :  Controller
         {
             ModelState.AddModelError("", $"Ошибка при создании товара: {ex.Message}");
             model.Categories = (await _categoryService.SearchCategoriesAsync(""))
-                .Select(c => new SelectListItem
+                .Select(c => new CategoryListItemViewModel
                 {
                     Id = c.Id,
                     Name = c.Name,
@@ -154,6 +155,7 @@ public class ProductsController :  Controller
             return NotFound();
 
         var categories = await _categoryService.SearchCategoriesAsync("");
+        var types = await _categoryService.GetAllProductTypesAsync();
 
         var model = new EditProductViewModel
         {
@@ -163,14 +165,25 @@ public class ProductsController :  Controller
             BasePrice = product. BasePrice. Amount,
             Sku = product.Sku,
             CategoryId = product.CategoryId,
-            Categories = categories.Select(c => new SelectListItem
+            IsActive = product.IsActive,
+
+            Categories = categories.Select(c => new ViewModels.CategoryListItemViewModel
             {
                 Id = c.Id,
                 Name = c.Name,
                 ProductTypeId = c.ProductTypeId,
                 ProductTypeName = c.ProductTypeName
             }).ToList(),
-            IsActive = product.IsActive
+
+            ProductTypes = types
+            .OrderBy(t => t.Name)
+            .Select(t => new SelectListItem
+            {
+                Value = t.Id.ToString(),
+                Text = t.Name
+            })
+            .ToList()
+            
         };
 
         return View(model);
@@ -186,13 +199,21 @@ public class ProductsController :  Controller
         if (!ModelState.IsValid)
         {
             model.Categories = (await _categoryService.SearchCategoriesAsync(""))
-                .Select(c => new SelectListItem
+                .Select(c => new CategoryListItemViewModel
                 {
                     Id = c.Id,
                     Name = c. Name,
                     ProductTypeId = c.ProductTypeId,
                     ProductTypeName = c. ProductTypeName
                 }).ToList();
+            
+            model.ProductTypes = (await _categoryService.GetAllProductTypesAsync())
+                .Select(t => new SelectListItem
+                {
+                    Value = t.Id.ToString(),
+                    Text = t.Name
+                })
+                .ToList();
 
             return View(model);
         }
@@ -219,13 +240,21 @@ public class ProductsController :  Controller
         {
             ModelState. AddModelError("", $"Ошибка при обновлении:  {ex.Message}");
             model.Categories = (await _categoryService.SearchCategoriesAsync(""))
-                .Select(c => new SelectListItem
+                .Select(c => new CategoryListItemViewModel
                 {
                     Id = c.Id,
                     Name = c.Name,
                     ProductTypeId = c.ProductTypeId,
                     ProductTypeName = c.ProductTypeName
                 }).ToList();
+            
+            model.ProductTypes = (await _categoryService.GetAllProductTypesAsync())
+                .Select(t => new SelectListItem
+                {
+                    Value = t.Id.ToString(),
+                    Text = t.Name
+                })
+                .ToList();
 
             return View(model);
         }

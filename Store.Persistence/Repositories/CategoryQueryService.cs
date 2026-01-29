@@ -17,9 +17,13 @@ namespace Store.Persistence.Repositories
         public async Task<List<CategoryDto>> GetAllAsync()
         {
             return await _db.Categories
+                .AsNoTracking()
+                .Where(c =>
+                    c.Products.Any(p => p.IsActive)
+                )
                 .Include(c => c.ProductType)
-                .OrderBy(с => с.ProductType.Id)
-                .ThenBy(с => с.Name)
+                .OrderBy(c => c.ProductType.SortOrder)
+                .ThenBy(c => c.Name)
                 .Select(c => new CategoryDto
                 {
                     Id = c.Id,
@@ -30,6 +34,7 @@ namespace Store.Persistence.Repositories
                 })
                 .ToListAsync();
         }
+
 
         public async Task<CategoryDto?> GetByIdAsync(int categoryId)
         {
