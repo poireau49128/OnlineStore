@@ -10,6 +10,19 @@
     <div class="row">
         <partial name="_AdminSidebar" />
         <main class="col">
+            @* <form method="get" class="row g-2 mb-4">
+                <div class="col-auto">
+                    <select name="status" class="form-select" onchange="this.form.submit()">
+                        <option value="">Все статусы</option>
+                        @foreach (OrderStatus s in Enum.GetValues(typeof(OrderStatus)))
+                        {
+                            <option value="@s" selected="@(Context.Request.Query["status"] == s.ToString())">
+                                @s.ToUserText()
+                            </option>
+                        }
+                    </select>
+                </div>
+            </form> *@
             <form method="get" class="row g-2 mb-4">
                 <div class="col-auto">
                     <select name="status" class="form-select" onchange="this.form.submit()">
@@ -22,7 +35,15 @@
                         }
                     </select>
                 </div>
+
+                <div class="col-auto">
+                    <a class="btn btn-outline-success"
+                    href="@Url.Action("Export", new { status = Context.Request.Query["status"] })">
+                        ⬇ Экспорт в Excel
+                    </a>
+                </div>
             </form>
+
             <h2>Заказы</h2>
 
             @if (!Model.Any())

@@ -48,8 +48,33 @@ public sealed class OrderRepository : IOrderRepository
             .Include(o => o.Items)
                 .ThenInclude(i => i.ProductVariant)
                     .ThenInclude(v => v.Product)
+            .Include(o => o.Items)
+                .ThenInclude(i => i.Warehouse)
             .OrderByDescending(o => o.CreatedAt)
             .ToListAsync();
     }
+
+    public async Task<List<OrderWithUserEmail>> GetAllWithEmailsAsync()
+    {
+        var ordersQuery = _db.Orders
+            .Include(o => o.Items)
+                .ThenInclude(i => i.ProductVariant)
+                    .ThenInclude(v => v.Product)
+            .Include(o => o.Items)
+                .ThenInclude(i => i.Warehouse);
+
+        return await ordersQuery
+            .Join(_db.Users, 
+                order => order.UserId, 
+                user => user.Id, 
+                (order, user) => new OrderWithUserEmail 
+                { 
+                    Order = order, 
+                    Email = user.Email ?? "N/A" 
+                })
+            .OrderByDescending(x => x.Order.CreatedAt)
+            .ToListAsync();
+    }
+
 
 }

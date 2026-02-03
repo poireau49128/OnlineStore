@@ -8,4 +8,5 @@ public interface IOrderRepository
     Task<Order?> GetByIdAsync(int id);
 
     Task<List<Order>> GetAllAsync();
+    Task<List<OrderWithUserEmail>> GetAllWithEmailsAsync();
 }

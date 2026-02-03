@@ -75,15 +75,16 @@ builder.Services.AddScoped<IUserRoleService, UserRoleService>();
 builder.Services.AddScoped<IProductCatalogQueryService, ProductCatalogQueryService>();
 builder.Services.AddScoped<IProductStockQueryService, ProductStockQueryService>();
 builder.Services.AddScoped<ICategoryQueryService, CategoryQueryService>();
-
-
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IProductAdminService, ProductAdminService>();
 builder.Services.AddScoped<IProductImageService, ProductImageService>();
 builder.Services.AddScoped<ICategoryAutocompleteService, CategoryAutocompleteService>();
-
 builder.Services.AddScoped<ICategoryCommandService, CategoryCommandService>();
 builder.Services.AddScoped<ICategoryAutocompleteService, CategoryAutocompleteService>();
+builder.Services.AddScoped<ICustomerCategoryDiscountAdminService, CustomerCategoryDiscountAdminService>();
+builder.Services.AddScoped<IProductTypeAdminQueryService, ProductTypeAdminQueryService>();
+builder.Services.AddScoped<IAdminOrderExportService, AdminOrderExportService>();
+
 
 
 var mvcBuilder = builder.Services.AddControllersWithViews();

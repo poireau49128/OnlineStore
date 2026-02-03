@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Store.Application.Interfaces.Admin;
 using Store.Domain.Enums;
 
 [Area("Admin")]
@@ -7,10 +8,13 @@ using Store.Domain.Enums;
 public class OrdersController : Controller
 {
     private readonly IAdminOrderQueryService _queryService;
+    private readonly IAdminOrderExportService _exportService;
 
-    public OrdersController(IAdminOrderQueryService queryService)
+    public OrdersController(IAdminOrderQueryService queryService,
+        IAdminOrderExportService exportService)
     {
         _queryService = queryService;
+        _exportService = exportService;
     }
 
     public async Task<IActionResult> Index(OrderStatus? status)
@@ -83,5 +87,21 @@ public class OrdersController : Controller
                 })
         });
     }
+
+    [HttpGet]
+    public async Task<IActionResult> Export(OrderStatus? status)
+    {
+        var file = await _exportService.ExportAsync(status);
+
+        var fileName = $"orders_{status?.ToString() ?? "all"}_{DateTime.UtcNow:yyyyMMddHHmm}.xlsx";
+
+        return File(
+            file,
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            fileName
+        );
+    }
+
+
 
 }

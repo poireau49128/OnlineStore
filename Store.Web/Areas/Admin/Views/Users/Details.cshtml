@@ -58,6 +58,96 @@
                         <button type="submit" class="btn btn-warning mt-2">Сбросить пароль</button>
                     </form>
 
+                    <!-- Список скидок -->
+                    <h4 class="mt-4">Скидки по категориям</h4>
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Тип</th>
+                                <th>Категория</th>
+                                <th>%</th>
+                                <th>До</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var d in Model.CategoryDiscounts)
+                            {
+                                <tr>
+                                    <td>@d.ProductTypeName</td>
+                                    <td>@d.CategoryName</td>
+                                    <td>@d.DiscountPercent%</td>
+                                    <td>@(d.Expiration?.ToString("dd.MM.yyyy") ?? "∞")</td>
+                                    <td>
+                                        <form asp-action="RemoveCategoryDiscount" method="post">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="discountId" value="@d.Id" />
+                                            <input type="hidden" name="userId" value="@Model.Id" />
+                                            <button class="btn btn-sm btn-danger">✕</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+
+                    <h5 class="mt-4">Добавить скидку</h5>
+                    <form asp-action="AddCategoryDiscount" method="post" class="row g-2">
+                        @Html.AntiForgeryToken()
+
+                        <input type="hidden" name="userId" value="@Model.Id" />
+
+                        <div class="col-md-3">
+                            <label class="form-label">Тип товара</label>
+                            <select id="typeSelect" class="form-select">
+                                <option value="">— выберите —</option>
+                                @foreach (var type in Model.ProductTypes)
+                                {
+                                    <option value="@type.Id">@type.Name</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label">Категория</label>
+                            <select id="categorySelect" name="categoryId" class="form-select" required>
+                                <option value="">— выберите тип —</option>
+                                @foreach (var type in Model.ProductTypes)
+                                {
+                                    foreach (var cat in type.Categories)
+                                    {
+                                        <option value="@cat.Id" data-type="@type.Id">
+                                            @cat.Name
+                                        </option>
+                                    }
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label class="form-label">Скидка %</label>
+                            <input type="number"
+                                name="percent"
+                                class="form-control"
+                                min="1"
+                                max="100"
+                                required />
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label">Действует до</label>
+                            <input type="date"
+                                name="expiration"
+                                class="form-control" />
+                        </div>
+
+                        <div class="col-md-1 d-flex align-items-end">
+                            <button class="btn btn-success w-100">+</button>
+                        </div>
+                    </form>
+
+
+
                     <!-- Список заказов -->
                     <h4 class="mt-4">Заказы пользователя</h4>
                     <table class="table table-striped">
@@ -85,9 +175,30 @@
                             }
                         </tbody>
                     </table>
+
                 </div>
             </div>
             <a asp-action="Index" class="btn btn-link mt-3">← Назад</a>
         </main>
     </div>
 </div>
+
+@section Scripts{
+    <script>
+        const typeSelect = document.getElementById('typeSelect');
+        const categorySelect = document.getElementById('categorySelect');
+
+        typeSelect.addEventListener('change', () => {
+            const typeId = typeSelect.value;
+
+            Array.from(categorySelect.options).forEach(opt => {
+                if (!opt.dataset.type) return;
+
+                opt.hidden = opt.dataset.type !== typeId;
+            });
+
+            categorySelect.value = '';
+        });
+    </script>
+
+}

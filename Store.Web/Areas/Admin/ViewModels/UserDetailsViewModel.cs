@@ -1,3 +1,5 @@
+using Store.Domain.Entities;
+
 namespace Store.Web.Areas.Admin.ViewModels;
 
 public sealed class UserDetailsViewModel
@@ -8,4 +10,7 @@ public sealed class UserDetailsViewModel
     public string? Address { get; init; }
     public List<UserOrderDto> Orders { get; set; } = new();
     public bool IsAdmin { get; init; }
+    public List<UserCategoryDiscountViewModel> CategoryDiscounts { get; init; } = new();
+    public List<ProductTypeWithCategoriesDto> ProductTypes { get; init; } = new();
+
 }
