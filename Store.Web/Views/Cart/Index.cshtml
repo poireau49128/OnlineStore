@@ -1,19 +1,25 @@
 @model Store.Web.ViewModels.Cart.CartViewModel
 
-<h2>🛒 Корзина</h2>
+<div class="container mt-5">
+
+<h2 class="mb-4" style="color:#1F3A8A;">Корзина</h2>
 
 @if (!Model.Items.Any())
 {
-    <div class="alert alert-info">
+    <div class="empty-cart-box">
         <p>Ваша корзина пуста</p>
+        <a asp-controller="Product"
+           asp-action="Index"
+           class="btn btn-primary mt-3">
+            Перейти в каталог
+        </a>
     </div>
-    <a asp-controller="Product" asp-action="Index" class="btn btn-primary">← В каталог</a>
 }
 else
 {
-    <div class="table-responsive">
-        <table class="table table-hover">
-            <thead class="table-light">
+    <div class="table-responsive cart-table-wrapper">
+        <table class="table align-middle">
+            <thead>
                 <tr>
                     <th>Товар</th>
                     <th>Склад</th>
@@ -27,26 +33,47 @@ else
                 @foreach (var item in Model.Items)
                 {
                     <tr class="cart-item" data-item-id="@item.Id">
-                        <td>@item.ProductName @item.Color @(! string.IsNullOrEmpty(item.Size) ? $"({item.Size})" : "")</td>
-                        <td>@item.WarehouseName</td>
                         <td>
-                            <div class="input-group" style="width: 120px;">
-                                <button class="btn btn-sm btn-outline-secondary qty-minus" type="button" data-item-id="@item.Id" @(item.Quantity <= 1 ? "disabled" : "")>
-                                    −
-                                </button>
-                                <input type="text" class="form-control text-center qty-input" value="@item.Quantity" readonly style="padding: 0.25rem; font-weight: 600;">
-                                <button class="btn btn-sm btn-outline-secondary qty-plus" type="button" data-item-id="@item.Id" data-max="@item.AvailableQuantity" @(item.Quantity >= item.AvailableQuantity ?  "disabled" : "")>
-                                    +
-                                </button>
+                            <div class="fw-semibold">@item.ProductName</div>
+                            <div class="text-muted small">
+                                @item.Color @(!string.IsNullOrEmpty(item.Size) ? $"({item.Size})" : "")
                             </div>
                         </td>
+
+                        <td>@item.WarehouseName</td>
+
+                        <td>
+                            <div class="input-group">
+                                <button class="btn btn-sm btn-outline-secondary qty-minus"
+                                        type="button"
+                                        data-item-id="@item.Id"
+                                        @(item.Quantity <= 1 ? "disabled" : "")>−</button>
+
+                                <input type="text"
+                                       class="form-control text-center qty-input"
+                                       value="@item.Quantity"
+                                       readonly>
+
+                                <button class="btn btn-sm btn-outline-secondary qty-plus"
+                                        type="button"
+                                        data-item-id="@item.Id"
+                                        data-max="@item.AvailableQuantity"
+                                        @(item.Quantity >= item.AvailableQuantity ? "disabled" : "")>+</button>
+                            </div>
+                        </td>
+
                         <td>@item.UnitPrice.Amount.ToString("0.00") @item.UnitPrice.Currency</td>
-                        <td class="total-price" data-total="@(item.Quantity * item.UnitPrice.Amount)">
+
+                        <td class="total-price"
+                            data-total="@(item.Quantity * item.UnitPrice.Amount)">
                             @(item.Quantity * item.UnitPrice.Amount) @item.UnitPrice.Currency
                         </td>
+
                         <td>
-                            <button class="btn btn-sm btn-danger btn-remove" type="button" data-item-id="@item.Id">
-                                🗑️ Удалить
+                            <button class="btn btn-sm btn-outline-danger btn-remove"
+                                    type="button"
+                                    data-item-id="@item.Id">
+                                Удалить
                             </button>
                         </td>
                     </tr>
@@ -55,23 +82,56 @@ else
         </table>
     </div>
 
-    <div class="row mt-4">
-        <div class="col-md-8">
-            <a asp-controller="Product" asp-action="Index" class="btn btn-outline-secondary">← Продолжить покупки</a>
+    <div class="row mt-5">
+        <div class="col-md-7">
+            <a asp-controller="Product"
+               asp-action="Index"
+               class="btn btn-outline-secondary">
+                Продолжить покупки
+            </a>
         </div>
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Сумма заказа</h5>
-                    <h4 id="total-amount">@Model.Total.Amount.ToString("0.00") @Model.Total.Currency</h4>
-                    <a asp-controller="Order" asp-action="Checkout" class="btn btn-success w-100 mt-3">
-                        ✓ Оформить заказ
-                    </a>
-                </div>
+
+        <div class="col-md-5">
+            <div class="cart-summary-card">
+                <h5>Сумма заказа</h5>
+                <h3 id="total-amount">
+                    @Model.Total.Amount.ToString("0.00") @Model.Total.Currency
+                </h3>
+                <a asp-controller="Order"
+                   asp-action="Checkout"
+                   class="btn btn-success w-100 mt-3">
+                    Оформить заказ
+                </a>
             </div>
         </div>
     </div>
 }
+
+</div>
+
+<style>
+.cart-table-wrapper {
+    background:white;
+    border-radius:20px;
+    padding:30px;
+    box-shadow:0 15px 40px rgba(0,0,0,0.06);
+}
+
+.cart-summary-card {
+    background:white;
+    border-radius:20px;
+    padding:30px;
+    box-shadow:0 15px 40px rgba(0,0,0,0.06);
+}
+
+.empty-cart-box {
+    background:white;
+    padding:60px;
+    border-radius:20px;
+    text-align:center;
+    box-shadow:0 15px 40px rgba(0,0,0,0.05);
+}
+</style>
 
 @Html.AntiForgeryToken()
 
@@ -205,46 +265,4 @@ else
         });
     });
 </script>
-
-<style>
-    .table-responsive {
-        overflow-x: auto;
-    }
-
-    .table-hover tbody tr:hover {
-        background-color: rgba(0, 123, 255, 0.05);
-    }
-
-    .input-group {
-        max-width: 120px;
-    }
-
-    @@keyframes fadeOut {
-        to {
-            opacity: 0;
-            transform: translateX(-20px);
-        }
-    }
-
-    .alert-notification {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 9999;
-        min-width: 300px;
-        animation: slideIn 0.3s ease-out;
-        box-shadow: 0 4px 12px rgba(0,0,0,.15);
-    }
-
-    @@keyframes slideIn {
-        from {
-            transform: translateX(400px);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-</style>
 }

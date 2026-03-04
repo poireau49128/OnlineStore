@@ -4,150 +4,227 @@
     ViewData["Title"] = "Каталог товаров";
 }
 
-<div class="container mt-5">
-    <div class="row">
-        <div class="col-md-3">
-            <h4>Фильтры</h4>
+<div class="container">
 
-            <form method="get" class="mb-4">
-                <div class="input-group">
-                    <input type="text"
-                        name="searchTerm"
-                        class="form-control"
-                        placeholder="Поиск товара..."
-                        value="@Model.SearchTerm" />
-                    <button class="btn btn-primary" type="submit">🔍</button>
-                </div>
-            </form>
-
-            <h5 class="mb-3">Категории</h5>
-
-            <a href="@Url.Action("Index", "Product")"
-            class="btn btn-outline-primary btn-sm d-block mb-2
-            @(Model.SelectedCategoryId == null ? "active" : "")">
-                Все товары
-            </a>
-
-            <div class="accordion" id="categoryFilter">
-                @foreach (var group in Model.CategoryGroups)
-                {
-                    var collapseId = $"type-{group.ProductTypeId}";
-                    var isExpanded = group.Categories.Any(c => c.Id == Model.SelectedCategoryId);
-
-                    <div class="accordion-item mb-2">
-                        <h2 class="accordion-header">
-                            <button class="accordion-button py-2 @(isExpanded ? "" : "collapsed")"
-                                    type="button"
-                                    data-bs-toggle="collapse"
-                                    data-bs-target="#@collapseId"
-                                    aria-expanded="@(isExpanded.ToString().ToLower())">
-                                @group.ProductTypeName
-                            </button>
-                        </h2>
-
-                        <div id="@collapseId"
-                            class="accordion-collapse collapse @(isExpanded ? "show" : "")"
-                            data-bs-parent="#categoryFilter">
-                            <div class="accordion-body p-2">
-                                @foreach (var category in group.Categories)
-                                {
-                                    <a href="@Url.Action("Index", "Product", new { categoryId = category.Id, page = 1 })"
-                                    class="btn btn-outline-primary btn-sm d-block mb-1
-                                    @(Model.SelectedCategoryId == category.Id ? "active" : "")">
-                                        @category.Name
-                                    </a>
-                                }
-                            </div>
-                        </div>
-                    </div>
-                }
-            </div>
+    <!-- Hero Section -->
+    <div class="catalog-hero">
+        <div class="hero-content">
+            <h1>@ViewData["Title"]</h1>
+            <p>Современные интерьерные решения и мебельные панели.</p>
         </div>
+    </div>
 
+    <div class="row g-5 mt-4">
 
+        <!-- Sidebar -->
+        <div class="col-lg-3">
+            <div class="catalog-sidebar">
 
+                <h6 class="sidebar-title">Фильтры</h6>
 
+                <form method="get" class="mb-4">
+                    <div class="input-group">
+                        <input type="text"
+                               name="searchTerm"
+                               class="form-control"
+                               placeholder="Поиск..."
+                               value="@Model.SearchTerm" />
+                        <button class="btn btn-primary">Найти</button>
+                    </div>
+                </form>
 
+                <a href="@Url.Action("Index", "Product")"
+                   class="filter-link @(Model.SelectedCategoryId == null ? "active" : "")">
+                    Все товары
+                </a>
 
-
-
-
-
-
-
-        <!-- Основной контент -->
-        <div class="col-md-9">
-            <h2>@ViewData["Title"]</h2>
-
-            @if (!Model.Products.Any())
-            {
-                <div class="alert alert-info">😕 Товары не найдены. Попробуйте изменить фильтры.</div>
-            }
-            else
-            {
-                <div class="row">
-                    @foreach (var product in Model.Products)
+                <div class="accordion mt-3" id="categoryFilter">
+                    @foreach (var group in Model.CategoryGroups)
                     {
-                        <div class="col-md-6 col-lg-4 mb-4">
-                            <div class="card h-100 shadow-sm product-card">
-                                <img src="@ToThumb(Url.Content(product.ImagePath))"
-                                    class="card-img-top fade-img"
-                                    loading="lazy"
-                                    onload="this.classList.add('loaded')"
-                                    alt="@product.Name"
-                                    style="height:250px;object-fit:contain;">
+                        var collapseId = $"type-{group.ProductTypeId}";
+                        var isExpanded = group.Categories.Any(c => c.Id == Model.SelectedCategoryId);
 
-                                <div class="card-body">
-                                    <h5 class="card-title">@product.Name</h5>
-                                    <p class="card-text text-muted small">@product.CategoryName</p>
-                                    <h4 class="text-primary">@($"{product.Price?.Amount ?? 0:0.00} {product.Price?.Currency ?? "BYN"}")</h4>
-                                </div>
+                        <div class="accordion-item border-0">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button @(isExpanded ? "" : "collapsed")"
+                                        type="button"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target="#@collapseId">
+                                    @group.ProductTypeName
+                                </button>
+                            </h2>
 
-                                <div class="card-footer bg-white">
-                                    <a href="@Url.Action("Details", "Product", new { id = product.Id })" class="btn btn-primary btn-sm w-100">Подробнее</a>
+                            <div id="@collapseId"
+                                 class="accordion-collapse collapse @(isExpanded ? "show" : "")">
+                                <div class="accordion-body">
+                                    @foreach (var category in group.Categories)
+                                    {
+                                        <a href="@Url.Action("Index", "Product", new { categoryId = category.Id, page = 1 })"
+                                           class="filter-link @(Model.SelectedCategoryId == category.Id ? "active" : "")">
+                                            @category.Name
+                                        </a>
+                                    }
                                 </div>
                             </div>
                         </div>
                     }
                 </div>
 
-                <!-- Пагинация -->
-                <nav aria-label="Page navigation" class="mt-4">
-                    <ul class="pagination justify-content-center">
-                        @if (Model.Products.HasPreviousPage)
-                        {
-                            <li class="page-item">
-                                <a class="page-link" href="@Url.Action("Index", "Product", new { page = Model.Products.PageNumber - 1, categoryId = Model.SelectedCategoryId, searchTerm = Model.SearchTerm })">← Назад</a>
-                            </li>
-                        }
-                        @for (int i = 1; i <= Model.Products.PageCount; i++)
-                        {
-                            <li class="page-item @(i == Model.Products.PageNumber ? "active" : "")">
-                                <a class="page-link" href="@Url.Action("Index", "Product", new { page = i, categoryId = Model.SelectedCategoryId, searchTerm = Model.SearchTerm })">@i</a>
-                            </li>
-                        }
-                        @if (Model.Products.HasNextPage)
-                        {
-                            <li class="page-item">
-                                <a class="page-link" href="@Url.Action("Index", "Product", new { page = Model.Products.PageNumber + 1, categoryId = Model.SelectedCategoryId, searchTerm = Model.SearchTerm })">Вперёд →</a>
-                            </li>
-                        }
-                    </ul>
-                    <div class="text-center text-muted">
-                        <small>Страница @Model.Products.PageNumber из @Model.Products.PageCount | Всего: @Model.Products.TotalItemCount товаров</small>
+            </div>
+        </div>
+
+        <!-- Products -->
+        <div class="col-lg-9">
+
+            <div class="row g-4">
+                @foreach (var product in Model.Products)
+                {
+                    <div class="col-md-6 col-xl-4">
+                        <div class="product-card-modern">
+
+                            <div class="product-image-modern">
+                                <img src="@ToThumb(Url.Content(product.ImagePath))"
+                                     class="fade-img"
+                                     loading="lazy"
+                                     onload="this.classList.add('loaded')"
+                                     alt="@product.Name">
+                            </div>
+
+                            <div class="product-info-modern">
+                                <h6>@product.Name</h6>
+                                <span class="category-label">@product.CategoryName</span>
+
+                                <div class="price-row">
+                                    <div class="price">
+                                        @($"{product.Price?.Amount ?? 0:0.00} {product.Price?.Currency ?? "BYN"}")
+                                    </div>
+
+                                    <a href="@Url.Action("Details", "Product", new { id = product.Id })"
+                                       class="details-btn">
+                                        Подробнее
+                                    </a>
+                                </div>
+                            </div>
+
+                        </div>
                     </div>
-                </nav>
-            }
+                }
+            </div>
+
         </div>
     </div>
 </div>
 
 @section Styles {
-    <style>
-        .product-card { transition: transform 0.2s, box-shadow 0.2s; }
-        .product-card:hover { transform: translateY(-5px); box-shadow: 0 8px 16px rgba(0,0,0,0.2) !important; }
-        .btn-outline-primary.active { background-color: #0d6efd; color: white; }
-    </style>
+<style>
+
+/* HERO */
+.catalog-hero {
+    background: linear-gradient(120deg, #1F3A8A, #3A6EA5);
+    padding: 60px;
+    border-radius: 18px;
+    color: white;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.08);
+}
+
+.catalog-hero h1 {
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.catalog-sidebar {
+    background: white;
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+}
+
+.filter-link {
+    display: block;
+    padding: 8px 0;
+    color: #334155;
+    text-decoration: none;
+    transition: .2s;
+}
+
+.filter-link:hover {
+    color: #1F3A8A;
+    padding-left: 4px;
+}
+
+.filter-link.active {
+    color: #C49A6C;
+    font-weight: 600;
+}
+
+/* Product Card */
+.product-card-modern {
+    background: white;
+    border-radius: 18px;
+    overflow: hidden;
+    transition: all .3s ease;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+}
+
+.product-card-modern:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.08);
+}
+
+.product-image-modern {
+    height: 240px;
+    background: #F8FAFC;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.product-image-modern img {
+    max-height: 100%;
+    transition: transform .4s ease;
+}
+
+.product-card-modern:hover img {
+    transform: scale(1.05);
+}
+
+.product-info-modern {
+    padding: 20px;
+}
+
+.category-label {
+    font-size: 0.8rem;
+    color: #64748B;
+}
+
+.price-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 15px;
+}
+
+.price {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: #1F3A8A;
+}
+
+.details-btn {
+    background: #C49A6C;
+    color: white;
+    padding: 6px 14px;
+    border-radius: 50px;
+    text-decoration: none;
+    transition: .3s;
+}
+
+.details-btn:hover {
+    background: #b78957;
+    transform: translateY(-2px);
+}
+
+</style>
 }
 
 @functions {

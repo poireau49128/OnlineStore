@@ -6,15 +6,31 @@
 }
 
 @section Styles {
-    @if (Model.Variants.Any() && Model.Variants.First().Images.Any())
-    {
-        <link rel="preload"
-            as="image"
-            href="@Url.Content(Model.Variants.First().Images.First().Replace("/variant/", "/thumb/"))">
-    }
+
+@if (Model.Variants.Any() && Model.Variants.First().Images.Any())
+{
+    <link rel="preload"
+          as="image"
+          href="@Url.Content(Model.Variants.First().Images.First().Replace("/variant/", "/thumb/"))">
+}
 
 <style>
-    .carousel-control-prev-icon,
+
+/* ===== Layout ===== */
+
+.details-wrapper {
+    background: white;
+    border-radius: 20px;
+    padding: 50px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.06);
+}
+
+/* ===== Gallery ===== */
+.carousel-control-prev, .carousel-control-next {
+    z-index: 9;
+}
+
+.carousel-control-prev-icon,
     .carousel-control-next-icon {
         filter: drop-shadow(0 0 2px rgba(0,0,0,0.5));
         background-color: rgba(0, 0, 0, 0.2);
@@ -26,61 +42,115 @@
     .carousel-control-next:hover .carousel-control-next-icon {
         background-color: rgba(0, 0, 0, 0.5);
     }
-    #productGallery .carousel-inner {
-        height: 500px;
-        background-color: #f8f9fa;
-        border-radius: 8px;
-    }
-    #productGallery .carousel-item {
-        height: 100%;
-    }
 
-    #modalCarousel .carousel-inner {
-        height: 90vh;
-        background-color: transparent;
-        display: flex;
-        align-items: center;
-    }
+#productGallery {
+    border-radius: 18px;
+    border: 1px solid rgba(0,0,0,.1); /* restored old border */
+    background: #F8FAFC;
+    position: relative;
+}
 
-    #modalCarousel .carousel-item {
-        height: 100%;
-        text-align: center;
-    }
+#productGallery .carousel-inner {
+    height: 520px;
+    background: #F8FAFC;
+    border-radius: 18px;
+}
 
-    #modalCarousel .carousel-item img {
-        max-height: 100%;
-        width: auto;
-        margin: 0 auto;
-        position: relative;
-        top: 50%;
-        transform: translateY(-50%);
-        object-fit: contain;
-    }
+#productGallery .carousel-item {
+    height: 100%;
+}
 
-    #productGallery .carousel-item img {
-        height: 100%;
-        width: 100%;
-        object-fit: contain;
-    }
+#productGallery img {
+    transition: transform .5s ease;
+}
 
-    #modalImage {
-        max-height: 90vh; 
-        width: auto;
-        object-fit: contain;
-        border-radius: 4px;
-    }
+#productGallery .carousel-item img {
+    height: 100%;
+    width: 100%;
+    object-fit: contain;
+    transition: transform .35s ease;
+    cursor: pointer;
+    position: relative;
+    z-index: 1;
+}
 
-    #imageModal .modal-body {
-        padding: 0.5rem;
-    }
+#productGallery .carousel-item img:hover {
+    transform: scale(1.06);
+    z-index: 5;
+}
 
-    #imageModal {
-        overflow: hidden;
-    }
+#productGallery img:hover {
+    transform: scale(1.04);
+}
 
+/* ===== Titles ===== */
 
+.product-title {
+    font-weight: 600;
+    font-size: 2rem;
+    color: #1F3A8A;
+}
 
-    input[type=number]: :-webkit-inner-spin-button,
+.product-price {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: #1F3A8A;
+}
+
+/* ===== Badges ===== */
+
+.badge-custom {
+    background: #E2E8F0;
+    color: #334155;
+    font-weight: 500;
+    padding: 6px 10px;
+    border-radius: 50px;
+}
+
+/* ===== Variants ===== */
+
+.color-variant {
+    border-radius: 50px;
+    padding: 6px 16px;
+    border: 1px solid #CBD5E1;
+    transition: all .25s ease;
+}
+
+.color-variant:hover {
+    transform: translateY(-2px);
+    border-color: #3A6EA5;
+}
+
+.color-variant.selected {
+    background: #1F3A8A !important;
+    color: white !important;
+    border-color: #1F3A8A !important;
+    box-shadow: 0 8px 20px rgba(31,58,138,0.25);
+}
+
+/* ===== Warehouse ===== */
+
+.warehouse-btn {
+    border-radius: 12px;
+    padding: 10px 16px;
+    border: 1px solid #CBD5E1;
+    background: white;
+}
+
+.warehouse-btn.selected {
+    background: #3A6EA5 !important;
+    color: white !important;
+    border-color: #3A6EA5 !important;
+    box-shadow: 0 10px 25px rgba(58,110,165,0.3);
+}
+
+/* ===== Quantity ===== */
+
+#quantity {
+    font-weight: 600;
+}
+
+input[type=number]: :-webkit-inner-spin-button,
     input[type=number]: :-webkit-outer-spin-button {
         -webkit-appearance:  none;
         margin: 0;
@@ -90,173 +160,151 @@
         -moz-appearance: textfield;
     }
 
-    .warehouse-btn.selected {
-        background-color: #0d6efd;
-        color:  white;
-    }
+/* ===== Add to cart ===== */
 
-    .warehouse-btn {
-        transition: all 0.2s ease;
-    }
+#addToCartBtn {
+    background: #C49A6C;
+    border: none;
+    border-radius: 50px;
+    padding: 14px;
+    font-weight: 500;
+    transition: all .3s ease;
+}
 
-    #addToCartBtn {
-        transition: all 0.2s ease;
-        min-width: 200px;
-    }
+#addToCartBtn:hover {
+    background: #b78957;
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(196,154,108,0.35);
+}
 
-    #addToCartBtn:disabled {
-        opacity: 0.7;
-    }
+/* ===== Modal ===== */
 
-    #mainProductImage {
-        transition: transform 0.3s ease;
-        cursor: pointer;
-    }
+#modalCarousel .carousel-inner {
+    height: 90vh;
+    background-color: transparent;
+    display: flex;
+    align-items: center;
+}
 
-    #mainProductImage:hover {
-        transform: scale(1.02);
-    }
+#modalCarousel .carousel-item {
+    height: 100%;
+    text-align: center;
+}
 
-    .color-variant {
-        transition: all 0.2s ease;
-        border:  2px solid transparent;
-        cursor: pointer;
-    }
+#modalCarousel .carousel-item img {
+    max-height: 100%;
+    width: auto;
+    margin: 0 auto;
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+    object-fit: contain;
+}
 
-    .color-variant.selected {
-        background-color: #0d6efd ! important;
-        color: white ! important;
-        border:  2px solid #0a58ca !important;
-        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
-        font-weight: 600;
-    }
+#imageModal .modal-body {
+    padding: 0.5rem;
+}
 
-    .warehouse-btn {
-        transition: all 0.2s ease;
-        border: 2px solid transparent;
-        cursor: pointer;
-    }
-
-    .warehouse-btn.selected {
-        background-color: #0d6efd !important;
-        color: white !important;
-        border: 2px solid #0a58ca !important;
-        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
-        font-weight: 600;
-    }
-
-    #imageModal .modal-backdrop.show {
-        opacity: 0.9;
-    }
-
-    #modalCarousel .carousel-control-prev-icon,
-    #modalCarousel .carousel-control-next-icon {
-        width: 3rem;
-        height: 3rem;
-        background-color: rgba(0, 0, 0, 0.3);
-        border-radius: 50%;
-        background-size: 50%;
-    }
-
-    #imageModal .modal-dialog {
-        pointer-events: none;
-    }
-    #imageModal .modal-content {
-        pointer-events: auto;
-    }
+#imageModal {
+    overflow: hidden;
+}
 
 </style>
 }
 
 <div class="container mt-5">
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Product")">Каталог</a></li>
-            <li class="breadcrumb-item">
-                <a href="@Url.Action("Index", "Product", new { categoryId = Model.CategoryId })">@Model.CategoryName</a>
-            </li>
-            <li class="breadcrumb-item active">@Model.Name</li>
-        </ol>
-    </nav>
+    <div class="details-wrapper">
 
-    <div class="row">
-        <div class="col-md-6">
-            <div id="productGallery"></div>
-        </div>
+        <nav class="mb-4">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item">
+                    <a href="@Url.Action("Index", "Product")">Каталог</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="@Url.Action("Index", "Product", new { categoryId = Model.CategoryId })">
+                        @Model.CategoryName
+                    </a>
+                </li>
+                <li class="breadcrumb-item active">@Model.Name</li>
+            </ol>
+        </nav>
 
-        <div class="col-md-6">
-            <h1>@Model.Name</h1>
-            <p class="text-muted">
-                <span class="badge bg-secondary">@Model.ProductTypeName</span>
-                <span class="badge bg-info">@Model.CategoryName</span>
-            </p>
+        <div class="row g-5">
 
-            @if (!string.IsNullOrEmpty(Model.Sku))
-            {
-                <p class="small text-secondary"><strong>Артикул:</strong> @Model.Sku</p>
-            }
+            <div class="col-lg-6">
+                <div id="productGallery"></div>
+            </div>
 
-            <h2 id="productPrice" class="text-primary mb-3">
-                @($"{Model.BasePrice.Amount:0.00} {Model.BasePrice.Currency}")
-            </h2>
+            <div class="col-lg-6">
 
-            @if (! string.IsNullOrEmpty(Model.Description))
-            {
-                <div class="mb-4">
-                    <h5>Описание</h5>
-                    <p>@Html.Raw(Model.Description)</p>
+                <h1 class="product-title">@Model.Name</h1>
+
+                <div class="mb-3">
+                    <span class="badge badge-custom">@Model.ProductTypeName</span>
+                    <span class="badge badge-custom">@Model.CategoryName</span>
                 </div>
-            }
 
-            <!-- Варианты цветов -->
-            @if (Model.Variants.Any())
-            {
+                @if (!string.IsNullOrEmpty(Model.Sku))
+                {
+                    <p class="text-muted small">Артикул: @Model.Sku</p>
+                }
+
+                <h2 id="productPrice" class="product-price mb-4">
+                    @($"{Model.BasePrice.Amount:0.00} {Model.BasePrice.Currency}")
+                </h2>
+
+                @if (!string.IsNullOrEmpty(Model.Description))
+                {
+                    <div class="mb-4">
+                        <h6 class="fw-semibold">Описание</h6>
+                        <div class="text-muted">@Html.Raw(Model.Description)</div>
+                    </div>
+                }
+
+                @if (Model.Variants.Any())
+                {
+                    <div class="mb-4">
+                        <h6 class="fw-semibold">Доступные варианты</h6>
+                        <div id="colors" class="d-flex flex-wrap gap-2 mt-2">
+                            @foreach (var v in Model.Variants)
+                            {
+                                <button class="btn color-variant"
+                                        type="button"
+                                        data-variant-id="@v.Id"
+                                        onclick="selectVariant(@v.Id)">
+                                    @v.Color @(v.Size != null ? $"({v.Size})" : "")
+                                </button>
+                            }
+                        </div>
+                    </div>
+                }
+
                 <div class="mb-4">
-                    <h5>Доступные цвета</h5>
-                    <div id="colors" class="d-flex gap-2 flex-wrap">
-                        @foreach (var v in Model.Variants)
-                        {
-                            <button class="btn btn-outline-secondary color-variant"
-                                    type="button" 
-                                    data-variant-id="@v.Id" 
-                                    onclick="selectVariant(@v.Id)">
-                                @v.Color @(v.Size != null ? $"({v.Size})" : "")
-                            </button>
-                        }
+                    <h6 class="fw-semibold">Наличие</h6>
+                    <div id="stocks"><p class="text-muted">Загрузка...</p></div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="quantity" class="form-label">Количество: </label>
+                    <div class="input-group mb-3" style="max-width: 200px;">
+                        <button class="btn btn-outline-secondary" type="button" id="qtyMinus" onclick="qtyMinus()">−</button>
+                        <input type="number" class="form-control text-center" value="1" min="1" id="quantity">
+                        <button class="btn btn-outline-secondary" type="button" id="qtyPlus" onclick="qtyPlus()">+</button>
                     </div>
                 </div>
-            }
 
-            <!-- Наличие на складах -->
-            <div class="mb-4">
-                <h5>Наличие на складах</h5>
-                <div id="stocks"><p class="text-muted">Загрузка...</p></div>
+                <button class="btn btn-lg w-100" id="addToCartBtn" onclick="addToCart()">
+                    <span id="btnText">Добавить в корзину</span>
+                    <span id="btnSpinner" style="display:none;">
+                        <span class="spinner-border spinner-border-sm"></span>
+                        Добавляем...
+                    </span>
+                </button>
+
             </div>
-
-            <!-- Выбор количества -->
-            <div class="mb-4">
-                <label for="quantity" class="form-label">Количество: </label>
-                <div class="input-group mb-3" style="max-width: 200px;">
-                    <button class="btn btn-outline-secondary" type="button" id="qtyMinus">−</button>
-                    <input type="number" class="form-control text-center" value="1" min="1" id="quantity">
-                    <button class="btn btn-outline-secondary" type="button" id="qtyPlus">+</button>
-                </div>
-            </div>
-
-            <!-- Кнопка добавления в корзину -->
-            <button class="btn btn-primary btn-lg w-100" id="addToCartBtn" onclick="addToCart()">
-                <span id="btnText">🛒 Добавить в корзину</span>
-                <span id="btnSpinner" style="display:  none;">
-                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                    Добавляем...
-                </span>
-            </button>
-
-            <hr>
         </div>
     </div>
 </div>
-
 
 <div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-xl">
@@ -547,8 +595,8 @@
             container.innerHTML = `
                 <img id="mainProductImage"
                     src="/img/no-image.png"
-                    class="img-fluid rounded shadow"
-                    style="height:500px; width:100%; object-fit:contain; background-color:#f8f9fa; cursor:pointer;" />
+                    class="img-fluid rounded"
+                    style="height:500px; width:100%; object-fit:contain; background-color:#f8f9fa; cursor:pointer; border: 1px solid rgba(0,0,0,.1)" />
             `;
             return;
         }
@@ -556,7 +604,7 @@
         // Если одно изображение
         if (images.length === 1) {
             container.innerHTML = `
-                <div style="height:500px; background-color:#f8f9fa;" class="rounded shadow">
+                <div style="height:500px; background-color:#f8f9fa; border: 1px solid rgba(0,0,0,.1)" class="rounded">
                     <img id="mainProductImage"
                         src="${toThumb(images[0])}"
                         class="img-fluid w-100 h-100 fade-img"
@@ -583,11 +631,11 @@
 
             const isFirst = i === 0;
             slides += `
-                <div class="carousel-item ${i === 0 ? 'active' : ''}">
+                <div class="carousel-item ${i === 0 ? 'active' : ''}" style="border: 1px solid rgba(0,0,0,.1)">
                     <img src="${toThumb(img)}"
                         ${isFirst ? '' : 'loading="lazy"'}
                         ${isFirst ? 'fetchpriority="high"' : ''}
-                        class="d-block w-100 rounded shadow fade-img"
+                        class="d-block w-100 rounded fade-img"
                         style="height:500px; width:100%; object-fit:contain; background-color:#f8f9fa; cursor:pointer;"
                         onload="this.classList.add('loaded')"
                         onclick="openImageModal('${img}')"
@@ -706,6 +754,20 @@
             });
         });
     });
+
+    
+
+    function qtyPlus() {
+        const qtyInput = document.getElementById('quantity');
+        qtyInput.value = qtyInput.valueAsNumber + 1;
+    }
+
+    function qtyMinus() {
+        const qtyInput = document.getElementById('quantity');
+        if (qtyInput.valueAsNumber > 1) {
+            qtyInput.value = qtyInput.valueAsNumber - 1;
+        }
+    }
 
 </script>
 }

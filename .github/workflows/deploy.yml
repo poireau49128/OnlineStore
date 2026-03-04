@@ -18,6 +18,24 @@ jobs:
     - name: Publish
       run: dotnet publish -c Release -r win-x64 --self-contained true -o ./deploy
 
+    - name: Create app_offline.htm
+      run: |
+        cat <<EOF > ./deploy/app_offline.htm
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8" />
+            <title>Обновление сайта</title>
+        </head>
+        <body>
+            <div style="text-align:center; margin-top:100px; font-family:Arial;">
+                <h1>Сайт временно недоступен</h1>
+                <p>Мы загружаем новую версию. Это займет всего минуту. Пожалуйста, обновите страницу позже.</p>
+            </div>
+        </body>
+        </html>
+        EOF
+
     - name: FTP Deploy
       uses: SamKirkland/FTP-Deploy-Action@v4.3.4
       with:
@@ -26,3 +44,10 @@ jobs:
         password: ${{ secrets.FTP_PASSWORD }}
         local-dir: ./deploy/
         server-dir: /test-publish.bekmanwood.by/
+
+    - name: Remove app_offline.htm
+      run: |
+        curl -u "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}" \
+             "ftp://${{ secrets.FTP_SERVER }}/test-publish.bekmanwood.by/app_offline.htm" \
+             -Q "DELE /test-publish.bekmanwood.by/app_offline.htm"
+      continue-on-error: true

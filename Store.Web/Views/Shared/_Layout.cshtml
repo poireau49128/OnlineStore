@@ -4,124 +4,150 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@ViewData["Title"] - BekmaWood</title>
-    
+
     <link rel="stylesheet" href="~/Store.Web.styles.css" asp-append-version="true" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="~/css/site.css" rel="stylesheet">
-    
+
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
-    <!-- Toast container -->
-    <div id="toast-container"
-        class="position-fixed top-0 end-0 p-3"
-        style="z-index: 1100;">
+
+<div id="toast-container"
+     class="position-fixed top-0 end-0 p-3"
+     style="z-index:1100;"></div>
+
+<!-- HEADER -->
+<nav class="navbar navbar-expand-lg main-navbar">
+    <div class="container">
+
+        <a class="navbar-brand brand-logo" href="/">
+            BekmaWood
+        </a>
+
+        <button class="navbar-toggler"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-4">
+
+                <li class="nav-item">
+                    <a class="nav-link"
+                       asp-area=""
+                       asp-controller="Product"
+                       asp-action="Index">
+                        Каталог
+                    </a>
+                </li>
+
+                <li class="nav-item position-relative">
+                    <a class="nav-link"
+                       asp-area=""
+                       asp-controller="Cart"
+                       asp-action="Index"
+                       id="cart-icon">
+                        Корзина
+                        <span id="cart-count-badge"
+                              class="badge rounded-pill cart-badge"
+                              style="display:none;">0</span>
+                    </a>
+                </li>
+
+                <li class="nav-item dropdown">
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <a class="nav-link dropdown-toggle"
+                           href="#"
+                           role="button"
+                           data-bs-toggle="dropdown">
+                            @User.Identity.Name
+                        </a>
+
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <li>
+                                    <a class="dropdown-item"
+                                       asp-area="Admin"
+                                       asp-controller="Orders"
+                                       asp-action="Index">
+                                        Администрирование
+                                    </a>
+                                </li>
+                            }
+
+                            <li>
+                                <a class="dropdown-item"
+                                   asp-area=""
+                                   asp-controller="Account"
+                                   asp-action="Profile">
+                                    Профиль
+                                </a>
+                            </li>
+
+                            <li>
+                                <a class="dropdown-item"
+                                   asp-area=""
+                                   asp-controller="Order"
+                                   asp-action="UserOrders">
+                                    Мои заказы
+                                </a>
+                            </li>
+
+                            <li><hr class="dropdown-divider"></li>
+
+                            <li>
+                                <form asp-area=""
+                                      asp-controller="Account"
+                                      asp-action="Logout"
+                                      method="post"
+                                      class="px-3">
+                                    <button class="btn btn-link dropdown-item text-danger p-0">
+                                        Выйти
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    }
+                    else
+                    {
+                        <a class="btn login-btn"
+                           asp-area=""
+                           asp-controller="Account"
+                           asp-action="Login"
+                           asp-route-returnUrl="@Context.Request.Path">
+                            Войти
+                        </a>
+                    }
+                </li>
+
+            </ul>
+        </div>
     </div>
-    
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-            <a class="navbar-brand" href="/">🏠 BekmaWood</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link"
-                            asp-area=""
-                            asp-controller="Product"
-                            asp-action="Index">
-                                Каталог
-                        </a>
+</nav>
 
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link"
-                            asp-area=""
-                            asp-controller="Cart"
-                            asp-action="Index"
-                            id="cart-icon">
-                            🛒 Корзина
-                            <span id="cart-count-badge" class="position-absolute badge rounded-pill bg-danger" style="display: none;">0</span>
-                        </a>
-                    </li>
-                    <li class="nav-item dropdown">
-                        @if (User.Identity?.IsAuthenticated == true)
-                        {
-                            <a class="nav-link dropdown-toggle"
-                                href="#"
-                                role="button" data-bs-toggle="dropdown">
-                                👤 @User.Identity.Name
-                            </a>
+<main class="main-content">
+    @RenderBody()
+</main>
 
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                @if (User.IsInRole("Admin"))
-                                {
-                                    <li>
-                                        <a class="dropdown-item"
-                                        asp-area="Admin"
-                                        asp-controller="Orders"
-                                        asp-action="Index">
-                                            🛠 Админка
-                                        </a>
-                                    </li>
-                                }
+<footer class="main-footer">
+    <div class="container text-center">
+        <div class="footer-divider"></div>
+        <p>&copy; 2025 BekmaWood. Все права защищены.</p>
+    </div>
+</footer>
 
-                                <li>
-                                    <a class="dropdown-item" asp-area="" asp-controller="Account" asp-action="Profile">
-                                        ⚙️ Профиль
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" asp-area="" asp-controller="Order" asp-action="UserOrders">
-                                        📦 Мои заказы
-                                    </a>
-                                </li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="px-3">
-                                        <button class="btn btn-link dropdown-item text-danger">
-                                            🚪 Выйти
-                                        </button>
-                                    </form>
-                                </li>
-                            </ul>
-                        }
-                        else
-                        {
-                            <a class="btn btn-outline-light ms-2"
-                            asp-area=""
-                            asp-controller="Account"
-                            asp-action="Login"
-                            asp-route-returnUrl="@Context.Request.Path">
-                                👤 Войти
-                            </a>
-                        }
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+<input type="hidden" id="tempdata-success" value="@TempData["Success"]" />
+<input type="hidden" id="tempdata-error" value="@TempData["Error"]" />
 
-    <main class="py-4">
-        @RenderBody()
-    </main>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/_toast.js"></script>
 
-    <footer class="bg-dark text-white text-center py-4 mt-5">
-        <div class="container">
-            <p>&copy; 2025 BekmaWood.  Все права защищены.</p>
-        </div>
-    </footer>
-
-     <!-- TempData for toast -->
-    <input type="hidden" id="tempdata-success" value="@TempData["Success"]" />
-    <input type="hidden" id="tempdata-error" value="@TempData["Error"]" />
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/_toast.js"></script>
-
-    
-    <script>
+<script>
         async function updateCartBadge() {
             try {
                 const response = await fetch('/Cart/GetCount');
@@ -163,7 +189,7 @@
             updateCartBadge();
         }
     </script>
+@await RenderSectionAsync("Scripts", required: false)
 
-    @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
