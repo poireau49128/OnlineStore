@@ -35,6 +35,22 @@ jobs:
         </body>
         </html>
         EOF
+    
+    - name: Upload app_offline only
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      with:
+        server: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        local-dir: ./deploy/
+        server-dir: /test-publish.bekmanwood.by/
+        exclude: |
+          **
+          !app_offline.htm
+
+    - name: Wait for IIS to stop
+      run: sleep 15
+
 
     - name: FTP Deploy
       uses: SamKirkland/FTP-Deploy-Action@v4.3.4

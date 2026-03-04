@@ -1,4 +1,10 @@
 ####################################
+# Deploy
+####################################
+deploy/
+app_offline.htm
+
+####################################
 # Product Images
 ####################################
 Store.Web/wwwroot/img/products/
@@ -10,10 +16,16 @@ bin/
 obj/
 out/
 publish/
+[Bb]in/
+[Oo]bj/
 
 ####################################
 # VS Code
 ####################################
+appsettings.Development.json
+appsettings.Local.json
+*.user
+.vs/
 .vscode/
 !.vscode/settings.json
 !.vscode/tasks.json
