@@ -8,49 +8,40 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '8.0.x'
-    
-    - name: App Settings Variable Substitution
-      uses: microsoft/variable-substitution@v1
-      with:
-        files: './appsettings.json'
-      env:
-        ConnectionStrings.DefaultConnection: ${{ secrets.DB_CONNECTION_STRING }}
 
     - name: Publish
       run: dotnet publish -c Release -r win-x64 --self-contained true -o ./deploy
 
+    - name: App Settings Variable Substitution
+      uses: microsoft/variable-substitution@v1
+      with:
+        files: './deploy/appsettings.json'
+      env:
+        ConnectionStrings.DefaultConnection: ${{ secrets.DB_CONNECTION_STRING }}
+
     - name: Create app_offline.htm
       run: |
         cat <<EOF > ./deploy/app_offline.htm
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="utf-8" />
-            <title>Обновление сайта</title>
-        </head>
-        <body>
-            <div style="text-align:center; margin-top:100px; font-family:Arial;">
-                <h1>Сайт временно недоступен</h1>
-                <p>Мы загружаем новую версию. Это займет всего минуту. Пожалуйста, обновите страницу позже.</p>
-            </div>
-        </body>
-        </html>
+        <!DOCTYPE html><html><head><meta charset="utf-8" /></head>
+        <body style="text-align:center; padding-top:100px; font-family:Arial;">
+            <h1>Обновление...</h1>
+        </body></html>
         EOF
     
     - name: Upload app_offline only
-      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
       with:
         server: ${{ secrets.FTP_SERVER }}
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
         local-dir: ./deploy/
-        server-dir: /test-publish.bekmanwood.by/
+        server-dir: ${{ secrets.SERVER_DIR }}
         exclude: |
           **
           !app_offline.htm
@@ -58,19 +49,18 @@ jobs:
     - name: Wait for IIS to stop
       run: sleep 30
 
-
     - name: FTP Deploy
-      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
       with:
         server: ${{ secrets.FTP_SERVER }}
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
         local-dir: ./deploy/
-        server-dir: /test-publish.bekmanwood.by/
+        server-dir: ${{ secrets.SERVER_DIR }}
 
     - name: Remove app_offline.htm
       run: |
         curl -u "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}" \
-             "ftp://${{ secrets.FTP_SERVER }}/test-publish.bekmanwood.by/app_offline.htm" \
-             -Q "DELE /test-publish.bekmanwood.by/app_offline.htm"
+             "ftp://${{ secrets.FTP_SERVER }}${{ secrets.SERVER_DIR }}app_offline.htm" \
+             -Q "DELE ${{ secrets.SERVER_DIR }}app_offline.htm"
       continue-on-error: true
