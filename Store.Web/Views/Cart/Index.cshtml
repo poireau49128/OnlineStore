@@ -1,5 +1,91 @@
 @model Store.Web.ViewModels.Cart.CartViewModel
 
+<style>
+    .cart-card {
+        background: white;
+        border-radius: 18px;
+        padding: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        transition: .3s;
+    }
+
+    .cart-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 50px rgba(0,0,0,0.08);
+    }
+
+    .cart-card-body {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    /* LEFT */
+    .cart-info {
+        flex: 1;
+    }
+
+    .cart-meta {
+        font-size: 0.85rem;
+        color: #64748B;
+    }
+
+    /* CENTER */
+    .cart-qty {
+        width: 140px;
+    }
+
+    /* RIGHT */
+    .cart-prices {
+        text-align: right;
+        min-width: 120px;
+    }
+
+    .cart-prices .price {
+        font-size: 0.9rem;
+        color: #64748B;
+    }
+
+    .cart-prices .total-price {
+        font-weight: 600;
+        color: #1F3A8A;
+    }
+
+    /* REMOVE */
+    .cart-remove {
+        margin-left: 10px;
+    }
+
+    /* SUMMARY */
+    .sticky-summary {
+        position: sticky;
+        top: 100px;
+    }
+
+    /* MOBILE 🔥 */
+    @@media (max-width: 768px) {
+
+        .cart-card-body {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .cart-qty {
+            width: 100%;
+        }
+
+        .cart-prices {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .cart-remove {
+            align-self: flex-end;
+        }
+    }
+</style>
+
 <div class="container mt-5">
 
 <h2 class="mb-4" style="color:#1F3A8A;">Корзина</h2>
@@ -17,32 +103,37 @@
 }
 else
 {
-    <div class="table-responsive cart-table-wrapper">
-        <table class="table align-middle">
-            <thead>
-                <tr>
-                    <th>Товар</th>
-                    <th>Склад</th>
-                    <th>Кол-во</th>
-                    <th>Цена</th>
-                    <th>Сумма</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in Model.Items)
-                {
-                    <tr class="cart-item" data-item-id="@item.Id">
-                        <td>
+    <div class="row g-4">
+
+        <!-- ITEMS -->
+        <div class="col-lg-8">
+
+            @foreach (var item in Model.Items)
+            {
+                <div class="cart-card" data-item-id="@item.Id">
+
+                    <div class="cart-card-body">
+
+                        <!-- LEFT -->
+                        <div class="cart-info">
                             <div class="fw-semibold">@item.ProductName</div>
-                            <div class="text-muted small">
-                                @item.Color @(!string.IsNullOrEmpty(item.Size) ? $"({item.Size})" : "")
+
+                            <div class="cart-meta">
+                                @item.Color
+                                @if (!string.IsNullOrEmpty(item.Size))
+                                {
+                                    <span>(@item.Size)</span>
+                                }
                             </div>
-                        </td>
 
-                        <td>@item.WarehouseName</td>
+                            <div class="cart-meta small text-muted">
+                                Склад: @item.WarehouseName
+                            </div>
+                        </div>
 
-                        <td>
+                        <!-- CENTER -->
+                        <div class="cart-qty">
+
                             <div class="input-group">
                                 <button class="btn btn-sm btn-outline-secondary qty-minus"
                                         type="button"
@@ -60,81 +151,72 @@ else
                                         data-max="@item.AvailableQuantity"
                                         @(item.Quantity >= item.AvailableQuantity ? "disabled" : "")>+</button>
                             </div>
-                        </td>
 
-                        <td>@item.UnitPrice.Amount.ToString("0.00") @item.UnitPrice.Currency</td>
+                        </div>
 
-                        <td class="total-price"
-                            data-total="@(item.Quantity * item.UnitPrice.Amount)">
-                            @(item.Quantity * item.UnitPrice.Amount) @item.UnitPrice.Currency
-                        </td>
+                        <!-- RIGHT -->
+                        <div class="cart-prices">
 
-                        <td>
+                            <div class="price">
+                                @item.UnitPrice.Amount.ToString("0.00") @item.UnitPrice.Currency
+                            </div>
+
+                            <div class="total-price"
+                                 data-total="@(item.Quantity * item.UnitPrice.Amount)">
+                                @(item.Quantity * item.UnitPrice.Amount) @item.UnitPrice.Currency
+                            </div>
+
+                        </div>
+
+                        <!-- REMOVE -->
+                        <div class="cart-remove">
                             <button class="btn btn-sm btn-outline-danger btn-remove"
                                     type="button"
                                     data-item-id="@item.Id">
-                                Удалить
+                                ✕
                             </button>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
+                        </div>
 
-    <div class="row mt-5">
-        <div class="col-md-7">
-            <a asp-controller="Product"
-               asp-action="Index"
-               class="btn btn-outline-secondary">
-                Продолжить покупки
-            </a>
+                    </div>
+
+                </div>
+            }
+
         </div>
 
-        <div class="col-md-5">
-            <div class="cart-summary-card">
+        <!-- SUMMARY -->
+        <div class="col-lg-4">
+
+            <div class="cart-summary-card sticky-summary">
                 <h5>Сумма заказа</h5>
+
                 <h3 id="total-amount">
                     @Model.Total.Amount.ToString("0.00") @Model.Total.Currency
                 </h3>
+
                 <a asp-controller="Order"
                    asp-action="Checkout"
                    class="btn btn-success w-100 mt-3">
                     Оформить заказ
                 </a>
+
+                <a asp-controller="Product"
+                   asp-action="Index"
+                   class="btn btn-outline-secondary w-100 mt-2">
+                    Продолжить покупки
+                </a>
             </div>
+
         </div>
+
     </div>
 }
 
 </div>
 
-<style>
-.cart-table-wrapper {
-    background:white;
-    border-radius:20px;
-    padding:30px;
-    box-shadow:0 15px 40px rgba(0,0,0,0.06);
-}
 
-.cart-summary-card {
-    background:white;
-    border-radius:20px;
-    padding:30px;
-    box-shadow:0 15px 40px rgba(0,0,0,0.06);
-}
-
-.empty-cart-box {
-    background:white;
-    padding:60px;
-    border-radius:20px;
-    text-align:center;
-    box-shadow:0 15px 40px rgba(0,0,0,0.05);
-}
-</style>
 
 @Html.AntiForgeryToken()
-
 @section Scripts {
 <script>
     function getCsrfToken() {
@@ -168,7 +250,7 @@ else
             const data = await response.json();
 
             if (data.success) {
-                const row = document.querySelector(`tr.cart-item[data-item-id="${itemId}"]`);
+                const row = document.querySelector(`.cart-card[data-item-id="${itemId}"]`);
                 if (row) {
                     const qtyInput = row.querySelector('.qty-input');
                     const totalPrice = row.querySelector('.total-price');
@@ -210,7 +292,7 @@ else
             const data = await response.json();
 
             if (data.success) {
-                const row = document.querySelector(`tr.cart-item[data-item-id="${itemId}"]`);
+                const row = document.querySelector(`.cart-card[data-item-id="${itemId}"]`);
                 if (row) {
                     row.style.animation = 'fadeOut 0.3s ease-out';
                     setTimeout(() => row.remove(), 300);
@@ -237,7 +319,7 @@ else
         document.querySelectorAll('.qty-minus').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const itemId = parseInt(e.target.dataset.itemId);
-                const row = document.querySelector(`tr.cart-item[data-item-id="${itemId}"]`);
+                const row = document.querySelector(`.cart-card[data-item-id="${itemId}"]`);
                 const currentQty = parseInt(row.querySelector('.qty-input').value);
                 if (currentQty > 1) {
                     updateCartQuantity(itemId, currentQty - 1);
@@ -249,7 +331,7 @@ else
             btn.addEventListener('click', (e) => {
                 const itemId = parseInt(e.target.dataset.itemId);
                 const maxQty = parseInt(e.target.dataset.max);
-                const row = document.querySelector(`tr.cart-item[data-item-id="${itemId}"]`);
+                const row = document.querySelector(`.cart-card[data-item-id="${itemId}"]`);
                 const currentQty = parseInt(row.querySelector('.qty-input').value);
                 if (currentQty < maxQty) {
                     updateCartQuantity(itemId, currentQty + 1);

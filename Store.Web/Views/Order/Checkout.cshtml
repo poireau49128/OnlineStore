@@ -1,74 +1,122 @@
 @model Store.Web.ViewModels.Order.CheckoutViewModel
 
-<h1>Оформление заказа</h1>
+@{
+    ViewData["Title"] = "Оформление заказа";
+}
 
-@if (TempData["Error"] != null)
-{
-    <div class="alert alert-danger">
-        @TempData["Error"]
+<div class="container mt-5">
+
+    <div class="catalog-hero mb-4">
+        <h1>@ViewData["Title"]</h1>
+        <p>Проверьте заказ перед подтверждением</p>
     </div>
-}
 
-
-@if (!Model.Items.Any())
-{
-    <p>Корзина пуста</p>
-    <a asp-controller="Product" asp-action="Index" class="btn btn-primary">В каталог</a>
-}
-else
-{
-    <form asp-action="Checkout" method="post">
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Товар</th>
-                    <th>Цвет</th>
-                    <th>Размер</th>
-                    <th>Склад</th>
-                    <th>Кол-во</th>
-                    <th>Цена</th>
-                    <th>Скидка</th>
-                    <th>Сумма</th>
-                </tr>
-            </thead>
-            <tbody>
-            @foreach (var item in Model.Items)
-            {
-                <tr>
-                    <td>@item.ProductName</td>
-                    <td>@item.Color</td>
-                    <td>@item.Size</td>
-                    <td>@item.WarehouseName</td>
-                    <td>@item.Quantity</td>
-                    <td>@item.UnitPrice.ToString("0.00") BYN</td>
-                    <td style="color: red;">@item.DiscountPercent.ToString("0.##")%</td>
-                    <td>
-                        <div>
-                            @item.TotalWithDiscount.ToString("0.00") BYN <br>
-                            <s style="color: red; font-size: 0.8em;">@item.Total.ToString("0.00") BYN</s>
-                        </div>
-                    </td>
-                </tr>
-            }
-            </tbody>
-        </table>
-
-        <div class="mb-3">
-            <label for="comment" class="form-label">Комментарий к заказу</label>
-            <input type="text" name="Comment" id="comment" value="@Model.Comment" class="form-control"/>
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["Error"]
         </div>
+    }
 
-        <div class="mb-3">
-            <strong>
-                Общая стоимость: 
-                <div>
-                    @Model.TotalWithDiscount.ToString("0.00") BYN <br>
-                    <s style="color: red; font-size: 0.8em;">@Model.TotalAmount.ToString("0.00") BYN</s>
+    @if (!Model.Items.Any())
+    {
+        <div class="empty-cart-box">
+            <p>Корзина пуста</p>
+            <a asp-controller="Product" asp-action="Index" class="btn btn-primary mt-3">
+                В каталог
+            </a>
+        </div>
+    }
+    else
+    {
+        <form asp-action="Checkout" method="post">
+
+            <div class="row g-4">
+
+                <!-- ITEMS -->
+                <div class="col-lg-8">
+                    <div class="row g-4">
+
+                        @foreach (var item in Model.Items)
+                        {
+                            <div class="col-12">
+                                <div class="product-card-modern p-3">
+
+                                    <div class="d-flex justify-content-between flex-wrap">
+
+                                        <div>
+                                            <h6>@item.ProductName</h6>
+                                            <div class="category-label">
+                                                @item.Color @(item.Size ?? "")
+                                            </div>
+                                            <div class="small text-muted">
+                                                Склад: @item.WarehouseName
+                                            </div>
+                                        </div>
+
+                                        <div class="text-end">
+                                            <div>Кол-во: <b>@item.Quantity</b></div>
+
+                                            <div class="price mt-2">
+                                                @item.TotalWithDiscount.ToString("0.00") BYN
+                                            </div>
+
+                                            <div class="text-muted small">
+                                                <s>@item.Total.ToString("0.00") BYN</s>
+                                            </div>
+
+                                            <div class="text-danger small">
+                                                -@item.DiscountPercent.ToString("0.##")%
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+                                </div>
+                            </div>
+                        }
+
+                    </div>
                 </div>
-            </strong>
-        </div>
 
-        <button type="submit" class="btn btn-success">Подтвердить заказ</button>
-        <a asp-controller="Cart" asp-action="Index" class="btn btn-danger">Отмена</a>
-    </form>
-}
+                <!-- SUMMARY -->
+                <div class="col-lg-4">
+                    <div class="cart-summary-card">
+
+                        <h5>Ваш заказ</h5>
+
+                        <div class="mb-3">
+                            <label class="form-label">Комментарий</label>
+                            <input type="text"
+                                   name="Comment"
+                                   value="@Model.Comment"
+                                   class="form-control" />
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="price">
+                                @Model.TotalWithDiscount.ToString("0.00") BYN
+                            </div>
+                            <div class="text-muted small">
+                                <s>@Model.TotalAmount.ToString("0.00") BYN</s>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100">
+                            Подтвердить заказ
+                        </button>
+
+                        <a asp-controller="Cart" asp-action="Index"
+                           class="btn btn-outline-secondary w-100 mt-2">
+                            Назад
+                        </a>
+
+                    </div>
+                </div>
+
+            </div>
+
+        </form>
+    }
+
+</div>

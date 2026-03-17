@@ -1,32 +1,193 @@
 @model IReadOnlyList<Store.Web.ViewModels.Order.OrderListViewModel>
 
-<h2>Мои заказы</h2>
+<div class="container">
+    <!-- Hero Section точно как в каталоге -->
+    <div class="catalog-hero mb-5">
+        <div class="hero-content">
+            <h1>Мои заказы</h1>
+            <p>История ваших интерьерных решений и покупок.</p>
+        </div>
+    </div>
 
-@if (!Model.Any())
-{
-    <p>У вас пока нет заказов.</p>
-}
-else
-{
-    <div class="row row-cols-1 row-cols-md-2 g-4">
-        @foreach (var order in Model)
-        {
-            <div class="col">
-                <div class="card shadow-sm">
-                    <div class="card-body">
-                        <h5 class="card-title">Заказ №@order.Id</h5>
-                        <p class="card-text">
-                            <strong>Дата:</strong> @order.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")<br />
-                            <strong>Статус:</strong> @order.Status<br />
-                            <strong>Сумма:</strong> @order.Total.Amount.ToString("0.00") BYN
-                        </p>
-                        <a asp-action="Details" asp-route-id="@order.Id"
-                           class="btn btn-outline-primary btn-sm">
-                            Подробнее →
-                        </a>
+    @if (!Model.Any())
+    {
+        <div class="catalog-sidebar text-center py-5">
+            <div class="mb-4">
+                <i class="bi bi-bag-x" style="font-size: 3rem; color: #cbd5e1;"></i>
+            </div>
+            <h5 class="text-muted">У вас пока нет оформленных заказов</h5>
+            <a href="@Url.Action("Index", "Product")" class="details-btn d-inline-block mt-3">
+                Перейти в каталог
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var order in Model)
+            {
+                <div class="col-md-6 col-xl-4">
+                    <div class="product-card-modern">
+                        <!-- Header карточки с номером и "точкой" статуса -->
+                        <div class="order-header-modern">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="status-dot"></span>
+                                <span class="order-number">Заказ №@order.Id</span>
+                            </div>
+                            <span class="order-date">@order.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy")</span>
+                        </div>
+
+                        <div class="product-info-modern">
+                            <div class="mb-3">
+                                <span class="category-label">Статус заказа</span>
+                                <div class="status-badge-inline">
+                                    @order.Status
+                                </div>
+                            </div>
+
+                            <div class="price-row">
+                                <div class="price">
+                                    @order.Total.Amount.ToString("N2") @(order.Total.Currency ?? "BYN")
+                                </div>
+
+                                <a asp-action="Details" asp-route-id="@order.Id" class="details-btn">
+                                    Детали
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
+            }
+        </div>
+    }
+</div>
+
+@section Styles {
+    <style>
+        /* HERO (Дублируем из каталога для консистентности) */
+        .catalog-hero {
+            background: linear-gradient(120deg, #1F3A8A, #3A6EA5);
+            padding: 60px;
+            border-radius: 18px;
+            color: white;
+            box-shadow: 0 15px 40px rgba(31, 58, 138, 0.1);
         }
-    </div>
+
+        /* CARD STRUCTURE */
+        .product-card-modern {
+            background: white;
+            border-radius: 18px;
+            overflow: hidden;
+            transition: all .3s ease;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            border: 1px solid rgba(0,0,0,0.02);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .product-card-modern:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.08);
+        }
+
+        /* HEADER ВНУТРИ КАРТОЧКИ */
+        .order-header-modern {
+            padding: 20px 20px 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .order-number {
+            font-weight: 600;
+            color: #1F3A8A;
+            font-size: 1rem;
+        }
+
+        .order-date {
+            font-size: 0.8rem;
+            color: #94a3b8;
+        }
+
+        /* СТАТУСЫ */
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #C49A6C; /* Акцентный цвет как в кнопках */
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 0 4px rgba(196, 154, 108, 0.15);
+        }
+
+        .status-badge-inline {
+            background: #F8FAFC;
+            color: #475569;
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-top: 4px;
+            display: inline-block;
+            border: 1px solid #e2e8f0;
+        }
+
+        /* PRODUCT INFO AREA */
+        .product-info-modern {
+            padding: 20px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+
+        .category-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #94a3b8;
+            display: block;
+        }
+
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px dashed #f1f5f9;
+        }
+
+        .price {
+            font-weight: 700;
+            font-size: 1.15rem;
+            color: #1F3A8A;
+        }
+
+        /* КНОПКА (Один в один как в каталоге) */
+        .details-btn {
+            background: #C49A6C;
+            color: white;
+            padding: 8px 18px;
+            border-radius: 50px;
+            text-decoration: none;
+            transition: .3s;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .details-btn:hover {
+            background: #b78957;
+            transform: translateY(-2px);
+            color: white;
+            box-shadow: 0 5px 15px rgba(196, 154, 108, 0.3);
+        }
+        
+        .catalog-sidebar {
+            background: white;
+            padding: 40px;
+            border-radius: 18px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+        }
+    </style>
 }

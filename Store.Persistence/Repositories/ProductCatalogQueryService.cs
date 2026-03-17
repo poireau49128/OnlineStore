@@ -101,6 +101,7 @@ public sealed class ProductCatalogQueryService : IProductCatalogQueryService
                 Name = p.Name,
                 Description = p.Description,
                 CategoryName = p.Category.Name,
+                CategoryId = p.Category.Id,
                 ProductTypeName = p.Category.ProductType.Name,
                 Sku = p.Sku,
                 BasePrice = p.BasePrice,
