@@ -12,8 +12,8 @@ using Store.Persistence;
 namespace Store.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260108211228_FixOrderItemOwnedMoneyTracking")]
-    partial class FixOrderItemOwnedMoneyTracking
+    [Migration("20260504202326_InitialActual")]
+    partial class InitialActual
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -268,9 +268,6 @@ namespace Store.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("ApplicationUserId")
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<string>("Comment")
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
@@ -287,8 +284,6 @@ namespace Store.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ApplicationUserId");
-
                     b.HasIndex("UserId");
 
                     b.ToTable("Orders");
@@ -301,10 +296,6 @@ namespace Store.Persistence.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Comment")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<decimal>("DiscountPercent")
                         .HasPrecision(5, 2)
@@ -355,6 +346,9 @@ namespace Store.Persistence.Migrations
                     b.Property<string>("Description")
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -487,6 +481,9 @@ namespace Store.Persistence.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
 
@@ -521,7 +518,7 @@ namespace Store.Persistence.Migrations
                     b.ToTable("Warehouses");
                 });
 
-            modelBuilder.Entity("Store.Persistence.ApplicationUser", b =>
+            modelBuilder.Entity("Store.Persistence.Identity.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
@@ -603,7 +600,7 @@ namespace Store.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Store.Persistence.ApplicationUser", null)
+                    b.HasOne("Store.Persistence.Identity.ApplicationUser", null)
                         .WithMany("CategoryDiscounts")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -623,7 +620,7 @@ namespace Store.Persistence.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
-                    b.HasOne("Store.Persistence.ApplicationUser", null)
+                    b.HasOne("Store.Persistence.Identity.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -632,7 +629,7 @@ namespace Store.Persistence.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
-                    b.HasOne("Store.Persistence.ApplicationUser", null)
+                    b.HasOne("Store.Persistence.Identity.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -647,7 +644,7 @@ namespace Store.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Store.Persistence.ApplicationUser", null)
+                    b.HasOne("Store.Persistence.Identity.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -656,7 +653,7 @@ namespace Store.Persistence.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
-                    b.HasOne("Store.Persistence.ApplicationUser", null)
+                    b.HasOne("Store.Persistence.Identity.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -671,7 +668,7 @@ namespace Store.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Store.Persistence.ApplicationUser", null)
+                    b.HasOne("Store.Persistence.Identity.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -701,14 +698,37 @@ namespace Store.Persistence.Migrations
 
             modelBuilder.Entity("Store.Domain.Entities.Order", b =>
                 {
-                    b.HasOne("Store.Persistence.ApplicationUser", null)
+                    b.HasOne("Store.Persistence.Identity.ApplicationUser", null)
                         .WithMany("Orders")
-                        .HasForeignKey("ApplicationUserId");
-
-                    b.HasOne("Store.Persistence.ApplicationUser", null)
-                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_Orders_AspNetUsers_UserId");
+
+                    b.OwnsOne("Store.Domain.ValueObjects.Money", "TotalPrice", b1 =>
+                        {
+                            b1.Property<int>("OrderId")
+                                .HasColumnType("int");
+
+                            b1.Property<decimal>("Amount")
+                                .HasColumnType("decimal(18,2)")
+                                .HasColumnName("TotalPriceAmount");
+
+                            b1.Property<string>("Currency")
+                                .IsRequired()
+                                .HasMaxLength(3)
+                                .HasColumnType("nvarchar(3)")
+                                .HasColumnName("TotalPriceCurrency");
+
+                            b1.HasKey("OrderId");
+
+                            b1.ToTable("Orders");
+
+                            b1.WithOwner()
+                                .HasForeignKey("OrderId");
+                        });
+
+                    b.Navigation("TotalPrice")
                         .IsRequired();
                 });
 
@@ -894,7 +914,7 @@ namespace Store.Persistence.Migrations
                     b.Navigation("Stocks");
                 });
 
-            modelBuilder.Entity("Store.Persistence.ApplicationUser", b =>
+            modelBuilder.Entity("Store.Persistence.Identity.ApplicationUser", b =>
                 {
                     b.Navigation("CategoryDiscounts");
 

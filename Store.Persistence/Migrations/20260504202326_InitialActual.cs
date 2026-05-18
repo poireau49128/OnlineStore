@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Store.Persistence.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialActual : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -200,16 +200,12 @@ namespace Store.Persistence.Migrations
                     Comment = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false),
-                    ApplicationUserId = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                    TotalPriceAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    TotalPriceCurrency = table.Column<string>(type: "nvarchar(3)", maxLength: 3, nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Orders", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Orders_AspNetUsers_ApplicationUserId",
-                        column: x => x.ApplicationUserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Orders_AspNetUsers_UserId",
                         column: x => x.UserId,
@@ -251,17 +247,11 @@ namespace Store.Persistence.Migrations
                     Code = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     DiscountPercent = table.Column<decimal>(type: "decimal(5,2)", precision: 5, scale: 2, nullable: false),
                     Expiration = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    CategoryId = table.Column<int>(type: "int", nullable: false),
-                    ApplicationUserId = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                    CategoryId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_CustomerCategoryDiscount", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_CustomerCategoryDiscount_AspNetUsers_ApplicationUserId",
-                        column: x => x.ApplicationUserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_CustomerCategoryDiscount_AspNetUsers_UserId",
                         column: x => x.UserId,
@@ -286,6 +276,7 @@ namespace Store.Persistence.Migrations
                     Description = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: true),
                     Sku = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     RowVersion = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: true),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
                     BasePriceAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     BasePriceCurrency = table.Column<string>(type: "nvarchar(3)", maxLength: 3, nullable: false),
                     BaseColor = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
@@ -310,6 +301,7 @@ namespace Store.Persistence.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     ProductId = table.Column<int>(type: "int", nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
                     Color = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Size = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     OverridePriceAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
@@ -372,8 +364,7 @@ namespace Store.Persistence.Migrations
                     Quantity = table.Column<int>(type: "int", nullable: false),
                     UnitPriceAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     UnitPriceCurrency = table.Column<string>(type: "nvarchar(3)", maxLength: 3, nullable: false),
-                    DiscountPercent = table.Column<decimal>(type: "decimal(5,2)", precision: 5, scale: 2, nullable: false),
-                    Comment = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true)
+                    DiscountPercent = table.Column<decimal>(type: "decimal(5,2)", precision: 5, scale: 2, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -427,7 +418,8 @@ namespace Store.Persistence.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     ProductVariantId = table.Column<int>(type: "int", nullable: false),
                     WarehouseId = table.Column<int>(type: "int", nullable: false),
-                    Quantity = table.Column<int>(type: "int", nullable: false)
+                    Quantity = table.Column<int>(type: "int", nullable: false),
+                    RowVersion = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -507,11 +499,6 @@ namespace Store.Persistence.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_CustomerCategoryDiscount_ApplicationUserId",
-                table: "CustomerCategoryDiscount",
-                column: "ApplicationUserId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_CustomerCategoryDiscount_CategoryId",
                 table: "CustomerCategoryDiscount",
                 column: "CategoryId");
@@ -535,11 +522,6 @@ namespace Store.Persistence.Migrations
                 name: "IX_OrderItems_WarehouseId",
                 table: "OrderItems",
                 column: "WarehouseId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Orders_ApplicationUserId",
-                table: "Orders",
-                column: "ApplicationUserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Orders_UserId",
