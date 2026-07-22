@@ -7,136 +7,321 @@
 
     <link rel="stylesheet" href="~/Store.Web.styles.css" asp-append-version="true" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="~/css/site.css" rel="stylesheet">
+    <link href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link href="~/css/layout.css" rel="stylesheet">
 
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
 
-<div id="toast-container"
-     class="position-fixed top-0 end-0 p-3"
-     style="z-index:1100;"></div>
+<div id="toast-container" class="position-fixed top-0 end-0 p-3" style="z-index:1100;"></div>
 
 <!-- HEADER -->
-<nav class="navbar navbar-expand-lg main-navbar">
-    <div class="container">
-
-        <a class="navbar-brand brand-logo" href="/">
-            BekmaWood
-        </a>
-
-        <button class="navbar-toggler"
-                type="button"
-                data-bs-toggle="collapse"
-                data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-4">
-
-                <li class="nav-item">
-                    <a class="nav-link"
-                       asp-area=""
-                       asp-controller="Product"
-                       asp-action="Index">
-                        Каталог
-                    </a>
-                </li>
-
-                <li class="nav-item position-relative">
-                    <a class="nav-link"
-                       asp-area=""
-                       asp-controller="Cart"
-                       asp-action="Index"
-                       id="cart-icon">
-                        Корзина
-                        <span id="cart-count-badge"
-                              class="badge rounded-pill cart-badge"
-                              style="display:none;">0</span>
-                    </a>
-                </li>
-
-                <li class="nav-item dropdown">
-                    @if (User.Identity?.IsAuthenticated == true)
-                    {
-                        <a class="nav-link dropdown-toggle"
-                           href="#"
-                           role="button"
-                           data-bs-toggle="dropdown">
-                            @User.Identity.Name
-                        </a>
-
-                        <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                            @if (User.IsInRole("Admin"))
-                            {
-                                <li>
-                                    <a class="dropdown-item"
-                                       asp-area="Admin"
-                                       asp-controller="Orders"
-                                       asp-action="Index">
-                                        Администрирование
-                                    </a>
-                                </li>
-                            }
-
-                            <li>
-                                <a class="dropdown-item"
-                                   asp-area=""
-                                   asp-controller="Account"
-                                   asp-action="Profile">
-                                    Профиль
-                                </a>
-                            </li>
-
-                            <li>
-                                <a class="dropdown-item"
-                                   asp-area=""
-                                   asp-controller="Order"
-                                   asp-action="UserOrders">
-                                    Мои заказы
-                                </a>
-                            </li>
-
-                            <li><hr class="dropdown-divider"></li>
-
-                            <li>
-                                <form asp-area=""
-                                      asp-controller="Account"
-                                      asp-action="Logout"
-                                      method="post"
-                                      class="px-3">
-                                    <button class="btn btn-link dropdown-item text-danger p-0">
-                                        Выйти
-                                    </button>
-                                </form>
-                            </li>
+<header>
+    <div class="hamburger-menu">
+        <input id="menu__toggle" type="checkbox" />
+        <label class="menu__btn" for="menu__toggle">
+            <span></span>
+        </label>
+        <div class="menu__box__top"></div>
+        <ul class="menu__box">
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <li>
+                    <label class="multilevel_ul menu__item" for="item-1">
+                        Аккаунт
+                        <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M8 5 L20 12 L8 19" />
+                        </svg>
+                    </label>
+                    <input type="checkbox" id="item-1" name="item-1" class="m-menu__checkbox">
+                    <div class="m-menu">
+                        <div class="m-menu__header">
+                            <label class="m-menu__toggle" for="item-1">
+                                <svg width="35" height="35" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="1" stroke-linecap="butt" stroke-linejoin="arcs">
+                                    <path d="M19 12H6M12 5l-7 7 7 7" />
+                                </svg>
+                            </label>
+                            <span>@User.Identity.Name</span>
+                        </div>
+                        <ul>
+                            <li><a class="menu__item" asp-area="" asp-controller="Order" asp-action="UserOrders">Заказы</a></li>
+                            <li><a class="menu__item" asp-area="" asp-controller="Cart" asp-action="Index">Корзина</a></li>
+                            <li><a class="menu__item" asp-area="" asp-controller="Account" asp-action="Profile">Изменить профиль</a></li>
+                            <li><hr style="width: 100%; background-color: #999999; height: 1px;"></li>
+                            <li><a class="menu__item" asp-area="" asp-controller="Account" asp-action="Logout">Выйти</a></li>
                         </ul>
-                    }
-                    else
-                    {
-                        <a class="btn login-btn"
-                           asp-area=""
-                           asp-controller="Account"
-                           asp-action="Login"
-                           asp-route-returnUrl="@Context.Request.Path">
-                            Войти
-                        </a>
-                    }
+                    </div>
                 </li>
 
-            </ul>
+                @if (User.IsInRole("Admin"))
+                {
+                    <li>
+                        <label class="multilevel_ul menu__item" for="item-2">
+                            Админ-панель
+                            <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M8 5 L20 12 L8 19" />
+                            </svg>
+                        </label>
+                        <input type="checkbox" id="item-2" name="item-2" class="m-menu__checkbox">
+                        <div class="m-menu">
+                            <div class="m-menu__header">
+                                <label class="m-menu__toggle" for="item-2">
+                                    <svg width="35" height="35" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="1" stroke-linecap="butt" stroke-linejoin="arcs">
+                                        <path d="M19 12H6M12 5l-7 7 7 7" />
+                                    </svg>
+                                </label>
+                                <span>Админ-панель</span>
+                            </div>
+                            <ul>
+                                <li><a class="menu__item" asp-area="Admin" asp-controller="Orders" asp-action="Index">Админ-товары</a></li>
+                                <li><a class="menu__item" asp-area="Admin" asp-controller="Orders" asp-action="Index">Админ-заказы</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                }
+            }
+            else
+            {
+                <li><a class="menu__item" asp-area="" asp-controller="Account" asp-action="Register">Зарегистрироваться</a></li>
+                <li><a class="menu__item" asp-area="" asp-controller="Account" asp-action="Login">Войти</a></li>
+            }
+
+            <li><hr style="width: 100%; background-color: #999999; height: 1px;"></li>
+            <li><a class="menu__item" href="#">О нас</a></li>
+            <li><a class="menu__item" asp-area="" asp-controller="Product" asp-action="Index">Каталог</a></li>
+            <li><a class="menu__item" href="#">Новости</a></li>
+            <li><a class="menu__item" href="#">Контакты</a></li>
+            <li class="menu__item__info" style="padding: 20px 10px;">
+                <span>+375 29 000 00 01</span>
+            </li>
+        </ul>
+    </div>
+
+    <div class="header-info">
+        <div class="header-logo">
+            <img src="~/img/logo.png" alt="BekmaWood" />
+        </div>
+        <div class="header-block duty">
+            <img src="~/img/clock.png" alt="Время работы" />
+            <div class="header-block-info">
+                <span>РЕЖИМ РАБОТЫ:</span>
+                <span>Пн-Пт 8:00-18:00</span>
+            </div>
+        </div>
+        <div class="header-block address">
+            <img src="~/img/marker.png" alt="Адрес" />
+            <div class="header-block-info">
+                <span>ул. Краснопартизанская 53</span>
+                <span>230011 г. Гродно</span>
+            </div>
+        </div>
+        <div class="header-block phone-links">
+            <div class="header-block phone">
+                <img src="~/img/phone.png" alt="Телефон" />
+                <div class="header-block-info">
+                    <span>+375 29 000 00 01</span>
+                    <span>+375 29 000 00 02</span>
+                </div>
+            </div>
+            <div class="links">
+                <a href="https://viber.com" title="Viber">
+                    <img src="~/img/viber.png" alt="Вайбер" />
+                </a>
+                <a href="https://wa.me" title="WhatsApp">
+                    <img src="~/img/whatsapp.png" alt="Ватсап" />
+                </a>
+                <a href="https://t.me" title="Telegram">
+                    <img src="~/img/telegram.png" alt="Телеграм" />
+                </a>
+            </div>
+        </div>
+
+        <div class="buttons">
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <div class="button button-account">
+                    <input id="account-menu-toggle" type="checkbox" style="display: none;" />
+                    <label for="account-menu-toggle" class="header-button">
+                        <img src="~/img/enter.png" alt="Аккаунт" />
+                        <span>Аккаунт</span>
+                    </label>
+                    <ul class="account-menu">
+                        <li style="border-top: 0;"><a class="menu__item" asp-area="" asp-controller="Order" asp-action="UserOrders">Заказы</a></li>
+                        <li><a class="menu__item" asp-area="" asp-controller="Cart" asp-action="Index">Корзина</a></li>
+                        <li><a class="menu__item" asp-area="" asp-controller="Account" asp-action="Profile">Профиль</a></li>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <li><a class="menu__item" asp-area="Admin" asp-controller="Orders" asp-action="Index">Админ-панель</a></li>
+                        }
+                        <li><a class="menu__item" asp-area="" asp-controller="Account" asp-action="Logout">Выйти</a></li>
+                    </ul>
+                </div>
+                <div class="button button-cart">
+                    <a href="@Url.Action("Index", "Cart")" class="header-button">
+                        <span>Корзина</span>
+                        <img src="~/img/shopping-cart.png" alt="Корзина" />
+                    </a>
+                </div>
+            }
+            else
+            {
+                <div class="button button-account">
+                    <input id="account-menu-toggle" type="checkbox" style="display: none;" />
+                    <label for="account-menu-toggle" class="header-button">
+                        <img src="~/img/enter.png" alt="Вход" />
+                        <span>Аккаунт</span>
+                    </label>
+                    <ul class="account-menu">
+                        <li style="border-top: 0;"><a class="menu__item" asp-area="" asp-controller="Account" asp-action="Register">Зарегистрироваться</a></li>
+                        <li><a class="menu__item" asp-area="" asp-controller="Account" asp-action="Login">Войти</a></li>
+                    </ul>
+                </div>
+            }
         </div>
     </div>
-</nav>
+
+    <nav>
+        <ul class="menu">
+            <li><a asp-area="" asp-controller="Home" asp-action="About">О НАС</a></li>
+            <li><a asp-area="" asp-controller="Product" asp-action="Index">КАТАЛОГ</a></li>
+            <li><a href="#">НОВОСТИ</a></li>
+            <li><a href="#">КОНТАКТЫ</a></li>
+            <li><a asp-area="" asp-controller="Home" asp-action="Delivery">ДОСТАВКА</a></li>
+        </ul>
+    </nav>
+</header>
 
 <main class="main-content">
+    <!-- Slider main container -->
+    <div class="swiper swiper-main" rewind="true">
+        <!-- Additional required wrapper -->
+        <div class="swiper-wrapper">
+
+            <!-- Slides -->
+            <div class="swiper-slide">
+                <div class="block">
+                    <div class="sub-block">
+                        <div class="sub-content">
+                            <h1>Фасады</h1>
+                            <div class="text">
+                                Мебельные фасады для кухонь, гостиных, гардеробов и другой корпусной мебели
+                            </div>
+                            <button><a href="/Product/Index?category=Фасады" style="color: white">Подробнее</a></button>
+                        </div>
+                    </div>
+                    <div class="image">
+                        <img src="~/img/fronts.jpg" alt="Фасады" />
+                        <div class="sub-block">
+                            <h1>Фасады</h1>
+                            <div class="text">
+                                Мебельные фасады для кухонь, гостиных,<br> гардеробов и другой корпусной мебели
+                            </div>
+                            <button><a href="/Product/Index?category=Фасады" style="color: white">Подробнее</a></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="swiper-slide">
+                <div class="block">
+                    <div class="sub-block">
+                        <div class="sub-content">
+                            <h1>Декор и погонаж</h1>
+                            <div class="text">
+                                Декоративные элементы придают кухне особенный индивидуальный вид.
+                            </div>
+                            <button><a href="/Product/Index?category=Погонаж" style="color: white">Подробнее</a></button>
+                        </div>
+                    </div>
+                    <div class="image">
+                        <img src="~/img/pogon.jpg" alt="Погонаж" />
+                        <div class="sub-block">
+                            <h1>Декор и погонаж</h1>
+                            <div class="text">
+                                Декоративные элементы придают кухне <br> особенный индивидуальный вид.
+                            </div>
+                            <button><a href="/Product/Index?category=Погонаж" style="color: white">Подробнее</a></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="swiper-slide">
+                <div class="block">
+                    <div class="sub-block">
+                        <div class="sub-content">
+                            <h1>Мебель</h1>
+                            <div class="text">
+                                В нашем каталоге мебели можно выбрать как классические модели гостиных и стенок, так и современные варианты.
+                            </div>
+                            <button><a href="/Product/Index?category=Мебель" style="color: white">Подробнее</a></button>
+                        </div>
+                    </div>
+                    <div class="image">
+                        <img src="~/img/furniture.png" alt="Мебель" />
+                        <div class="sub-block">
+                            <h1>Мебель</h1>
+                            <div class="text">
+                                В нашем каталоге мебели можно выбрать как классические модели <br> гостиных и стенок.
+                            </div>
+                            <button><a href="/Product/Index?category=Мебель" style="color: white">Подробнее</a></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="swiper-scrollbar"></div>
+    </div>
+    
     @RenderBody()
 </main>
 
 <footer class="main-footer">
-    <div class="container text-center">
-        <div class="footer-divider"></div>
+    <div class="footer-content">
+        <div class="footer-section">
+            <h3>О компании</h3>
+            <ul>
+                <li><a href="#">О нас</a></li>
+                <li><a href="#">Контакты</a></li>
+                <li><a href="#">Доставка</a></li>
+            </ul>
+        </div>
+        <div class="footer-section">
+            <h3>Информация</h3>
+            <ul>
+                <li><a href="#">Условия использования</a></li>
+                <li><a href="#">Политика конфиденциальности</a></li>
+                <li><a href="#">Возврат товара</a></li>
+            </ul>
+        </div>
+        <div class="footer-section">
+            <h3>Контакты</h3>
+            <p>+375 29 000 00 01</p>
+            <p>+375 29 000 00 02</p>
+            <p>ул. Краснопартизанская 53</p>
+        </div>
+        <div class="footer-section">
+            <h3>Соцсети</h3>
+            <div class="footer-links">
+                <a href="https://viber.com" title="Viber">
+                    <img src="~/img/viber.png" alt="Viber" />
+                </a>
+                <a href="https://wa.me" title="WhatsApp">
+                    <img src="~/img/whatsapp.png" alt="WhatsApp" />
+                </a>
+                <a href="https://t.me" title="Telegram">
+                    <img src="~/img/telegram.png" alt="Telegram" />
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="footer-bottom">
         <p>&copy; 2025 BekmaWood. Все права защищены.</p>
     </div>
 </footer>
@@ -148,47 +333,64 @@
 <script src="~/js/_toast.js"></script>
 
 <script>
-        async function updateCartBadge() {
-            try {
-                const response = await fetch('/Cart/GetCount');
-                
-                if (response.status === 401) {
-                    const badge = document.getElementById('cart-count-badge');
-                    if (badge) badge.style.display = 'none';
-                    return;
-                }
-
-                if (! response.ok) {
-                    console.error('Cart count fetch failed:', response. status);
-                    return;
-                }
-
-                const data = await response.json();
+    async function updateCartBadge() {
+        try {
+            const response = await fetch('/Cart/GetCount');
+            
+            if (response.status === 401) {
                 const badge = document.getElementById('cart-count-badge');
-                
-                if (badge) {
-                    const oldCount = parseInt(badge.textContent) || 0;
-                    badge. textContent = data.count;
-                    badge.style.display = data.count > 0 ? 'inline-block' : 'none';
-                    
-                    if (data.count !== oldCount) {
-                        badge.style.animation = 'none';
-                        setTimeout(() => {
-                            badge. style.animation = 'badgePulse 0.3s ease-out';
-                        }, 10);
-                    }
-                }
-            } catch (error) {
-                console.error('Error updating cart badge:', error);
+                if (badge) badge.style.display = 'none';
+                return;
             }
-        }
 
-        if (document.readyState === 'loading') {
-            document. addEventListener('DOMContentLoaded', updateCartBadge);
-        } else {
-            updateCartBadge();
+            if (!response.ok) {
+                console.error('Cart count fetch failed:', response.status);
+                return;
+            }
+
+            const data = await response.json();
+            const badge = document.getElementById('cart-count-badge');
+            
+            if (badge) {
+                const oldCount = parseInt(badge.textContent) || 0;
+                badge.textContent = data.count;
+                badge.style.display = data.count > 0 ? 'inline-block' : 'none';
+                
+                if (data.count !== oldCount) {
+                    badge.style.animation = 'none';
+                    setTimeout(() => {
+                        badge.style.animation = 'badgePulse 0.3s ease-out';
+                    }, 10);
+                }
+            }
+        } catch (error) {
+            console.error('Error updating cart badge:', error);
         }
-    </script>
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', updateCartBadge);
+    } else {
+        updateCartBadge();
+    }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script>
+    const swiper_main = new Swiper('.swiper-main', {
+        direction: 'horizontal',
+        rewind: true,
+        autoplay: {
+            delay: 5000,
+            disableOnInteraction: false,
+        },
+        scrollbar: {
+            el: '.swiper-scrollbar',
+            draggable: true,
+        },
+    });
+</script>
+
 @await RenderSectionAsync("Scripts", required: false)
 
 </body>
