@@ -2,27 +2,26 @@
 
 <div class="container mt-5">
 
-    <div class="catalog-hero text-center">
-        <h2>✓ Заказ оформлен</h2>
+    <div class="checkout-hero text-center">
+        <h2>Заказ оформлен</h2>
         <p>Спасибо за покупку!</p>
     </div>
 
     <div class="cart-summary-card text-center mt-4">
 
         <h4>Номер заказа</h4>
-        <div class="price mb-3">#@Model</div>
+        <div class="order-success-number mb-3">#@Model</div>
 
         <p class="text-muted">
             Мы отправим подтверждение на email
         </p>
 
         <div class="mt-4">
-            <a href="@Url.Action("Index", "Product")" class="btn btn-primary">
+            <a href="@Url.Action("Index", "Product")" class="btn-cart-primary btn-cart-inline">
                 В каталог
             </a>
 
-            <a href="@Url.Action("UserOrders", "Order")"
-               class="btn btn-outline-secondary ms-2">
+            <a href="@Url.Action("UserOrders", "Order")" class="btn-cart-outline btn-cart-inline ms-2">
                 Мои заказы
             </a>
         </div>

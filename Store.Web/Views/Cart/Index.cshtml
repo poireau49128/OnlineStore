@@ -94,9 +94,7 @@
 {
     <div class="empty-cart-box">
         <p>Ваша корзина пуста</p>
-        <a asp-controller="Product"
-           asp-action="Index"
-           class="btn btn-primary mt-3">
+        <a asp-controller="Product" asp-action="Index" class="btn-cart-primary mt-3">
             Перейти в каталог
         </a>
     </div>
@@ -170,7 +168,7 @@ else
 
                         <!-- REMOVE -->
                         <div class="cart-remove">
-                            <button class="btn btn-sm btn-outline-danger btn-remove"
+                            <button class="btn-cart-danger btn-remove"
                                     type="button"
                                     data-item-id="@item.Id">
                                 ✕
@@ -194,15 +192,11 @@ else
                     @Model.Total.Amount.ToString("0.00") @Model.Total.Currency
                 </h3>
 
-                <a asp-controller="Order"
-                   asp-action="Checkout"
-                   class="btn btn-success w-100 mt-3">
+                <a asp-controller="Order" asp-action="Checkout" class="btn-cart-primary mt-3">
                     Оформить заказ
                 </a>
 
-                <a asp-controller="Product"
-                   asp-action="Index"
-                   class="btn btn-outline-secondary w-100 mt-2">
+                <a asp-controller="Product" asp-action="Index" class="btn-cart-outline mt-2">
                     Продолжить покупки
                 </a>
             </div>
@@ -224,15 +218,26 @@ else
     }
 
     function showNotification(message, type = "info") {
+        const container = document.getElementById("toast-container");
+        if (!container) { console.error("Toast container not found"); return; }
+        const icons = { success: "✓", danger: "✕", warning: "⚠", info: "ℹ" };
         const alertDiv = document.createElement("div");
         alertDiv.className = `alert alert-${type} alert-notification alert-dismissible fade show`;
-        alertDiv.role = "alert";
         alertDiv.innerHTML = `
-            ${message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        `;
-        document.body.appendChild(alertDiv);
-        setTimeout(() => alertDiv.parentNode && alertDiv.remove(), 4000);
+            <div class="d-flex align-items-center">
+                <span class="me-2 fw-bold" style="font-size:1.1rem;">${icons[type] || icons.info}</span>
+                <span class="flex-grow-1">${message}</span>
+                <button type="button" class="btn-close btn-close-white ms-2" data-bs-dismiss="alert" style="font-size:0.6rem; padding:0.4rem;"></button>
+            </div>`;
+        container.appendChild(alertDiv);
+        setTimeout(() => {
+            alertDiv.classList.remove("show");
+            alertDiv.style.transition = "all 0.3s ease";
+            alertDiv.style.opacity = "0";
+            alertDiv.style.transform = "translateX(120%)";
+            setTimeout(() => alertDiv.remove(), 300);
+        }, 4000);
+        alertDiv.querySelector(".btn-close").addEventListener("click", () => alertDiv.remove());
     }
 
     async function updateCartQuantity(itemId, newQuantity) {
@@ -277,7 +282,7 @@ else
     }
 
     async function removeCartItem(itemId) {
-        if (! confirm('Вы уверены, что хотите удалить товар? ')) return;
+        @* if (! confirm('Вы уверены, что хотите удалить товар? ')) return; *@
 
         const formData = new FormData();
         formData.append('id', itemId);

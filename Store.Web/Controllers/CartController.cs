@@ -86,7 +86,7 @@ public class CartController : Controller
             return Json(new
             {
                 success = true,
-                message = "✓ Количество обновлено в соответствии с остатками на складе",
+                message = "Количество обновлено в соответствии с остатками на складе",
                 cartCount,
                 totalAmount,
                 currency,
@@ -137,7 +137,7 @@ public class CartController : Controller
             return Json(new
             {
                 success = true,
-                message = "✓ Товар удален из корзины",
+                message = "Товар удален из корзины",
                 cartCount,
                 totalAmount,
                 currency

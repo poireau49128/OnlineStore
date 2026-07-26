@@ -13,6 +13,7 @@ namespace Store.Application.DTOs
     {
         public int ProductTypeId { get; init; }
         public string ProductTypeName { get; init; } = null!;
+        public string? ProductTypeSlug { get; set; }
         public List<CategoryFilterItemDto> Categories { get; init; } = new();
     }
 

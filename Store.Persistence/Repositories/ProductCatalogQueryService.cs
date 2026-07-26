@@ -16,6 +16,7 @@ public sealed class ProductCatalogQueryService : IProductCatalogQueryService
     public async Task<IReadOnlyList<ProductCatalogItemDto>> GetCatalogAsync(
         int? categoryId,
         string? searchTerm,
+        string? productType = null,
         int? skip = null, 
         int? take = null,
         bool includeAdminData = false)
@@ -31,6 +32,9 @@ public sealed class ProductCatalogQueryService : IProductCatalogQueryService
 
         if (!string.IsNullOrWhiteSpace(searchTerm))
             query = query.Where(p => p.Name.Contains(searchTerm));
+
+        if (!string.IsNullOrWhiteSpace(productType))
+            query = query.Where(p => p.Category.ProductType.Slug == productType);
 
         query = query
             .OrderBy(p => p.Category.ProductType.Id)
@@ -73,7 +77,8 @@ public sealed class ProductCatalogQueryService : IProductCatalogQueryService
 
     public Task<int> GetCatalogCountAsync(
         int? categoryId,
-        string? searchTerm)
+        string? searchTerm,
+        string? productType = null)
     {
         var query = _db.Products.AsQueryable().Where(p => p.IsActive);
 
@@ -82,6 +87,9 @@ public sealed class ProductCatalogQueryService : IProductCatalogQueryService
 
         if (!string.IsNullOrWhiteSpace(searchTerm))
             query = query.Where(p => p.Name.Contains(searchTerm));
+        
+        if (!string.IsNullOrWhiteSpace(productType))
+            query = query.Where(p => p.Category.ProductType.Slug == productType);
 
         return query.CountAsync();
     }

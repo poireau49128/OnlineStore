@@ -61,6 +61,8 @@ namespace Store.Persistence.Repositories
                 {
                     ProductTypeId = pt.Id,
                     ProductTypeName = pt.Name,
+                    ProductTypeSlug = pt.Slug ??
+                        Store.Domain.Entities.ProductType.Transliterate(pt.Name),
 
                     Categories = pt.Categories
                         .Where(c => c.Products.Any(p => p.IsActive))

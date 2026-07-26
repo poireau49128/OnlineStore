@@ -20,6 +20,10 @@
 
 <div id="toast-container" class="position-fixed top-0 end-0 p-3" style="z-index:1100;"></div>
 
+<form id="antiforgeryForm" method="post" style="display:none;">
+    @Html.AntiForgeryToken()
+</form>
+
 <!-- HEADER -->
 <header>
     <div class="hamburger-menu">
@@ -53,7 +57,14 @@
                             <li><a class="menu__item" asp-area="" asp-controller="Cart" asp-action="Index">Корзина</a></li>
                             <li><a class="menu__item" asp-area="" asp-controller="Account" asp-action="Profile">Изменить профиль</a></li>
                             <li><hr style="width: 100%; background-color: #999999; height: 1px;"></li>
-                            <li><a class="menu__item" asp-area="" asp-controller="Account" asp-action="Logout">Выйти</a></li>
+                            <li>
+                                <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" style="display:inline;">
+                                    <button type="submit" class="menu__item" style="background:none; border:none; padding:0; cursor:pointer; width:100%; text-align:left;">
+                                        Выйти
+                                    </button>
+                                </form>
+                            </li>
+
                         </ul>
                     </div>
                 </li>
@@ -92,13 +103,8 @@
             }
 
             <li><hr style="width: 100%; background-color: #999999; height: 1px;"></li>
-            <li><a class="menu__item" href="#">О нас</a></li>
+            <li><a class="menu__item" asp-area="" asp-controller="Home" asp-action="About">О нас</a></li>
             <li><a class="menu__item" asp-area="" asp-controller="Product" asp-action="Index">Каталог</a></li>
-            <li><a class="menu__item" href="#">Новости</a></li>
-            <li><a class="menu__item" href="#">Контакты</a></li>
-            <li class="menu__item__info" style="padding: 20px 10px;">
-                <span>+375 29 000 00 01</span>
-            </li>
         </ul>
     </div>
 
@@ -116,7 +122,7 @@
         <div class="header-block address">
             <img src="~/img/marker.png" alt="Адрес" />
             <div class="header-block-info">
-                <span>ул. Краснопартизанская 53</span>
+                <span>ул. Горького 91, здание АБК 1, офис 101</span>
                 <span>230011 г. Гродно</span>
             </div>
         </div>
@@ -124,8 +130,8 @@
             <div class="header-block phone">
                 <img src="~/img/phone.png" alt="Телефон" />
                 <div class="header-block-info">
-                    <span>+375 29 000 00 01</span>
-                    <span>+375 29 000 00 02</span>
+                    <span>+375 33 310 80 33</span>
+                    <span>+375 29 783 93 44</span>
                 </div>
             </div>
             <div class="links">
@@ -158,13 +164,22 @@
                         {
                             <li><a class="menu__item" asp-area="Admin" asp-controller="Orders" asp-action="Index">Админ-панель</a></li>
                         }
-                        <li><a class="menu__item" asp-area="" asp-controller="Account" asp-action="Logout">Выйти</a></li>
+                        <li>
+                            <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" style="display:inline;">
+                                <button type="submit" class="menu__item" style="background:none; border:none; padding:0; cursor:pointer; width:100%; text-align:left;">
+                                    Выйти
+                                </button>
+                            </form>
+                        </li>
+
                     </ul>
                 </div>
-                <div class="button button-cart">
-                    <a href="@Url.Action("Index", "Cart")" class="header-button">
+                <div class="button button-cart" style="position: relative;">
+                    <a href="@Url.Action("Index", "Cart")" class="header-button" id="cart-icon">
                         <span>Корзина</span>
                         <img src="~/img/shopping-cart.png" alt="Корзина" />
+                        <span id="cart-count-badge" class="badge bg-danger rounded-pill" 
+                            style="display:none; position:absolute; top:-8px; right:-8px; font-size:0.75rem;">0</span>
                     </a>
                 </div>
             }
@@ -189,8 +204,6 @@
         <ul class="menu">
             <li><a asp-area="" asp-controller="Home" asp-action="About">О НАС</a></li>
             <li><a asp-area="" asp-controller="Product" asp-action="Index">КАТАЛОГ</a></li>
-            <li><a href="#">НОВОСТИ</a></li>
-            <li><a href="#">КОНТАКТЫ</a></li>
             <li><a asp-area="" asp-controller="Home" asp-action="Delivery">ДОСТАВКА</a></li>
         </ul>
     </nav>
@@ -211,7 +224,7 @@
                             <div class="text">
                                 Мебельные фасады для кухонь, гостиных, гардеробов и другой корпусной мебели
                             </div>
-                            <button><a href="/Product/Index?category=Фасады" style="color: white">Подробнее</a></button>
+                            <button><a href="/Product/Index?productType=fasady-dlya-kuhni" style="color: white">Подробнее</a></button>
                         </div>
                     </div>
                     <div class="image">
@@ -221,7 +234,7 @@
                             <div class="text">
                                 Мебельные фасады для кухонь, гостиных,<br> гардеробов и другой корпусной мебели
                             </div>
-                            <button><a href="/Product/Index?category=Фасады" style="color: white">Подробнее</a></button>
+                            <button><a href="/Product/Index?productType=fasady-dlya-kuhni" style="color: white">Подробнее</a></button>
                         </div>
                     </div>
                 </div>
@@ -235,7 +248,7 @@
                             <div class="text">
                                 Декоративные элементы придают кухне особенный индивидуальный вид.
                             </div>
-                            <button><a href="/Product/Index?category=Погонаж" style="color: white">Подробнее</a></button>
+                            <button><a href="/Product/Index?productType=interernye-paneli" style="color: white">Подробнее</a></button>
                         </div>
                     </div>
                     <div class="image">
@@ -245,7 +258,7 @@
                             <div class="text">
                                 Декоративные элементы придают кухне <br> особенный индивидуальный вид.
                             </div>
-                            <button><a href="/Product/Index?category=Погонаж" style="color: white">Подробнее</a></button>
+                            <button><a href="/Product/Index?productType=interernye-paneli" style="color: white">Подробнее</a></button>
                         </div>
                     </div>
                 </div>
@@ -259,7 +272,7 @@
                             <div class="text">
                                 В нашем каталоге мебели можно выбрать как классические модели гостиных и стенок, так и современные варианты.
                             </div>
-                            <button><a href="/Product/Index?category=Мебель" style="color: white">Подробнее</a></button>
+                            <button><a href="/Product/Index?productType=mebel" style="color: white">Подробнее</a></button>
                         </div>
                     </div>
                     <div class="image">
@@ -269,7 +282,7 @@
                             <div class="text">
                                 В нашем каталоге мебели можно выбрать как классические модели <br> гостиных и стенок.
                             </div>
-                            <button><a href="/Product/Index?category=Мебель" style="color: white">Подробнее</a></button>
+                            <button><a href="/Product/Index?productType=mebel" style="color: white">Подробнее</a></button>
                         </div>
                     </div>
                 </div>
@@ -281,50 +294,6 @@
     
     @RenderBody()
 </main>
-
-<footer class="main-footer">
-    <div class="footer-content">
-        <div class="footer-section">
-            <h3>О компании</h3>
-            <ul>
-                <li><a href="#">О нас</a></li>
-                <li><a href="#">Контакты</a></li>
-                <li><a href="#">Доставка</a></li>
-            </ul>
-        </div>
-        <div class="footer-section">
-            <h3>Информация</h3>
-            <ul>
-                <li><a href="#">Условия использования</a></li>
-                <li><a href="#">Политика конфиденциальности</a></li>
-                <li><a href="#">Возврат товара</a></li>
-            </ul>
-        </div>
-        <div class="footer-section">
-            <h3>Контакты</h3>
-            <p>+375 29 000 00 01</p>
-            <p>+375 29 000 00 02</p>
-            <p>ул. Краснопартизанская 53</p>
-        </div>
-        <div class="footer-section">
-            <h3>Соцсети</h3>
-            <div class="footer-links">
-                <a href="https://viber.com" title="Viber">
-                    <img src="~/img/viber.png" alt="Viber" />
-                </a>
-                <a href="https://wa.me" title="WhatsApp">
-                    <img src="~/img/whatsapp.png" alt="WhatsApp" />
-                </a>
-                <a href="https://t.me" title="Telegram">
-                    <img src="~/img/telegram.png" alt="Telegram" />
-                </a>
-            </div>
-        </div>
-    </div>
-    <div class="footer-bottom">
-        <p>&copy; 2025 BekmaWood. Все права защищены.</p>
-    </div>
-</footer>
 
 <input type="hidden" id="tempdata-success" value="@TempData["Success"]" />
 <input type="hidden" id="tempdata-error" value="@TempData["Error"]" />

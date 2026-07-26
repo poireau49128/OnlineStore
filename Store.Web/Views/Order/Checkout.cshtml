@@ -6,7 +6,7 @@
 
 <div class="container mt-5">
 
-    <div class="catalog-hero mb-4">
+    <div class="checkout-hero mb-4">
         <h1>@ViewData["Title"]</h1>
         <p>Проверьте заказ перед подтверждением</p>
     </div>
@@ -22,7 +22,7 @@
     {
         <div class="empty-cart-box">
             <p>Корзина пуста</p>
-            <a asp-controller="Product" asp-action="Index" class="btn btn-primary mt-3">
+            <a asp-controller="Product" asp-action="Index" class="btn-cart-primary mt-3">
                 В каталог
             </a>
         </div>
@@ -40,7 +40,7 @@
                         @foreach (var item in Model.Items)
                         {
                             <div class="col-12">
-                                <div class="product-card-modern p-3">
+                                <div class="checkout-item">
 
                                     <div class="d-flex justify-content-between flex-wrap">
 
@@ -65,7 +65,7 @@
                                                 <s>@item.Total.ToString("0.00") BYN</s>
                                             </div>
 
-                                            <div class="text-danger small">
+                                            <div class="checkout-discount">
                                                 -@item.DiscountPercent.ToString("0.##")%
                                             </div>
                                         </div>
@@ -102,12 +102,11 @@
                             </div>
                         </div>
 
-                        <button type="submit" class="btn btn-success w-100">
+                        <button type="submit" class="btn-cart-primary">
                             Подтвердить заказ
                         </button>
 
-                        <a asp-controller="Cart" asp-action="Index"
-                           class="btn btn-outline-secondary w-100 mt-2">
+                        <a asp-controller="Cart" asp-action="Index" class="btn-cart-outline mt-2">
                             Назад
                         </a>
 

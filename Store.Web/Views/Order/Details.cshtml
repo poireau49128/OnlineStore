@@ -87,14 +87,14 @@
                     <hr class="text-muted opacity-25">
                     <div class="d-flex justify-content-between align-items-end">
                         <span class="h5 mb-0">Итого:</span>
-                        <div class="price-lg text-primary">
+                        <div class="price-lg">
                             @Model.Total.Amount.ToString("N2") @Model.Total.Currency
                         </div>
                     </div>
                 </div>
 
                 <div class="mt-4 pt-2">
-                    <a asp-action="UserOrders" class="btn btn-outline-secondary w-100 rounded-pill py-2">
+                    <a asp-action="UserOrders" class="btn-cart-outline">
                         <i class="bi bi-arrow-left me-2"></i>К списку заказов
                     </a>
                 </div>
@@ -107,7 +107,7 @@
     <style>
         /* Наследуем основные стили каталога */
         .catalog-hero {
-            background: linear-gradient(120deg, #1F3A8A, #3A6EA5);
+            background: linear-gradient(120deg, #07604E, #64998C);
             padding: 50px 60px;
             border-radius: 24px;
             color: white;
@@ -116,7 +116,7 @@
 
         .section-subtitle {
             font-weight: 600;
-            color: #1F3A8A;
+            color: #07604E;
             letter-spacing: -0.5px;
         }
 
@@ -140,7 +140,7 @@
         .product-card-modern:hover {
             transform: translateY(-4px);
             box-shadow: 0 15px 35px rgba(0,0,0,0.07);
-            border-color: rgba(31, 58, 138, 0.1);
+            border-color: rgba(7, 96, 78, 0.1);
         }
 
         .order-item-icon {
@@ -152,12 +152,12 @@
             align-items: center;
             justify-content: center;
             font-size: 1.8rem;
-            color: #3A6EA5;
+            color: #07604E;
         }
 
         .qty-badge {
             background: #F1F5F9;
-            color: #1F3A8A;
+            color: #07604E;
             padding: 4px 12px;
             border-radius: 50px;
             font-size: 0.85rem;
@@ -166,25 +166,25 @@
         }
 
         .status-badge {
-            background: linear-gradient(120deg, #C49A6C, #b78957);
+            background: linear-gradient(135deg, #07604E, #0a8066);
             color: white;
             padding: 6px 16px;
             border-radius: 50px;
             font-size: 0.85rem;
             font-weight: 500;
-            box-shadow: 0 4px 12px rgba(196, 154, 108, 0.2);
+            box-shadow: 0 4px 12px rgba(7, 96, 78, 0.2);
         }
 
         .price {
             font-weight: 700;
             font-size: 1.2rem;
-            color: #1F3A8A;
+            color: #07604E;
         }
 
         .price-lg {
             font-size: 1.8rem;
             font-weight: 700;
-            color: #1F3A8A;
+            color: #07604E;
             line-height: 1;
         }
 

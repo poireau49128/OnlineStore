@@ -150,15 +150,15 @@
     font-weight: 600;
 }
 
-input[type=number]: :-webkit-inner-spin-button,
-    input[type=number]: :-webkit-outer-spin-button {
-        -webkit-appearance:  none;
-        margin: 0;
-    }
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
 
-    input[type=number] {
-        -moz-appearance: textfield;
-    }
+input[type=number] {
+    -moz-appearance: textfield;
+}
 
 /* ===== Add to cart ===== */
 
@@ -216,7 +216,7 @@ input[type=number]: :-webkit-inner-spin-button,
     <div class="details-wrapper">
 
         <nav class="mb-4">
-            <ol class="breadcrumb mb-0">
+            <ol class="breadcrumb mb-0" style="background-color: white;">
                 <li class="breadcrumb-item">
                     <a href="@Url.Action("Index", "Product")">Каталог</a>
                 </li>
@@ -471,21 +471,46 @@ input[type=number]: :-webkit-inner-spin-button,
     }
 
     function showNotification(message, type = "info") {
+        const container = document.getElementById("toast-container");
+        if (!container) {
+            console.error("Toast container not found");
+            return;
+        }
+
+        const icons = {
+            success: "✓",
+            danger: "✕",
+            warning: "⚠",
+            info: "ℹ"
+        };
+
         const alertDiv = document.createElement("div");
         alertDiv.className = `alert alert-${type} alert-notification alert-dismissible fade show`;
         alertDiv.role = "alert";
         alertDiv.innerHTML = `
-            ${message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <div class="d-flex align-items-center">
+                <span class="me-2 fw-bold" style="font-size:1.1rem;">${icons[type] || icons.info}</span>
+                <span class="flex-grow-1">${message}</span>
+                <button type="button" class="btn-close btn-close-white ms-2" 
+                        data-bs-dismiss="alert" aria-label="Close" style="font-size:0.6rem; padding:0.4rem;"></button>
+            </div>
         `;
 
-        document.body.appendChild(alertDiv);
+        container.appendChild(alertDiv);
 
+        // Автоудаление через 4 секунды с плавным исчезновением
         setTimeout(() => {
-            if (alertDiv.parentNode) {
-                alertDiv.remove();
-            }
+            alertDiv.classList.remove("show");
+            alertDiv.style.transition = "all 0.3s ease";
+            alertDiv.style.opacity = "0";
+            alertDiv.style.transform = "translateX(120%)";
+            setTimeout(() => alertDiv.remove(), 300);
         }, 4000);
+
+        // Закрытие по кнопке
+        alertDiv.querySelector(".btn-close").addEventListener("click", () => {
+            alertDiv.remove();
+        });
     }
 
     async function addToCart() {

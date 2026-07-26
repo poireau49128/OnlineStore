@@ -27,12 +27,13 @@ namespace Store.Web.Controllers
             _categories = categories;
         }
 
-        public async Task<IActionResult> Index(int page = 1, int?  categoryId = null, string?  searchTerm = null)
+        public async Task<IActionResult> Index(int page = 1, string?  productType = null, int? categoryId = null, string?  searchTerm = null)
         {
-            var total = await _catalog.GetCatalogCountAsync(categoryId, searchTerm);
+            var total = await _catalog.GetCatalogCountAsync(categoryId, searchTerm, productType);
             var items = await _catalog.GetCatalogAsync(
                 categoryId,
                 searchTerm,
+                productType,
                 skip: (page - 1) * PageSize,
                 take: PageSize);
 
@@ -47,6 +48,7 @@ namespace Store.Web.Controllers
                 Products = pagedList,
                 CategoryGroups = await _categories.GetCategoryFilterAsync(),
                 SelectedCategoryId = categoryId,
+                SelectedProductType = productType,
                 SearchTerm = searchTerm
             };
 
@@ -116,7 +118,7 @@ namespace Store.Web.Controllers
                 return Json(new
                 {
                     success = true,
-                    message = "✓ Товар добавлен в корзину",
+                    message = "Товар добавлен в корзину",
                     cartCount
                 });
             }
