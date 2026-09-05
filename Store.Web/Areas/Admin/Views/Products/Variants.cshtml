@@ -20,14 +20,13 @@
         <main class="col">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <h1>🎨 Варианты:  @Model.ProductName</h1>
+                    <h1>Варианты:  @Model.ProductName</h1>
                     <p class="text-muted mb-0">Базовая цена: @Model.BasePrice.ToString("0.00") @CurrencyHelper.DefaultCurrency</p>
                 </div>
                 <a href="@Url.Action("Edit", "Products", new { id = Model.ProductId, area = "Admin" })" 
                    class="btn btn-secondary">← Назад</a>
             </div>
 
-            <!-- СПИСОК ВАРИАНТОВ -->
             @if (Model.Variants.Any())
             {
                 <div class="table-responsive mb-4">
@@ -80,12 +79,10 @@
                                                 )'
                                                 data-variant-price="@(variant.OverridePrice?.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture))"
                                                 title="Редактировать">
-                                            ✏️ 
                                         </button>
 
                                         <a href="@Url.Action("Stock", "Products", new { variantId = variant.Id, area = "Admin" })" 
                                            class="btn btn-sm btn-outline-info" title="Остатки">
-                                            📦
                                         </a>
                                     </td>
                                 </tr>
@@ -96,13 +93,12 @@
             }
             else
             {
-                <div class="alert alert-warning">⚠️ Вариантов не найдено</div>
+                <div class="alert alert-warning">Вариантов не найдено</div>
             }
 
             <hr class="my-4" />
 
-            <!-- ФОРМА ДОБАВЛЕНИЯ ВАРИАНТА -->
-            <h5 class="mb-3">➕ Добавить новый вариант</h5>
+            <h5 class="mb-3">Добавить новый вариант</h5>
 
             @if (TempData["Error"] != null)
             {
@@ -148,7 +144,7 @@
                     <small class="text-muted">JPG, PNG, WebP.  Макс. 5 МБ за файл.  Выбирайте ВСЕ сразу! </small>
                 </div>
 
-                <button type="submit" class="btn btn-success">✅ Добавить вариант</button>
+                <button type="submit" class="btn btn-success">Добавить вариант</button>
             </form>
         </main>
     </div>
@@ -163,7 +159,6 @@
 
 
 
-<!-- Modal Structure -->
 <div class="modal fade" id="editVariantModal" tabindex="-1" aria-labelledby="editVariantModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -173,14 +168,11 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <!-- Скрытые поля для ID -->
                     <input type="hidden" name="variantId" id="modalVariantId" />
                     <input type="hidden" name="productId" value="@Model.ProductId" />
                     
-                    <!-- Контейнер для ID удаляемых картинок -->
                     <div id="deleteImagesHiddenInputs"></div>
 
-                    <!-- Поля формы -->
                     <div class="mb-3">
                         <label for="modalColor" class="form-label">Цвет <span class="text-danger">*</span></label>
                         <input type="text" name="form.Color" id="modalColor" class="form-control" required />
@@ -217,15 +209,12 @@
                     </div>
 
 
-                    <!-- Текущие изображения -->
                     <div class="mb-3">
                         <label class="form-label">Текущие изображения</label>
                         <div id="existingImagesContainer" class="d-flex flex-wrap gap-2 mb-2">
-                            <!-- Генерируется через JS -->
                         </div>
                     </div>
 
-                    <!-- Добавление новых изображений -->
                     <div class="mb-3">
                         <label class="form-label">Добавить новые фото</label>
                         <div id="modalImagePreview" class="mb-2 d-flex flex-wrap gap-2"></div>
@@ -235,7 +224,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                    <button type="submit" class="btn btn-primary">✅ Сохранить изменения</button>
+                    <button type="submit" class="btn btn-primary">Сохранить изменения</button>
                 </div>
             </form>
         </div>
@@ -244,9 +233,6 @@
 
 @section Scripts {
     <script>
-        /**
-         * 1. ФУНКЦИИ ПРЕДПРОСМОТРА
-         */
         function setupPreview(inputElement, previewElement) {
             inputElement?.addEventListener('change', function (e) {
                 previewElement.innerHTML = '';
@@ -268,37 +254,25 @@
         // Инициализация предпросмотра для обеих форм
         setupPreview(document.getElementById('variantImageInput'), document.getElementById('imagePreview'));
         setupPreview(document.getElementById('modalVariantImageInput'), document.getElementById('modalImagePreview'));
-
-        /**
-         * 2. ЛОГИКА УДАЛЕНИЯ (МАРКИРОВКА)
-         */
         function markImageForDeletion(imageId) {
-            // Скрываем элемент в модалке
             const wrapper = document.getElementById(`img-wrapper-${imageId}`);
             if (wrapper) wrapper.remove();
 
-            // Создаем скрытый input для отправки на сервер
             const container = document.getElementById('deleteImagesHiddenInputs');
             const input = document.createElement('input');
             input.type = 'hidden';
-            input.name = 'form.ImagesToDelete'; // Должно совпадать с именем в ViewModel
+            input.name = 'form.ImagesToDelete';
             input.value = imageId;
             container.appendChild(input);
         }
-
-        /**
-         * 3. ЗАПОЛНЕНИЕ МОДАЛЬНОГО ОКНА ПРИ ОТКРЫТИИ
-         */
         const editVariantModal = document.getElementById('editVariantModal');
         editVariantModal?.addEventListener('show.bs.modal', function (event) {
             const button = event.relatedTarget;
             
-            // Чистим старые данные
             document.getElementById('deleteImagesHiddenInputs').innerHTML = '';
             document.getElementById('modalImagePreview').innerHTML = '';
             document.getElementById('modalVariantImageInput').value = '';
 
-            // Основные поля
             document.getElementById('modalVariantId').value = button.getAttribute('data-variant-id');
             document.getElementById('modalColor').value = button.getAttribute('data-variant-color');
             const size = button.getAttribute('data-variant-size');
@@ -322,7 +296,6 @@
             const label = document.getElementById('modalIsActiveLabel');
             label.textContent = isActive ? 'Активен' : 'Скрыт';
 
-            // обновление текста при клике
             checkbox.onchange = () => {
                 label.textContent = checkbox.checked ? 'Активен' : 'Скрыт';
             };
@@ -333,7 +306,6 @@
 
 
 
-            // Отрисовка текущих изображений
             const imagesJson = button.getAttribute('data-variant-images');
             const container = document.getElementById('existingImagesContainer');
             container.innerHTML = '';

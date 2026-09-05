@@ -14,7 +14,6 @@ public class ProductType
     private readonly List<Category> _categories = new();
     public IReadOnlyCollection<Category> Categories => _categories.AsReadOnly();
 
-    // EF Core
     private ProductType() { }
 
     public ProductType(string name, string? description = null, int sortOrder = 0)

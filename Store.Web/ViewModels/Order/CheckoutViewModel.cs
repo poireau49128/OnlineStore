@@ -21,7 +21,6 @@ public sealed class CheckoutItemViewModel
 
     public decimal DiscountPercent { get; init; }
 
-    // Итоговая цена с учётом скидки
     public decimal TotalWithDiscount => Total * (1 - DiscountPercent / 100m);
 }
 
@@ -32,7 +31,6 @@ public sealed class CheckoutViewModel
     // Сумма без скидки
     public decimal TotalAmount => Items.Sum(i => i.Total);
 
-    // Сумма со скидкой
     public decimal TotalWithDiscount => Items.Sum(i => i.TotalWithDiscount);
 
     public string? Comment { get; init; }

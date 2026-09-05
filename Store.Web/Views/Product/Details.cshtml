@@ -16,7 +16,6 @@
 
 <style>
 
-/* ===== Layout ===== */
 
 .details-wrapper {
     background: white;
@@ -25,7 +24,6 @@
     box-shadow: 0 20px 50px rgba(0,0,0,0.06);
 }
 
-/* ===== Gallery ===== */
 .carousel-control-prev, .carousel-control-next {
     z-index: 9;
 }
@@ -45,7 +43,7 @@
 
 #productGallery {
     border-radius: 18px;
-    border: 1px solid rgba(0,0,0,.1); /* restored old border */
+    border: 1px solid rgba(0,0,0,.1);
     background: #F8FAFC;
     position: relative;
 }
@@ -83,7 +81,6 @@
     transform: scale(1.04);
 }
 
-/* ===== Titles ===== */
 
 .product-title {
     font-weight: 600;
@@ -97,8 +94,6 @@
     color: #1F3A8A;
 }
 
-/* ===== Badges ===== */
-
 .badge-custom {
     background: #E2E8F0;
     color: #334155;
@@ -107,7 +102,6 @@
     border-radius: 50px;
 }
 
-/* ===== Variants ===== */
 
 .color-variant {
     border-radius: 50px;
@@ -128,7 +122,6 @@
     box-shadow: 0 8px 20px rgba(31,58,138,0.25);
 }
 
-/* ===== Warehouse ===== */
 
 .warehouse-btn {
     border-radius: 12px;
@@ -144,7 +137,6 @@
     box-shadow: 0 10px 25px rgba(58,110,165,0.3);
 }
 
-/* ===== Quantity ===== */
 
 #quantity {
     font-weight: 600;
@@ -160,7 +152,6 @@ input[type=number] {
     -moz-appearance: textfield;
 }
 
-/* ===== Add to cart ===== */
 
 #addToCartBtn {
     background: #C49A6C;
@@ -177,7 +168,6 @@ input[type=number] {
     box-shadow: 0 12px 30px rgba(196,154,108,0.35);
 }
 
-/* ===== Modal ===== */
 
 #modalCarousel .carousel-inner {
     height: 90vh;
@@ -413,7 +403,7 @@ input[type=number] {
             const div = document.getElementById('stocks');
 
             if (! stocks || ! stocks.length) {
-                div.innerHTML = '<p class="text-danger">❌ Нет в наличии</p>';
+                div.innerHTML = '<p class="text-danger">Нет в наличии</p>';
                 selectedWarehouseId = null;
                 return;
             }
@@ -425,7 +415,7 @@ input[type=number] {
                             data-warehouse-id="${s.warehouse.id}"
                             data-available="${s.quantity}"
                             onclick="selectWarehouse(this)">
-                        📦 ${s.warehouse.name} — <strong>${s.quantity}</strong> шт
+                            ${s.warehouse.name} — <strong>${s.quantity}</strong> шт
                     </button>
                 `;
             });
@@ -436,7 +426,7 @@ input[type=number] {
 
         } catch (e) {
             console.error("Error loading stocks:", e);
-            document.getElementById('stocks').innerHTML = '<p class="text-danger">❌ Ошибка загрузки данных</p>';
+            document.getElementById('stocks').innerHTML = '<p class="text-danger">Ошибка загрузки данных</p>';
             selectedWarehouseId = null;
         }
     }
@@ -507,7 +497,6 @@ input[type=number] {
             setTimeout(() => alertDiv.remove(), 300);
         }, 4000);
 
-        // Закрытие по кнопке
         alertDiv.querySelector(".btn-close").addEventListener("click", () => {
             alertDiv.remove();
         });
@@ -515,13 +504,13 @@ input[type=number] {
 
     async function addToCart() {
         if (!selectedVariantId || !selectedWarehouseId) {
-            showNotification("⚠️ Выберите вариант и склад", "warning");
+            showNotification("Выберите вариант и склад", "warning");
             return;
         }
 
         const quantity = parseInt(document.getElementById("quantity").value) || 1;
         if (quantity < 1) {
-            showNotification("⚠️ Количество должно быть больше 0", "warning");
+            showNotification("Количество должно быть больше 0", "warning");
             return;
         }
 
@@ -536,7 +525,7 @@ input[type=number] {
         try {
             if (quantity > selectedWarehouseAvailableQty) {
                 showNotification(
-                    `❌ На складе доступно только ${selectedWarehouseAvailableQty} шт.`,
+                    `На складе доступно только ${selectedWarehouseAvailableQty} шт.`,
                     "warning"
                 );
                 return;
@@ -547,7 +536,7 @@ input[type=number] {
                 headers: {
                     'Content-Type': 'application/json',
                     'RequestVerificationToken': getCsrfToken(),
-                    'X-Requested-With': 'XMLHttpRequest'  // AJAX
+                    'X-Requested-With': 'XMLHttpRequest'
                 },
                 body: JSON.stringify({
                     variantId: selectedVariantId,
@@ -556,9 +545,8 @@ input[type=number] {
                 })
             });
 
-            // Unauthorized
             if (response.status === 401) {
-                showNotification("❌ Требуется авторизация.  Перенаправляем на вход...", "warning");
+                showNotification("Требуется авторизация.  Перенаправляем на вход...", "warning");
                 const returnUrl = encodeURIComponent(window.location.href);
                 setTimeout(() => {
                     window.location.href = `/Account/Login?returnUrl=${returnUrl}`;
@@ -567,7 +555,7 @@ input[type=number] {
             }
 
             if (!response.ok) {
-                showNotification(`❌ Ошибка сервера (${response.status})`, "danger");
+                showNotification(`Ошибка сервера (${response.status})`, "danger");
                 return;
             }
 
@@ -582,11 +570,11 @@ input[type=number] {
                 updateCartBadge();
                 document.getElementById("quantity").value = 1;
             } else {
-                showNotification(data.message || "❌ Ошибка при добавлении", "danger");
+                showNotification(data.message || "Ошибка при добавлении", "danger");
             }
         } catch (error) {
             console.error('Error:', error);
-            showNotification("❌ Ошибка сети. Попробуйте позже.", "danger");
+            showNotification("Ошибка сети. Попробуйте позже.", "danger");
         } finally {
             btn.disabled = false;
             btnText. style.display = "inline";
@@ -626,7 +614,6 @@ input[type=number] {
             return;
         }
 
-        // Если одно изображение
         if (images.length === 1) {
             container.innerHTML = `
                 <div style="height:500px; background-color:#f8f9fa; border: 1px solid rgba(0,0,0,.1)" class="rounded">

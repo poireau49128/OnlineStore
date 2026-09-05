@@ -20,7 +20,6 @@
         gap: 20px;
     }
 
-    /* LEFT */
     .cart-info {
         flex: 1;
     }
@@ -30,12 +29,10 @@
         color: #64748B;
     }
 
-    /* CENTER */
     .cart-qty {
         width: 140px;
     }
 
-    /* RIGHT */
     .cart-prices {
         text-align: right;
         min-width: 120px;
@@ -51,18 +48,15 @@
         color: #1F3A8A;
     }
 
-    /* REMOVE */
     .cart-remove {
         margin-left: 10px;
     }
 
-    /* SUMMARY */
     .sticky-summary {
         position: sticky;
         top: 100px;
     }
 
-    /* MOBILE 🔥 */
     @@media (max-width: 768px) {
 
         .cart-card-body {
@@ -103,7 +97,6 @@ else
 {
     <div class="row g-4">
 
-        <!-- ITEMS -->
         <div class="col-lg-8">
 
             @foreach (var item in Model.Items)
@@ -112,7 +105,6 @@ else
 
                     <div class="cart-card-body">
 
-                        <!-- LEFT -->
                         <div class="cart-info">
                             <div class="fw-semibold">@item.ProductName</div>
 
@@ -129,7 +121,6 @@ else
                             </div>
                         </div>
 
-                        <!-- CENTER -->
                         <div class="cart-qty">
 
                             <div class="input-group">
@@ -152,7 +143,6 @@ else
 
                         </div>
 
-                        <!-- RIGHT -->
                         <div class="cart-prices">
 
                             <div class="price">
@@ -166,7 +156,6 @@ else
 
                         </div>
 
-                        <!-- REMOVE -->
                         <div class="cart-remove">
                             <button class="btn-cart-danger btn-remove"
                                     type="button"
@@ -182,7 +171,6 @@ else
 
         </div>
 
-        <!-- SUMMARY -->
         <div class="col-lg-4">
 
             <div class="cart-summary-card sticky-summary">
@@ -277,13 +265,11 @@ else
             }
         } catch (error) {
             console.error('Error:', error);
-            showNotification("❌ Ошибка при обновлении:  " + error.message, "danger");
+            showNotification("Ошибка при обновлении:  " + error.message, "danger");
         }
     }
 
     async function removeCartItem(itemId) {
-        @* if (! confirm('Вы уверены, что хотите удалить товар? ')) return; *@
-
         const formData = new FormData();
         formData.append('id', itemId);
         formData.append('__RequestVerificationToken', getCsrfToken());
@@ -316,7 +302,7 @@ else
             }
         } catch (error) {
             console.error('Error:', error);
-            showNotification("❌ Ошибка при удалении: " + error.message, "danger");
+            showNotification("Ошибка при удалении: " + error.message, "danger");
         }
     }
 

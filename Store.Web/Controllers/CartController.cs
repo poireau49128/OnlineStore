@@ -159,7 +159,6 @@ public class CartController : Controller
     }
 }
 
-// DTO для запросов
 public class RemoveCartItemRequest
 {
     public int Id { get; set; }

@@ -12,7 +12,7 @@
         <main class="col">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <h1>📦 Остатки варианта</h1>
+                    <h1>Остатки варианта</h1>
                     <p class="text-muted mb-0">
                         <strong>@Model.ProductName</strong> — @Model.VariantDescription
                     </p>
@@ -38,7 +38,6 @@
                 </div>
             }
 
-            <!-- ТЕКУЩИЕ ОСТАТКИ -->
             @if (Model.Stocks.Any())
             {
                 <div class="card mb-4">
@@ -78,18 +77,16 @@
             }
             else
             {
-                <div class="alert alert-info mb-4">ℹ️ Остатки ещё не добавлены</div>
+                <div class="alert alert-info mb-4">Остатки ещё не добавлены</div>
             }
 
             <hr class="my-4" />
 
-            <!-- ФОРМА ДОБАВЛЕНИЯ/ОБНОВЛЕНИЯ -->
-            <h5 class="mb-3">➕ Добавить / Обновить остаток</h5>
+            <h5 class="mb-3">Добавить / Обновить остаток</h5>
 
             <form method="post" asp-action="UpdateStock" class="card p-4">
                 <input type="hidden" name="variantId" value="@Model.VariantId" />
 
-                <!-- ✅ ИСПРАВЛЕНИЕ: Убрали "UpdateForm." префикс -->
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <label for="warehouseSelect" class="form-label">Склад <span class="text-danger">*</span></label>
@@ -115,7 +112,7 @@
                 <div class="d-flex gap-2 justify-content-end">
                     <a href="@Url.Action("Variants", "Products", new { id = Model.ProductId, area = "Admin" })" 
                        class="btn btn-secondary">Отмена</a>
-                    <button type="submit" class="btn btn-success">💾 Сохранить остаток</button>
+                    <button type="submit" class="btn btn-success">Сохранить остаток</button>
                 </div>
             </form>
         </main>
@@ -124,7 +121,6 @@
 
 @section Scripts {
     <script>
-        // ✅ Подтягивание текущих остатков при выборе склада
         document.getElementById('warehouseSelect')?.addEventListener('change', function() {
             const currentQty = this.options[this.selectedIndex]?.dataset.current || '0';
             const info = document.getElementById('currentStockInfo');

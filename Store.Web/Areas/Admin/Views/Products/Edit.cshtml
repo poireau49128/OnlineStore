@@ -10,13 +10,13 @@
     <div class="row">
         <partial name="_AdminSidebar" />
         <main class="col">
-            <h1 class="mb-4">✏️ Редактировать товар</h1>
+            <h1 class="mb-4">Редактировать товар</h1>
 
             <form method="post" class="card p-4">
                 @if (!ViewData.ModelState.IsValid)
                 {
                     <div class="alert alert-danger">
-                        <strong>❌ Ошибки: </strong>
+                        <strong>Ошибки: </strong>
                         <ul class="mb-0">
                             @foreach (var state in ViewData.ModelState.Values)
                             {
@@ -66,22 +66,6 @@
 
                         <input type="hidden" asp-for="IsActive" value="false" />
                     </div>
-
-                    @* <div class="col-md-6">
-                        <label asp-for="CategoryId" class="form-label">Категория <span class="text-danger">*</span></label>
-                        <select asp-for="CategoryId" class="form-select">
-                            <option value="">-- Выберите категорию --</option>
-                            @foreach (var group in Model.Categories.GroupBy(c => c. ProductTypeName).OrderBy(g => g.Key))
-                            {
-                                <optgroup label="@group.Key">
-                                    @foreach (var cat in group.OrderBy(c => c.Name))
-                                    {
-                                        <option value="@cat.Id">@cat.Name</option>
-                                    }
-                                </optgroup>
-                            }
-                        </select>
-                    </div> *@
                     <div class="col-md-6">
                         <label class="form-label">
                             Категория <span class="text-danger">*</span>
@@ -122,14 +106,14 @@
 
                 <div class="d-flex gap-2 justify-content-end mt-4">
                     <a asp-action="Index" class="btn btn-secondary">Отмена</a>
-                    <button type="submit" class="btn btn-primary">💾 Сохранить</button>
+                    <button type="submit" class="btn btn-primary">Сохранить</button>
                 </div>
             </form>
 
             <div class="mt-4 pt-4 border-top">
                 <h5>Управление товаром</h5>
                 <a asp-action="Variants" asp-route-id="@Model.ProductId" class="btn btn-outline-primary">
-                    🎨 Варианты
+                    Варианты
                 </a>
             </div>
         </main>
@@ -142,7 +126,7 @@
         <div class="modal-content">
 
             <div class="modal-header">
-                <h5 class="modal-title">➕ Новая категория</h5>
+                <h5 class="modal-title">Новая категория</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 
@@ -229,7 +213,6 @@
 
             const result = await response.json();
 
-            // Добавляем option в select
             const select = document.getElementById('categorySelect');
 
             let group = [...select.querySelectorAll('optgroup')]

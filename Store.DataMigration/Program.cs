@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Store.Persistence;
 using Store.Domain.Entities;
 using Store.Domain.ValueObjects;
-using Store.DataMigration;   // тут лежат OldProduct и OldStoreDbContext
+using Store.DataMigration;
 
 class Program
 {
@@ -13,7 +13,6 @@ class Program
     {
         Console.WriteLine("=== Data migration started ===");
 
-        // ----- 1. Настраиваем контексты -----
         var oldOptionsBuilder = new DbContextOptionsBuilder<OldStoreDbContext>();
         oldOptionsBuilder.UseSqlServer(
             "Server=bekmanwood.by;Database=bekmanwo_Dosermana;User Id=bekmanwo_bekmanwo;Password=Ugh4Au9A;TrustServerCertificate=True;");
@@ -25,7 +24,6 @@ class Program
         using var oldDb = new OldStoreDbContext(oldOptionsBuilder.Options);
         using var newDb = new AppDbContext(newOptionsBuilder.Options);
 
-        // ----- 2. Склады (Warehouses) -----
         Console.WriteLine("== Migrating warehouses ==");
 
         Warehouse grodnoWarehouse;
@@ -45,7 +43,6 @@ class Program
             moscowWarehouse = newDb.Warehouses.First(w => w.Name == "Москва");
         }
 
-        // ----- 3. Типы товаров и категории (ProductType, Category) -----
         Console.WriteLine("== Migrating product types & categories ==");
 
         var oldProducts = oldDb.Products.AsNoTracking().ToList();
@@ -113,7 +110,6 @@ class Program
             }
         }
 
-        // ----- 4. Продукты и варианты (Product, ProductVariant) -----
         Console.WriteLine("== Migrating products & variants ==");
 
         var productsGrouped = oldProducts.GroupBy(p => new { p.Name, p.Category, p.SubCategory });
@@ -162,7 +158,6 @@ class Program
                 newDb.ProductVariants.Add(variant);
                 newDb.SaveChanges();
 
-                // ----- 5. Остатки (ProductStock) -----
                 if (item.Quantity_Grodno > 0)
                     newDb.ProductStocks.Add(new ProductStock(product.Id, grodnoWarehouse.Id, item.Quantity_Grodno));
 
@@ -171,7 +166,6 @@ class Program
 
                 newDb.SaveChanges();
 
-                // ----- 6. Картинки товаров (ProductImage) -----
                 if (!string.IsNullOrEmpty(item.FileName))
                 {
                     var image = new ProductImage(item.FileName, sortOrder: 0)

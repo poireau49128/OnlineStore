@@ -15,7 +15,6 @@ public class Category
     private readonly List<Product> _products = new();
     public IReadOnlyCollection<Product> Products => _products.AsReadOnly();
 
-    // EF Core
     private Category() { }
 
     public Category(string name, int productTypeId, string? description = null)

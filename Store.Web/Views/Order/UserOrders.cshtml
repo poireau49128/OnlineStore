@@ -1,7 +1,6 @@
 @model IReadOnlyList<Store.Web.ViewModels.Order.OrderListViewModel>
 
 <div class="container">
-    <!-- Hero Section точно как в каталоге -->
     <div class="catalog-hero mb-5">
         <div class="hero-content">
             <h1>Мои заказы</h1>
@@ -28,7 +27,6 @@
             {
                 <div class="col-md-6 col-xl-4">
                     <div class="product-card-modern">
-                        <!-- Header карточки с номером и "точкой" статуса -->
                         <div class="order-header-modern">
                             <div class="d-flex align-items-center gap-2">
                                 <span class="status-dot"></span>
@@ -64,7 +62,6 @@
 
 @section Styles {
     <style>
-        /* HERO (Дублируем из каталога для консистентности) */
         .catalog-hero {
             background: linear-gradient(120deg, #07604E, #64998C);
             padding: 60px;
@@ -73,7 +70,6 @@
             box-shadow: 0 15px 40px rgba(31, 58, 138, 0.1);
         }
 
-        /* CARD STRUCTURE */
         .product-card-modern {
             background: white;
             border-radius: 18px;
@@ -91,7 +87,6 @@
             box-shadow: 0 20px 50px rgba(0,0,0,0.08);
         }
 
-        /* HEADER ВНУТРИ КАРТОЧКИ */
         .order-header-modern {
             padding: 20px 20px 0 20px;
             display: flex;
@@ -110,11 +105,10 @@
             color: #94a3b8;
         }
 
-        /* СТАТУСЫ */
         .status-dot {
             width: 8px;
             height: 8px;
-            background: #07604E; /* Акцентный цвет как в кнопках */
+            background: #07604E;
             border-radius: 50%;
             display: inline-block;
             box-shadow: 0 0 0 4px rgba(7, 96, 78, 0.15);
@@ -132,7 +126,6 @@
             border: 1px solid #e2e8f0;
         }
 
-        /* PRODUCT INFO AREA */
         .product-info-modern {
             padding: 20px;
             flex-grow: 1;

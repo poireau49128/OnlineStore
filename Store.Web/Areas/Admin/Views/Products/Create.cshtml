@@ -10,10 +10,9 @@
     <div class="row">
         <partial name="_AdminSidebar" />
         <main class="col">
-            <h1 class="mb-4">✨ Добавить новый товар</h1>
+            <h1 class="mb-4">Добавить новый товар</h1>
 
             <form method="post" enctype="multipart/form-data" class="card p-4" novalidate>
-                <!-- VALIDATION SUMMARY (только одно место) -->
                 @{
                     var hasErrors = !ViewData.ModelState.IsValid && ViewData.ModelState.Values.Any(v => v.Errors.Any());
                 }
@@ -21,7 +20,7 @@
                 @if (hasErrors)
                 {
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        <strong>❌ Ошибки при заполнении:</strong>
+                        <strong>Ошибки при заполнении:</strong>
                         <ul class="mb-0 mt-2">
                             @foreach (var state in ViewData.ModelState)
                             {
@@ -50,7 +49,7 @@
                     </div>
                 }
 
-                <h5 class="mb-3">📦 Основные данные товара</h5>
+                <h5 class="mb-3">Основные данные товара</h5>
 
                 <div class="row mb-3">
                     <div class="col-md-6">
@@ -73,26 +72,6 @@
                             <span class="input-group-text">@CurrencyHelper.DefaultCurrency</span>
                         </div>
                     </div>
-                    @* <div class="col-md-6">
-                        <label asp-for="CategoryId" class="form-label">Категория <span class="text-danger">*</span></label>
-                        <select asp-for="CategoryId" class="form-select">
-                            <option value="">-- Выберите категорию --</option>
-                            @foreach (var group in Model.Categories. GroupBy(c => c.ProductTypeName))
-                            {
-                                <optgroup label="@group.Key">
-                                    @foreach (var cat in group. OrderBy(c => c.Name))
-                                    {
-                                        <option value="@cat.Id">@cat.Name</option>
-                                    }
-                                </optgroup>
-                            }
-                        </select>
-                        <small class="text-muted">
-                            <a href="#" data-bs-toggle="tooltip" title="Нельзя создавать категории из админки товаров.  Используйте админ-панель категорий.">
-                                ℹ️ Как создать новую категорию? 
-                            </a>
-                        </small>
-                    </div> *@
                     <div class="col-md-6">
                         <label class="form-label">
                             Категория <span class="text-danger">*</span>
@@ -132,7 +111,7 @@
 
                 <hr class="my-4" />
 
-                <h5 class="mb-3">🎨 Первый вариант товара <span class="text-danger">*</span></h5>
+                <h5 class="mb-3">Первый вариант товара <span class="text-danger">*</span></h5>
 
                 <div class="row mb-3">
                     <div class="col-md-4">
@@ -163,7 +142,7 @@
 
                 <div class="d-flex gap-2 justify-content-end">
                     <a asp-action="Index" class="btn btn-secondary">Отмена</a>
-                    <button type="submit" class="btn btn-primary">✅ Создать товар</button>
+                    <button type="submit" class="btn btn-primary">Создать товар</button>
                 </div>
             </form>
         </main>
@@ -176,7 +155,7 @@
         <div class="modal-content">
 
             <div class="modal-header">
-                <h5 class="modal-title">➕ Новая категория</h5>
+                <h5 class="modal-title">Новая категория</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 
@@ -287,7 +266,6 @@
 
             const result = await response.json();
 
-            // Добавляем option в select
             const select = document.getElementById('categorySelect');
 
             let group = [...select.querySelectorAll('optgroup')]

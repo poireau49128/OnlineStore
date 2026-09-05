@@ -42,11 +42,9 @@ public sealed class Money : IEquatable<Money>
         return new Money(Amount * quantity, Currency);
     }
 
-    // Операторы
     public static Money operator +(Money a, Money b) => a.Add(b);
     public static Money operator *(Money a, int q) => a.Multiply(q);
 
-    // Equality
     public bool Equals(Money? other)
         => other != null &&
            Amount == other.Amount &&

@@ -24,7 +24,6 @@ public sealed class CreateProductViewModel
     [Range(1, int.MaxValue, ErrorMessage = "Выберите категорию")]
     public int CategoryId { get; set; }
 
-    // Первый вариант
     [Required(ErrorMessage = "Цвет первого варианта обязателен")]
     [StringLength(50, MinimumLength = 2, ErrorMessage = "Цвет должен быть от 2 до 50 символов")]
     public string FirstVariantColor { get; set; } = null!;
@@ -37,7 +36,6 @@ public sealed class CreateProductViewModel
 
     public List<IFormFile>? FirstVariantImages { get; set; }
 
-    // Для выпадающих списков в view
     public List<CategoryListItemViewModel> Categories { get; set; } = new();
     public List<SelectListItem> ProductTypes { get; set; } = new();
 }

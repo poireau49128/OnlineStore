@@ -20,7 +20,6 @@ public class AccountController : Controller
         _signInManager = signInManager;
     }
 
-    // ---------------- REGISTER ----------------
 
     [HttpGet]
     public IActionResult Register(string? returnUrl)
@@ -55,7 +54,6 @@ public class AccountController : Controller
     }
 
 
-    // ---------------- LOGIN ----------------
 
     [HttpGet]
     public IActionResult Login(string? returnUrl)
@@ -73,7 +71,6 @@ public class AccountController : Controller
             model.Email,
             model.Password,
             model.RememberMe,
-            // isPersistent: false,
             lockoutOnFailure: false);
 
         if (!result.Succeeded)
@@ -86,7 +83,6 @@ public class AccountController : Controller
     }
 
 
-    // ---------------- LOGOUT ----------------
 
     [HttpPost]
     public async Task<IActionResult> Logout()
@@ -96,7 +92,6 @@ public class AccountController : Controller
     }
 
 
-    // ---------------- PROFILE ----------------
 
     [Authorize]
     [HttpGet]
@@ -148,7 +143,6 @@ public class AccountController : Controller
     }
 
 
-    // ---------------- ChangePassword ----------------
 
     [Authorize]
     public IActionResult ChangePassword()

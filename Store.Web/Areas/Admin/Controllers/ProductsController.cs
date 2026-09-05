@@ -32,7 +32,6 @@ public class ProductsController :  Controller
         _db = db;
     }
 
-    // ============ LIST ============
 
     [HttpGet]
     public async Task<IActionResult> Index(string?  search, int? categoryId)
@@ -44,7 +43,7 @@ public class ProductsController :  Controller
             Id = p.Id,
             Name = p.Name,
             Category = $"{p.ProductTypeName} / {p.CategoryName}",
-            Sku = "N/A", // TODO: Добавить SKU в ProductCatalogItemDto
+            Sku = "N/A",
             Price = p.Price. Amount,
             VariantsCount = p. VariantsCount ??  0,
             TotalStock = p.TotalStock ??  0,
@@ -54,7 +53,6 @@ public class ProductsController :  Controller
         return View(model);
     }
 
-    // ============ CREATE ============
 
     [HttpGet]
     public async Task<IActionResult> Create()
@@ -171,7 +169,6 @@ public class ProductsController :  Controller
         }
     }
 
-    // ============ EDIT ============
 
     [HttpGet]
     public async Task<IActionResult> Edit(int id)
@@ -286,7 +283,6 @@ public class ProductsController :  Controller
         }
     }
 
-    // ============ VARIANTS ============
 
     [HttpGet]
     public async Task<IActionResult> Variants(int id)
@@ -422,7 +418,6 @@ public class ProductsController :  Controller
         return RedirectToAction(nameof(Variants), new { id = productId });
     }
 
-    // ============ STOCK ============
 
     [HttpGet]
     public async Task<IActionResult> Stock(int variantId)
@@ -531,8 +526,6 @@ public class ProductsController :  Controller
             return RedirectToAction(nameof(Index));
         }
     }
-
-    // ============ AUTOCOMPLETE API ============
 
     [HttpGet]
     public async Task<IActionResult> SearchCategories(string term, int?  typeId)

@@ -21,7 +21,6 @@ public sealed class AdminOrderExportService : IAdminOrderExportService
         using var workbook = new XLWorkbook();
         var sheet = workbook.Worksheets.Add("Заказы");
 
-        // 🔹 HEADER
         var headers = new[]
         {
             "№ заказа", "Дата", "Email", "Телефон", "Адрес", "Статус",
@@ -71,31 +70,25 @@ public sealed class AdminOrderExportService : IAdminOrderExportService
 
             int endRow = row - 1;
 
-            // 🔥 ГРУППИРОВКА ЗАКАЗА (визуально)
             var orderRange = sheet.Range(startRow, 1, endRow, 14);
 
             orderRange.Style.Border.OutsideBorder = XLBorderStyleValues.Medium;
             orderRange.Style.Border.OutsideBorderColor = XLColor.Black;
 
-            // Лёгкий фон для чередования
             if (startRow % 2 == 0)
             {
                 orderRange.Style.Fill.BackgroundColor = XLColor.FromHtml("#F8FAFC");
             }
         }
 
-        // 🔹 Форматы
         sheet.Column(2).Style.DateFormat.Format = "dd.MM.yyyy HH:mm";
         sheet.Column(12).Style.NumberFormat.Format = "#,##0.00";
         sheet.Column(14).Style.NumberFormat.Format = "#,##0.00";
 
-        // 🔹 Автофильтр
         sheet.RangeUsed().SetAutoFilter();
 
-        // 🔹 Freeze header
         sheet.SheetView.FreezeRows(1);
 
-        // 🔹 Ширина колонок
         sheet.Columns().AdjustToContents();
 
         using var stream = new MemoryStream();

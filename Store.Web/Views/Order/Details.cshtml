@@ -1,7 +1,6 @@
 @model Store.Web.ViewModels.Order.OrderDetailsViewModel
 
 <div class="container">
-    <!-- Hero Section в стиле каталога -->
     <div class="catalog-hero mb-5">
         <div class="hero-content">
             <nav aria-label="breadcrumb">
@@ -16,7 +15,6 @@
     </div>
 
     <div class="row g-5">
-        <!-- Левая колонка: Состав заказа -->
         <div class="col-lg-8">
             <h5 class="mb-4 section-subtitle">Состав заказа</h5>
             
@@ -25,7 +23,6 @@
                 {
                     <div class="product-card-modern mb-4 p-3">
                         <div class="d-flex align-items-center gap-4">
-                            <!-- Миниатюра (опционально, если есть URL в модели, иначе иконка) -->
                             <div class="order-item-icon">
                                 <i class="bi bi-box-seam"></i>
                             </div>
@@ -69,7 +66,6 @@
             }
         </div>
 
-        <!-- Правая колонка: Информация и статус -->
         <div class="col-lg-4">
             <div class="catalog-sidebar sticky-top" style="top: 100px;">
                 <h5 class="sidebar-title border-bottom pb-3 mb-3">Резюме заказа</h5>
@@ -105,7 +101,6 @@
 
 @section Styles {
     <style>
-        /* Наследуем основные стили каталога */
         .catalog-hero {
             background: linear-gradient(120deg, #07604E, #64998C);
             padding: 50px 60px;
@@ -128,7 +123,6 @@
             border: 1px solid rgba(0,0,0,0.02);
         }
 
-        /* Элементы заказа */
         .product-card-modern {
             background: white;
             border-radius: 20px;
@@ -194,7 +188,6 @@
             font-weight: 500;
         }
 
-        /* Хлебные крошки */
         .breadcrumb-item + .breadcrumb-item::before {
             color: rgba(255,255,255,0.4);
         }

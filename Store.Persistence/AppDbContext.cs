@@ -114,7 +114,6 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         entity.Property(v => v.Size)
             .HasMaxLength(50);
 
-        // OwnsOne для OverridePrice (если Money уже есть)
         entity.OwnsOne(v => v.OverridePrice, money =>
         {
             money.Property(m => m.Amount)

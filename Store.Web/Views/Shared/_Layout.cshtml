@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@ViewData["Title"] - BekmaWood</title>
+    <title>@(string.IsNullOrWhiteSpace((string?)ViewData["Title"]) ? "BekmaWood" : (string)ViewData["Title"] + " — BekmaWood")</title>
 
     <link rel="stylesheet" href="~/Store.Web.styles.css" asp-append-version="true" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -24,7 +24,6 @@
     @Html.AntiForgeryToken()
 </form>
 
-<!-- HEADER -->
 <header>
     <div class="hamburger-menu">
         <input id="menu__toggle" type="checkbox" />
@@ -210,12 +209,9 @@
 </header>
 
 <main class="main-content">
-    <!-- Slider main container -->
     <div class="swiper swiper-main" rewind="true">
-        <!-- Additional required wrapper -->
         <div class="swiper-wrapper">
 
-            <!-- Slides -->
             <div class="swiper-slide">
                 <div class="block">
                     <div class="sub-block">

@@ -11,7 +11,6 @@ public sealed class VariantsViewModel
 
     public List<VariantItemViewModel> Variants { get; set; } = new();
 
-    // Форма для добавления нового варианта
     public CreateVariantFormViewModel CreateForm { get; set; } = new();
 }
 
@@ -47,7 +46,6 @@ public sealed class CreateVariantFormViewModel
     public decimal? OverridePrice { get; set; }
 
     public List<IFormFile>? Images { get; set; }
-    // if using to update
     public List<int>? ImagesToDelete { get; set; } 
 
     public bool IsActive { get; set; }

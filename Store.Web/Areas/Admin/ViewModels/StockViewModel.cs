@@ -7,7 +7,7 @@ public sealed class StockViewModel
     public int ProductId { get; set; }
     public string ProductName { get; set; } = null!;
     public int VariantId { get; set; }
-    public string VariantDescription { get; set; } = null!; // "Красный, XL"
+    public string VariantDescription { get; set; } = null!;
 
     public List<StockItemViewModel> Stocks { get; set; } = new();
     public List<WarehouseSelectItem> Warehouses { get; set; } = new();

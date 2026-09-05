@@ -6,7 +6,6 @@ public interface ICartRepository
     Task AddAsync(CartItem item);
     Task RemoveAsync(int id);
     Task ClearAsync(string userId);
-    // Task UpdateQuantityAsync(int id, int quantity);
     Task SaveChangesAsync();
     Task<CartItem?> GetByIdAsync(int id);
 

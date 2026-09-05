@@ -27,12 +27,10 @@ public sealed class ProductAdminService : IProductAdminService
 
     public async Task<int> CreateProductWithVariantAsync(CreateProductRequest request)
     {
-        // Валидация категории
         var category = await _db.Categories.FirstOrDefaultAsync(c => c. Id == request.CategoryId);
         if (category == null)
             throw new InvalidOperationException("Категория не найдена");
 
-        // Создание товара
         var basePrice = Money.From(request.BasePrice, "BYN");
         var product = new Product(
             name: request.Name,
@@ -40,10 +38,8 @@ public sealed class ProductAdminService : IProductAdminService
             categoryId: request.CategoryId,
             description: request.Description);
 
-        // Установка SKU:  если указан администратором, используем его, иначе он будет генериться после сохранения
         if (! string.IsNullOrWhiteSpace(request.Sku))
         {
-            // Проверяем уникальность
             var skuExists = await _productRepo. SkuExistsAsync(request.Sku);
             if (skuExists)
                 throw new InvalidOperationException($"SKU '{request.Sku}' уже используется другим товаром");
@@ -53,14 +49,12 @@ public sealed class ProductAdminService : IProductAdminService
 
         await _productRepo.AddAsync(product);
 
-        // Если SKU не был указан, генерируем по ID товара
         if (string.IsNullOrWhiteSpace(request.Sku))
         {
             product.SetSku();
             await _productRepo.UpdateAsync(product);
         }
 
-        // Создание первого варианта
         var variantPrice = request.FirstVariantPrice. HasValue
             ? Money.From(request. FirstVariantPrice.Value, "BYN")
             : null;
@@ -72,7 +66,6 @@ public sealed class ProductAdminService : IProductAdminService
 
         await _db.SaveChangesAsync();
 
-        // Загрузка изображений варианта, если они есть
         if (request.FirstVariantImages?. Any() == true)
         {
             await _imageService.UploadVariantImagesAsync(
@@ -145,13 +138,11 @@ public sealed class ProductAdminService : IProductAdminService
         if (category == null)
             throw new InvalidOperationException("Категория не найдена");
 
-        // Используем методы вместо прямого присвоения
         product.UpdateName(request.Name);
         product.UpdateDescription(request.Description);
         product.UpdateBasePrice(Money.From(request.BasePrice, "BYN"));
         product.SetActive(request.isActive);
 
-        // Обновление SKU если указан
         if (!string.IsNullOrWhiteSpace(request. Sku) && request.Sku != product.Sku)
         {
             var skuExists = await _productRepo. SkuExistsAsync(request.Sku, request.ProductId);
@@ -178,7 +169,6 @@ public sealed class ProductAdminService : IProductAdminService
         if (product == null)
             throw new InvalidOperationException("Товар не найден");
 
-        // Проверяем, нет ли уже такой комбинации цвета и размера
         var variantExists = product.Variants. Any(v =>
             v.Color. Equals(request.Color, StringComparison.OrdinalIgnoreCase) &&
             v.Size == request.Size);
@@ -198,7 +188,6 @@ public sealed class ProductAdminService : IProductAdminService
 
         await _db.SaveChangesAsync();
 
-        // Загрузка изображений
         if (request.Images?.Any() == true)
         {
             await _imageService. UploadVariantImagesAsync(variant.Id, request.Images);
@@ -255,7 +244,6 @@ public sealed class ProductAdminService : IProductAdminService
 
     public async Task DeactivateVariantAsync(int variantId)
     {
-        // TODO:  ВАЖНО!  Добавить IsActive поле в ProductVariant перед использованием
         throw new NotImplementedException(
             "Требуется добавить поле IsActive в ProductVariant (миграция БД)");
     }
@@ -269,7 +257,6 @@ public sealed class ProductAdminService : IProductAdminService
 
         if (stock == null)
         {
-            // Создаём новый остаток
             stock = new ProductStock(
                 request.ProductVariantId,
                 request.WarehouseId,
@@ -279,7 +266,6 @@ public sealed class ProductAdminService : IProductAdminService
         }
         else
         {
-            // Обновляем существующий через метод
             stock.SetQuantity(request.Quantity);
             _db.ProductStocks.Update(stock);
         }
@@ -299,7 +285,6 @@ public sealed class ProductAdminService : IProductAdminService
 
     public async Task DeactivateProductAsync(int productId)
     {
-        // TODO: ВАЖНО! Добавить IsActive поле в Product перед использованием
         throw new NotImplementedException(
             "Требуется добавить поле IsActive в Product (миграция БД)");
     }

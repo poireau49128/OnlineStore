@@ -51,14 +51,12 @@
                         </button>
                     </form>
 
-                    <!-- Сброс пароля -->
                     <form asp-action="ResetPassword" method="post" class="d-inline">
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="userId" value="@Model.Id" />
                         <button type="submit" class="btn btn-warning mt-2">Сбросить пароль</button>
                     </form>
 
-                    <!-- Список скидок -->
                     <h4 class="mt-4">Скидки по категориям</h4>
                     <table class="table table-sm">
                         <thead>
@@ -148,7 +146,6 @@
 
 
 
-                    <!-- Список заказов -->
                     <h4 class="mt-4">Заказы пользователя</h4>
                     <table class="table table-striped">
                         <thead>

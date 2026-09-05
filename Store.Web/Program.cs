@@ -26,7 +26,6 @@ builder.Services
     .AddEntityFrameworkStores<AppDbContext>()
     .AddErrorDescriber<RussianIdentityErrorDescriber>()
     .AddDefaultTokenProviders();
-    //.AddDefaultUI();
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
@@ -142,6 +141,5 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Product}/{action=Index}/{id?}");
 
-// app.MapRazorPages();
 
 app.Run();

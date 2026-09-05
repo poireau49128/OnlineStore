@@ -36,7 +36,6 @@ nav a:visited,
     text-decoration: none !important;
 }
 
-/* ===== FIX: убираем стрелки в number input ===== */
 input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button {
     -webkit-appearance: none;
@@ -50,7 +49,6 @@ input[type=number] {
 
 
 
-/* ===== MODERN HEADER (Glassmorphism) ===== */
 header {
     position: sticky;
     top: 0;
@@ -70,7 +68,6 @@ header a:hover {
     color: #0ebe9b;
 }
 
-/* HAMBURGER MENU */
 .hamburger-menu {
     display: none;
     background: rgba(7, 96, 78, 0.95);
@@ -144,7 +141,6 @@ header a:hover {
     top: 8px;
 }
 
-/* Modern mobile menu */
 .menu__box {
     display: block;
     position: fixed;
@@ -222,7 +218,6 @@ header a:hover {
     left: 0;
     max-width: 450px;
     width: 100%;
-    /* width: calc(100vw - 30px); */
     height: 100%;
     transform: translate3d(450px, 0, 0);
     -webkit-transform: translate3d(450px, 0, 0);
@@ -249,7 +244,7 @@ header a:hover {
     text-align: left;
     line-height: 50px;
     text-decoration: none;
-    color: #333 !important;  /* FIX: не синий */
+    color: #333 !important;
     cursor: pointer;
     position: relative;
     padding: 0 18px;
@@ -262,7 +257,6 @@ header a:hover {
     background: rgba(7, 96, 78, 0.04);
 }
 
-/* FIX: стрелка и крест больше не перекрываются, имя не вылезает */
 .m-menu__header {
     padding: 50px 16px 30px 10px;
     height: 50px;
@@ -295,7 +289,6 @@ header a:hover {
     justify-content: center;
 }
 
-/* HEADER INFO */
 .header-info {
     max-width: 1300px;
     margin: 0 auto;
@@ -308,7 +301,6 @@ header a:hover {
     flex-wrap: wrap;
 }
 
-/* MODERN LOGO — выпирает над шапкой */
 .header-logo {
     display: flex;
     justify-content: center;
@@ -410,7 +402,6 @@ header a:hover {
     flex-shrink: 0;
 }
 
-/* Modern pill buttons */
 .button {
     border-radius: 50px;
     padding: 10px 20px;
@@ -478,7 +469,6 @@ header a:hover {
     position: relative;
 }
 
-/* ===== FIX: меню аккаунта — плавное появление/исчезновение ===== */
 .account-menu {
     position: absolute;
     top: 100%;
@@ -497,22 +487,18 @@ header a:hover {
     border-radius: 16px;
     box-shadow: 0 20px 50px rgba(0,0,0,0.12);
     border: 1px solid rgba(0,0,0,0.04);
-    
-    /* скрыто по умолчанию */
     opacity: 0;
     pointer-events: none;
     transform: translateY(-8px) scale(0.96);
     transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-/* показываем при открытом чекбоксе */
 #account-menu-toggle:checked ~ .account-menu {
     opacity: 1;
     pointer-events: auto;
     transform: translateY(0) scale(1);
 }
 
-/* убираем старую анимацию высоты — пункты всегда нормальной высоты */
 #account-menu-toggle ~ .account-menu li,
 #account-menu-toggle:checked ~ .account-menu li {
     height: auto;
@@ -563,7 +549,6 @@ header a:hover {
     font-weight: 400;
 }
 
-/* toasts */
 #toast-container {
     position: fixed;
     top: 20px;
@@ -611,7 +596,6 @@ header a:hover {
     }
 }
 
-/* MODERN NAV — плавающая панель */
 header nav {
     background-color: #07604E;
     border-radius: 50px;
@@ -668,15 +652,13 @@ nav ul li a:hover::after {
     width: 100%;
 }
 
-/* MAIN CONTENT */
 main.main-content {
     flex: 1;
 }
 
-/* ===== FIX: футер цвета шапки, скрыты лишние секции ===== */
 .main-footer {
     flex-shrink: 0;
-    background-color: #07604E;  /* как шапка */
+    background-color: #07604E;
     color: white;
     padding: 45px 0 20px;
     margin-top: 50px;
@@ -773,7 +755,6 @@ main.main-content {
     margin-top: 20px;
 }
 
-/* RESPONSIVE */
 @media (max-width: 1200px) {
     .header-info {
         width: 95%;
@@ -871,7 +852,6 @@ main.main-content {
     }
 }
 
-/* CAROUSEL/SLIDER STYLES */
 .swiper {
     width: 100%;
     height: 600px;
@@ -882,7 +862,6 @@ main.main-content {
     z-index: 1;
 }
 
-/* Modern slider container */
 @media (min-width: 1400px) {
     .swiper {
         max-width: 1400px;
@@ -1071,7 +1050,6 @@ main.main-content {
     }
 }
 
-/* ===== Пагинация ===== */
 .pagination-modern {
     display: flex !important;
     justify-content: center !important;
@@ -1135,7 +1113,6 @@ main.main-content {
     stroke: currentColor;
 }
 
-/* ===== Auth Forms ===== */
 .auth-page {
     display: flex;
     justify-content: center;
@@ -1260,7 +1237,6 @@ main.main-content {
     }
 }
 
-/* ===== Типы товаров в сайдбаре ===== */
 .type-list {
     display: flex;
     flex-direction: column;
@@ -1327,7 +1303,6 @@ main.main-content {
     padding: 4px 8px 8px 12px;
 }
 
-/* ===== Cart & Checkout ===== */
 .empty-cart-box {
     text-align: center;
     padding: 60px 20px;
@@ -1465,7 +1440,6 @@ main.main-content {
     color: white;
 }
 
-/* Адаптивность */
 @media (max-width: 768px) {
     .checkout-hero {
         padding: 28px 20px;

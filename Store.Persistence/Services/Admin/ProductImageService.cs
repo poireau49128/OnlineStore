@@ -139,8 +139,6 @@ public sealed class ProductImageService :  IProductImageService
         await _db.SaveChangesAsync();
     }
 
-    // ============ Private Methods ============
-
     private void ValidateFile(ProductImageFile file)
     {
         if (file.Size > MaxFileSize)
